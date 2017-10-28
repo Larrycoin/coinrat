@@ -7,3 +7,6 @@
 > - Strategie obchodních modelů budou realizovány formou modulu přímo do nástroje. Mohou ale fungovat také tak, že budou volat API jiné služby/systému.
 > - Aplikace bude vizualizovat výslednou bilanci a průběh transakcí ve webovém rozhraní.
 > - Analýza a volba vhodných technologií je součástí práce.
+
+# Run
+* Backend: `cd backend && gunicorn coinrat:app`
