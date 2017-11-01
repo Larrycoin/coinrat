@@ -8,5 +8,12 @@
 > - Aplikace bude vizualizovat výslednou bilanci a průběh transakcí ve webovém rozhraní.
 > - Analýza a volba vhodných technologií je součástí práce.
 
+## Zadání semestrálky na MI-PYR
+> - Napojení na jednu burzu
+>   - Adapter na burzu je modul
+> - Startegie beží a děla obchody
+>   - Strategie je modul
+> - Vyzualizace transakcí na webovém rozhraní (API)
+
 # Run
 * Backend: `cd backend && gunicorn coinrat:app`
