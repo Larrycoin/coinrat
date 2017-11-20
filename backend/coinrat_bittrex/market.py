@@ -1,4 +1,4 @@
-import dateutil
+import dateutil.parser
 from typing import Dict, List
 from bittrex.bittrex import Bittrex, TICKINTERVAL_FIVEMIN, API_V2_0
 from decimal import Decimal

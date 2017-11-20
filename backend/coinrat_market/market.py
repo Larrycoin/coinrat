@@ -18,7 +18,7 @@ class Balance:
         return self._available_amount
 
     def __repr__(self):
-        return '{} {}'.format(self._available_amount, self._currency)
+        return '{0:.8f} {1}'.format(self._available_amount, self._currency)
 
 
 class Candle:
@@ -42,4 +42,4 @@ class Candle:
         return self._low
 
     def __repr__(self):
-        return '{} {} {}'.format(self._time, self._low, self._high)
+        return '{0} {1:.8f} {2:.8f}'.format(self._time.isoformat(), self._low, self._high)
