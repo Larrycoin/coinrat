@@ -106,3 +106,29 @@ class Order:
     @property
     def quantity(self) -> Decimal:
         return self._quantity
+
+
+class Market:
+    def transaction_fee_coefficient(self):
+        pass
+
+    def get_balance(self, currency: str):
+        pass
+
+    def get_last_ticker(self, currency: str) -> Candle:
+        pass
+
+    def create_sell_order(self, order: Order) -> str:
+        pass
+
+    def create_buy_order(self, order: Order) -> str:
+        pass
+
+    def cancel_order(self, order_id: str) -> None:
+        pass
+
+    def buy_max_available(self, pair: MarketPair) -> str:
+        pass
+
+    def sell_max_available(self, pair: MarketPair) -> str:
+        pass

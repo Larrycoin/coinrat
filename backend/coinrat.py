@@ -7,5 +7,5 @@ from coinrat_market import MarketPair
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-bitrex_market = BittrexMarket(os.environ.get('BITREX_KEY'), os.environ.get('BITREX_SECRET'))
+bitrex_market = bittrex_market_factory(os.environ.get('BITREX_KEY'), os.environ.get('BITREX_SECRET'))
 # print(bitrex_market.sell_max_available(MarketPair('USDT', 'BTC')))
