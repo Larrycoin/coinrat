@@ -14,10 +14,12 @@ class Balance:
         self._currency = currency
         self._available_amount = available_amount
 
-    def get_currency(self):
+    @property
+    def currency(self):
         return self._currency
 
-    def get_available_amount(self) -> Decimal:
+    @property
+    def available_amount(self) -> Decimal:
         return self._available_amount
 
     def __repr__(self):
@@ -25,7 +27,7 @@ class Balance:
 
 
 class Candle:
-    def __init__(self, time: datetime.time, bid_price: Decimal, ask_price: Decimal) -> None:
+    def __init__(self, time: datetime.datetime, bid_price: Decimal, ask_price: Decimal) -> None:
         """
         :param bid_price Buyers are willing to buy for such a price
         :param ask_price Sellers are asking for such a price
@@ -38,7 +40,7 @@ class Candle:
         self._ask_price = ask_price
 
     @property
-    def time(self) -> datetime.time:
+    def time(self) -> datetime.datetime:
         return self._time
 
     @property
@@ -48,6 +50,10 @@ class Candle:
     @property
     def ask_price(self) -> Decimal:
         return self._ask_price
+
+    @property
+    def average_price(self) -> Decimal:
+        return (self._bid_price + self._ask_price) / 2
 
     def __repr__(self):
         return '{0} {1:.8f} {2:.8f}'.format(self._time.isoformat(), self._bid_price, self._ask_price)
