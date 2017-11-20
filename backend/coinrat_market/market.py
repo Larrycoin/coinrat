@@ -1,11 +1,14 @@
 from decimal import Decimal
 
 import datetime
+from typing import Union
+
+ORDER_TYPE_LIMIT = 'limit'
+ORDER_TYPE_MARKET = 'market'
 
 
 class Balance:
     def __init__(self, currency: str, available_amount: Decimal) -> None:
-        super().__init__()
         assert isinstance(available_amount, Decimal)
 
         self._currency = currency
@@ -22,24 +25,78 @@ class Balance:
 
 
 class Candle:
-    def __init__(self, time: datetime.time, low: Decimal, high: Decimal) -> None:
-        super().__init__()
-
-        assert isinstance(high, Decimal)
-        assert isinstance(low, Decimal)
+    def __init__(self, time: datetime.time, bid_price: Decimal, ask_price: Decimal) -> None:
+        """
+        :param bid_price Buyers are willing to buy for such a price
+        :param ask_price Sellers are asking for such a price
+        """
+        assert isinstance(ask_price, Decimal)
+        assert isinstance(bid_price, Decimal)
 
         self._time = time
-        self._low = low
-        self._high = high
+        self._bid_price = bid_price
+        self._ask_price = ask_price
 
-    def get_time(self) -> datetime.time:
+    @property
+    def time(self) -> datetime.time:
         return self._time
 
-    def get_high(self) -> Decimal:
-        return self._high
+    @property
+    def bid_price(self) -> Decimal:
+        return self._bid_price
 
-    def get_low(self) -> Decimal:
-        return self._low
+    @property
+    def ask_price(self) -> Decimal:
+        return self._ask_price
 
     def __repr__(self):
-        return '{0} {1:.8f} {2:.8f}'.format(self._time.isoformat(), self._low, self._high)
+        return '{0} {1:.8f} {2:.8f}'.format(self._time.isoformat(), self._bid_price, self._ask_price)
+
+
+class MarketPair:
+    def __init__(self, left: str, right: str) -> None:
+        self._left = left
+        self._right = right
+
+    @property
+    def left(self) -> str:
+        return self._left
+
+    @property
+    def right(self) -> str:
+        return self._right
+
+    def __repr__(self):
+        return '{}-{}'.format(self._left, self._right)
+
+
+class Order:
+    def __init__(self, pair: MarketPair, order_type: str, quantity: Decimal, rate: Union[Decimal, None] = None) -> None:
+        assert order_type in [ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET]
+        assert isinstance(quantity, Decimal)
+
+        if order_type == ORDER_TYPE_LIMIT:
+            assert isinstance(rate, Decimal)
+        if order_type == ORDER_TYPE_MARKET:
+            assert rate is None
+
+        self._pair = pair
+        self._type = order_type
+        self._quantity = quantity
+        self._rate = rate
+
+    @property
+    def pair(self) -> MarketPair:
+        return self._pair
+
+    @property
+    def type(self) -> str:
+        return self._type
+
+    @property
+    def rate(self) -> Union[Decimal, None]:
+        return self._rate
+
+    @property
+    def quantity(self) -> Decimal:
+        return self._quantity
