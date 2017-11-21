@@ -5,7 +5,7 @@ from typing import Dict, List, Union
 from decimal import Decimal
 from requests import Session
 
-from market import MarketStateSynchronizer, MarketStorage, MarketPair, MinuteCandle
+from ..market import MarketStateSynchronizer, MarketStorage, MarketPair, MinuteCandle
 
 MINUTE_CANDLE_URL = 'https://min-api.cryptocompare.com/data/histominute?fsym={}&tsym={}&limit=1&aggregate=1&e={}'
 MARKET_MAP = {

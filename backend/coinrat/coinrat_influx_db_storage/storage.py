@@ -2,7 +2,7 @@ import logging
 from typing import List
 from influxdb import InfluxDBClient
 
-from market import MinuteCandle, MarketStorage
+from ..market import MinuteCandle, MarketStorage
 
 
 class MarketInnoDbStorage(MarketStorage):

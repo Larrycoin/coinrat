@@ -1,7 +1,6 @@
 import time
-from market import MarketStateSynchronizer, MarketStorage, MarketPair
-from coinrat_bittrex import BittrexMarket
-from coinrat_bittrex.market import MARKET_BITREX
+from ..market import MarketStateSynchronizer, MarketStorage, MarketPair
+from .market import MARKET_BITREX, BittrexMarket
 
 
 class BittrexSynchronizer(MarketStateSynchronizer):
