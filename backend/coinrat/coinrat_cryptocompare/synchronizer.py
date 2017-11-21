@@ -38,7 +38,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
             url = MINUTE_CANDLE_URL.format(pair.right, pair.left, MARKET_MAP[self._market_name])
             data = self.get_data_from_cryptocompare(url)
             candles_data: List[Dict] = data['Data']
-            self._storage.write_candles(self._market_name, list(map(self._create_candle_from_raw, candles_data)))
+            self._storage.write_candles(self._market_name, pair, list(map(self._create_candle_from_raw, candles_data)))
 
             if self._number_of_runs is not None:
                 self._number_of_runs -= 1

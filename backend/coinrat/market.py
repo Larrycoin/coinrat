@@ -80,6 +80,10 @@ class MinuteCandle:
 
 class MarketPair:
     def __init__(self, left: str, right: str) -> None:
+        assert left != 'USDT', \
+            'Some markets use USDT instead of USD, this is impl. detail of that market, use USD otherwise'
+        assert right not in ['USDT', 'USD'], 'This is probably error. Pairs are not usually represented in USD as right'
+
         self._left = left
         self._right = right
 
@@ -128,10 +132,10 @@ class Order:
 
 
 class MarketStorage:
-    def write_candle(self, market: str, candle: MinuteCandle) -> None:
+    def write_candle(self, market: str, pair: MarketPair, candle: MinuteCandle) -> None:
         pass
 
-    def write_candles(self, market: str, candles: List[MinuteCandle]) -> None:
+    def write_candles(self, market: str, pair: MarketPair, candles: List[MinuteCandle]) -> None:
         pass
 
 
