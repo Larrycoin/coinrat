@@ -2,7 +2,10 @@ import dateutil.parser
 from typing import Dict, List
 from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, ORDERTYPE_LIMIT, ORDERTYPE_MARKET, TICKINTERVAL_ONEMIN
 from decimal import Decimal
-from coinrat_market import Balance, MinuteCandle, Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, MarketPair, Market
+
+from coinrat.market import Market, Balance, MarketPair, MinuteCandle, Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT
+
+MARKET_BITREX = 'bitrex'
 
 
 class BittrexMarketRequestException(Exception):
@@ -13,9 +16,6 @@ class BittrexMarket(Market):
     def __init__(self, client_v1: Bittrex, client_v2: Bittrex):
         self._client_v1 = client_v1
         self._client_v2 = client_v2
-
-    def get_id(self) -> str:
-        return 'bittrex'
 
     @property
     def transaction_fee_coefficient(self) -> Decimal:
@@ -89,7 +89,7 @@ class BittrexMarket(Market):
         return result
 
     @staticmethod
-    def _create_candle_from_raw_ticker_data(candle: Dict[str]) -> MinuteCandle:
+    def _create_candle_from_raw_ticker_data(candle: Dict[str, str]) -> MinuteCandle:
         return MinuteCandle(
             dateutil.parser.parse(candle['T']),
             Decimal(candle['O']),

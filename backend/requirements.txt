@@ -4,6 +4,7 @@ click==6.7
 idna==2.6
 influxdb==5.0.0
 pkg-resources==0.0.0
+pytest-runner==3.0
 python-bittrex==0.2.0
 python-dateutil==2.6.1
 python-dotenv==0.7.1

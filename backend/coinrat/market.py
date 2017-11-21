@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 import datetime
-from typing import Union
+from typing import Union, List
 
 ORDER_TYPE_LIMIT = 'limit'
 ORDER_TYPE_MARKET = 'market'
@@ -27,20 +27,27 @@ class Balance:
 
 
 class MinuteCandle:
-    def __init__(self, time: datetime.datetime, open: Decimal, close: Decimal, low: Decimal, high: Decimal) -> None:
-        assert isinstance(open, Decimal)
-        assert isinstance(close, Decimal)
-        assert isinstance(low, Decimal)
-        assert isinstance(high, Decimal)
+    def __init__(
+        self,
+        time: datetime.datetime,
+        open_price: Decimal,
+        close_price: Decimal,
+        low_price: Decimal,
+        high_price: Decimal
+    ) -> None:
+        assert isinstance(open_price, Decimal)
+        assert isinstance(close_price, Decimal)
+        assert isinstance(low_price, Decimal)
+        assert isinstance(high_price, Decimal)
 
         assert time.second == 0
         assert time.microsecond == 0
 
         self._time = time
-        self._open = open
-        self._close = close
-        self._low = low
-        self._high = high
+        self._open = open_price
+        self._close = close_price
+        self._low = low_price
+        self._high = high_price
 
     @property
     def time(self) -> datetime.datetime:
@@ -120,17 +127,19 @@ class Order:
         return self._quantity
 
 
+class MarketStorage:
+    def write_candle(self, market: str, candle: MinuteCandle) -> None:
+        pass
+
+    def write_candles(self, market: str, candles: List[MinuteCandle]) -> None:
+        pass
+
+
 class Market:
     def transaction_fee_coefficient(self):
         pass
 
-    def get_id(self) -> str:
-        pass
-
     def get_balance(self, currency: str) -> Decimal:
-        pass
-
-    def get_last_candle(self, pair: MarketPair) -> MinuteCandle:
         pass
 
     def create_sell_order(self, order: Order) -> str:
@@ -146,4 +155,9 @@ class Market:
         pass
 
     def sell_max_available(self, pair: MarketPair) -> str:
+        pass
+
+
+class MarketStateSynchronizer:
+    def synchronize(self, pair: MarketPair) -> None:
         pass

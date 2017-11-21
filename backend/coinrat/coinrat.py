@@ -1,5 +1,4 @@
 import logging
-import os
 from os.path import join, dirname
 from typing import Tuple
 
@@ -8,10 +7,9 @@ import sys
 from click import Context
 from dotenv import load_dotenv
 
-from coinrat_market import MarketPair
-from coinrat_market_bittrex import bittrex_market_factory
-from market_storage import market_storage_factory
-from .market_synchronizer import MarketSynchronizer
+from coinrat.market import MarketPair
+from coinrat.synchronizer_factory import create_synchronizer
+from coinrat_influx_db_storage import market_storage_factory
 
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
@@ -22,22 +20,18 @@ load_dotenv(dotenv_path)
 @click.help_option()
 @click.pass_context
 def cli(ctx: Context) -> None:
-    ctx.obj['market_storage'] = market_storage_factory('coinrat')
+    ctx.obj['market_inno_db_storage'] = market_storage_factory('coinrat')
 
 
 @cli.command()
-@click.argument('market', nargs=1)
+@click.argument('market_name', nargs=1)
 @click.argument('pair', nargs=2)
 @click.pass_context
-def synchronize(ctx: Context, market: str, pair: Tuple[str, str]) -> None:
+def synchronize(ctx: Context, market_name: str, pair: Tuple[str, str]) -> None:
+    pair = MarketPair(pair[0], pair[1])
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-    if market == 'bittrex':
-        bitrex_market = bittrex_market_factory(os.environ.get('BITREX_KEY'), os.environ.get('BITREX_SECRET'))
-        synchronizer = MarketSynchronizer(ctx.obj['market_storage'], bitrex_market)
-        synchronizer.run(MarketPair(pair[0], pair[1]))
-
-    else:
-        raise Exception('Unknown market {}, not supported'.format(market))
+    synchronizer = create_synchronizer(market_name, ctx.obj['market_inno_db_storage'])
+    synchronizer.synchronize(pair)
 
 
 def main():

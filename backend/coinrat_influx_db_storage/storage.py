@@ -1,10 +1,11 @@
 import logging
 from typing import List
 from influxdb import InfluxDBClient
-from coinrat_market import MinuteCandle
+
+from coinrat.market import MinuteCandle, MarketStorage
 
 
-class MarketStorage:
+class MarketInnoDbStorage(MarketStorage):
     def __init__(self, influx_db_client: InfluxDBClient):
         self._client = influx_db_client
 
@@ -13,7 +14,8 @@ class MarketStorage:
 
     def write_candles(self, market: str, candles: List[MinuteCandle]) -> None:
         self._client.write_points([self._transform_into_raw_data(market, candle) for candle in candles])
-        logging.debug('Candles for "{}" inserted: [{}]'.format(market, ','.join(map(lambda c: c.time.isoformat(), candles))))
+        candles_time_marks = ','.join(map(lambda c: c.time.isoformat(), candles))
+        logging.debug('Candles for "{}" inserted: [{}]'.format(market, candles_time_marks))
 
     @staticmethod
     def _transform_into_raw_data(market: str, candle: MinuteCandle):
@@ -39,4 +41,4 @@ def market_storage_factory(
     user: str = 'root',
     password: str = 'root',
 ):
-    return MarketStorage(InfluxDBClient(host, port, user, password, database))
+    return MarketInnoDbStorage(InfluxDBClient(host, port, user, password, database))
