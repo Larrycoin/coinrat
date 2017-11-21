@@ -7,9 +7,9 @@ import sys
 from click import Context
 from dotenv import load_dotenv
 
-from coinrat.market import MarketPair
-from coinrat.synchronizer_factory import create_synchronizer
-from coinrat_influx_db_storage import market_storage_factory
+from .market import MarketPair
+from .synchronizer_factory import create_synchronizer
+from .coinrat_influx_db_storage import market_storage_factory
 
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)

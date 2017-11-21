@@ -30,5 +30,5 @@ setup(
         ],
     },
     setup_requires=['pytest-runner'],
-    tests_require=[], install_requires=['python-dateutil']
+    tests_require=['pytest', 'coinrat'],
 )

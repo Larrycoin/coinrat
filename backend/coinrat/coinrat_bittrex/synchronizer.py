@@ -1,5 +1,5 @@
 import time
-from coinrat.market import MarketStateSynchronizer, MarketStorage, MarketPair
+from market import MarketStateSynchronizer, MarketStorage, MarketPair
 from coinrat_bittrex import BittrexMarket
 from coinrat_bittrex.market import MARKET_BITREX
 
