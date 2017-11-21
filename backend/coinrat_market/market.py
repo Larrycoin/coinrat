@@ -26,12 +26,15 @@ class Balance:
         return '{0:.8f} {1}'.format(self._available_amount, self._currency)
 
 
-class Candle:
+class MinuteCandle:
     def __init__(self, time: datetime.datetime, open: Decimal, close: Decimal, low: Decimal, high: Decimal) -> None:
         assert isinstance(open, Decimal)
         assert isinstance(close, Decimal)
         assert isinstance(low, Decimal)
         assert isinstance(high, Decimal)
+
+        assert time.second == 0
+        assert time.microsecond == 0
 
         self._time = time
         self._open = open
@@ -121,10 +124,13 @@ class Market:
     def transaction_fee_coefficient(self):
         pass
 
-    def get_balance(self, currency: str):
+    def get_id(self) -> str:
         pass
 
-    def get_last_ticker(self, currency: str) -> Candle:
+    def get_balance(self, currency: str) -> Decimal:
+        pass
+
+    def get_last_candle(self, pair: MarketPair) -> MinuteCandle:
         pass
 
     def create_sell_order(self, order: Order) -> str:

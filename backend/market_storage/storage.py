@@ -1,22 +1,22 @@
+import logging
 from typing import List
-
 from influxdb import InfluxDBClient
-
-from coinrat_market import Candle
+from coinrat_market import MinuteCandle
 
 
 class MarketStorage:
     def __init__(self, influx_db_client: InfluxDBClient):
         self._client = influx_db_client
 
-    def write_candle(self, market: str, candle: Candle) -> None:
+    def write_candle(self, market: str, candle: MinuteCandle) -> None:
         self.write_candles(market, [candle])
 
-    def write_candles(self, market: str, candles: List[Candle]) -> None:
+    def write_candles(self, market: str, candles: List[MinuteCandle]) -> None:
         self._client.write_points([self._transform_into_raw_data(market, candle) for candle in candles])
+        logging.debug('Candles for "{}" inserted: [{}]'.format(market, ','.join(map(lambda c: c.time.isoformat(), candles))))
 
     @staticmethod
-    def _transform_into_raw_data(market: str, candle: Candle):
+    def _transform_into_raw_data(market: str, candle: MinuteCandle):
         return {
             "measurement": "candles",
             "tags": {

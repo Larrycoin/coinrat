@@ -24,6 +24,11 @@ setup(
         'Environment :: Web Environment',
     ],
     zip_safe=False,
+    entry_points={
+        'console_scripts': [
+            'coinrat = coinrat.coinrat:main',
+        ],
+    },
     setup_requires=['pytest-runner'],
     tests_require=[], install_requires=['python-dateutil']
 )
