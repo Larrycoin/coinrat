@@ -1,7 +1,7 @@
 import time
 from typing import Union
 
-from ..market import MarketStateSynchronizer, MarketStorage, MarketPair
+from ..domain import MarketStateSynchronizer, MarketsCandleStorage, MarketPair
 from .market import MARKET_BITREX, BittrexMarket
 
 
@@ -9,7 +9,7 @@ class BittrexSynchronizer(MarketStateSynchronizer):
     def __init__(
         self,
         market: BittrexMarket,
-        storage: MarketStorage,
+        storage: MarketsCandleStorage,
         delay: int = 30,
         number_of_runs: Union[int, None] = None
     ):

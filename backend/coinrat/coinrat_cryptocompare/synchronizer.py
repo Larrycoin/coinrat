@@ -5,7 +5,7 @@ from typing import Dict, List, Union
 from decimal import Decimal
 from requests import Session
 
-from ..market import MarketStateSynchronizer, MarketStorage, MarketPair, MinuteCandle
+from ..domain import MarketStateSynchronizer, MarketsCandleStorage, MarketPair, MinuteCandle
 
 MINUTE_CANDLE_URL = 'https://min-api.cryptocompare.com/data/histominute?fsym={}&tsym={}&limit=1&aggregate=1&e={}'
 MARKET_MAP = {
@@ -21,7 +21,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
     def __init__(
         self,
         market_name: str,
-        storage: MarketStorage,
+        storage: MarketsCandleStorage,
         session: Session,
         delay: int = 30,
         number_of_runs: Union[int, None] = None

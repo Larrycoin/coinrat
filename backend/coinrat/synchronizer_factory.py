@@ -2,12 +2,12 @@ import os
 
 import requests
 
-from .market import MarketStateSynchronizer, MarketStorage
+from .domain import MarketStateSynchronizer, MarketsCandleStorage
 from .coinrat_bittrex import bittrex_market_factory, BittrexSynchronizer
 from .coinrat_cryptocompare import CryptocompareSynchronizer
 
 
-def create_synchronizer(market_name: str, storage: MarketStorage) -> MarketStateSynchronizer:
+def create_synchronizer(market_name: str, storage: MarketsCandleStorage) -> MarketStateSynchronizer:
     if market_name == 'bittrex':
         bitrex_market = bittrex_market_factory(os.environ.get('BITREX_KEY'), os.environ.get('BITREX_SECRET'))
         return BittrexSynchronizer(bitrex_market, storage)

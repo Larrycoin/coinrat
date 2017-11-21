@@ -3,7 +3,7 @@ from typing import Dict, List
 from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, ORDERTYPE_LIMIT, ORDERTYPE_MARKET, TICKINTERVAL_ONEMIN
 from decimal import Decimal
 
-from ..market import Market, Balance, MarketPair, MinuteCandle, Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT
+from ..domain import Market, Balance, MarketPair, MinuteCandle, Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT
 
 MARKET_BITREX = 'bitrex'
 
@@ -25,7 +25,7 @@ class BittrexMarket(Market):
         result = self._client_v2.get_balance(currency)
         self._validate_result(result)
 
-        return Balance(currency, Decimal(result['result']['Available']))
+        return Balance(MARKET_BITREX, currency, Decimal(result['result']['Available']))
 
     def get_last_candle(self, pair: MarketPair) -> MinuteCandle:
         result = self._get_sorted_candles_from_api(pair)

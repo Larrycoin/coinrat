@@ -1,18 +1,27 @@
 from decimal import Decimal
 
 import datetime
-from typing import Union, List
+from typing import Union, List, Tuple
 
 ORDER_TYPE_LIMIT = 'limit'
 ORDER_TYPE_MARKET = 'market'
 
 
 class Balance:
-    def __init__(self, currency: str, available_amount: Decimal) -> None:
+    """
+    Amount of given Currency available on the given Market.
+    """
+
+    def __init__(self, market_name: str, currency: str, available_amount: Decimal) -> None:
         assert isinstance(available_amount, Decimal)
 
+        self._market_name = market_name
         self._currency = currency
         self._available_amount = available_amount
+
+    @property
+    def market_name(self):
+        return self._market_name
 
     @property
     def currency(self):
@@ -131,11 +140,26 @@ class Order:
         return self._quantity
 
 
-class MarketStorage:
+CANDLE_STORAGE_FIELD_OPEN = 'open'
+CANDLE_STORAGE_FIELD_CLOSE = 'close'
+CANDLE_STORAGE_FIELD_LOW = 'low'
+CANDLE_STORAGE_FIELD_HIGH = 'high'
+
+
+class MarketsCandleStorage:
     def write_candle(self, market: str, pair: MarketPair, candle: MinuteCandle) -> None:
         pass
 
     def write_candles(self, market: str, pair: MarketPair, candles: List[MinuteCandle]) -> None:
+        pass
+
+    def mean(
+        self,
+        market: str,
+        pair: MarketPair,
+        field: str,
+        interval: Tuple[datetime.datetime, datetime.datetime]
+    ) -> Decimal:
         pass
 
 
@@ -165,3 +189,14 @@ class Market:
 class MarketStateSynchronizer:
     def synchronize(self, pair: MarketPair) -> None:
         pass
+
+
+class Signal:
+    """
+    Term used to describe point of view on the situation the market which is imperative to action (sell or buy)
+    """
+    pass
+
+
+class Strategy:
+    pass
