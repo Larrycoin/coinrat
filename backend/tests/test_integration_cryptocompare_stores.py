@@ -1,7 +1,6 @@
 import pytest
 import requests
 from influxdb import InfluxDBClient
-from influxdb.resultset import ResultSet
 
 from coinrat_cryptocompare import CryptocompareSynchronizer
 from coinrat_influx_db_storage import MarketInnoDbStorage
