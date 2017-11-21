@@ -27,36 +27,45 @@ class Balance:
 
 
 class Candle:
-    def __init__(self, time: datetime.datetime, bid_price: Decimal, ask_price: Decimal) -> None:
-        """
-        :param bid_price Buyers are willing to buy for such a price
-        :param ask_price Sellers are asking for such a price
-        """
-        assert isinstance(ask_price, Decimal)
-        assert isinstance(bid_price, Decimal)
+    def __init__(self, time: datetime.datetime, open: Decimal, close: Decimal, low: Decimal, high: Decimal) -> None:
+        assert isinstance(open, Decimal)
+        assert isinstance(close, Decimal)
+        assert isinstance(low, Decimal)
+        assert isinstance(high, Decimal)
 
         self._time = time
-        self._bid_price = bid_price
-        self._ask_price = ask_price
+        self._open = open
+        self._close = close
+        self._low = low
+        self._high = high
 
     @property
     def time(self) -> datetime.datetime:
         return self._time
 
     @property
-    def bid_price(self) -> Decimal:
-        return self._bid_price
+    def open(self) -> Decimal:
+        return self._open
 
     @property
-    def ask_price(self) -> Decimal:
-        return self._ask_price
+    def close(self) -> Decimal:
+        return self._close
+
+    @property
+    def low(self) -> Decimal:
+        return self._low
+
+    @property
+    def high(self) -> Decimal:
+        return self._high
 
     @property
     def average_price(self) -> Decimal:
-        return (self._bid_price + self._ask_price) / 2
+        return (self._low + self._high) / 2
 
     def __repr__(self):
-        return '{0} {1:.8f} {2:.8f}'.format(self._time.isoformat(), self._bid_price, self._ask_price)
+        return '{0} O:{1:.8f} C:{2:.8f} L:{3:.8f} H:{2:.8f}' \
+            .format(self._time.isoformat(), self._open, self._close, self._low, self._high)
 
 
 class MarketPair:

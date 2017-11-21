@@ -1,3 +1,3 @@
-from .market import bittrex_market_factory
+from .market import bittrex_market_factory, BittrexMarket, MARKET_BITTREX
 
-__all__ = ['bittrex_market_factory']
+__all__ = ['bittrex_market_factory', 'BittrexMarket', 'MARKET_BITTREX']

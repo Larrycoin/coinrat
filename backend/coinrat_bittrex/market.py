@@ -1,8 +1,11 @@
 import datetime
-from typing import Dict
+import dateutil.parser
+from typing import Dict, List
 from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, ORDERTYPE_LIMIT, ORDERTYPE_MARKET, TICKINTERVAL_ONEMIN
 from decimal import Decimal
 from coinrat_market import Balance, Candle, Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, MarketPair, Market
+
+MARKET_BITTREX = 'bittrex'
 
 
 class BittrexMarketRequestException(Exception):
@@ -10,12 +13,9 @@ class BittrexMarketRequestException(Exception):
 
 
 class BittrexMarket(Market):
-    def __init__(self, key: str, secret: str):
-        assert key is not None and len(key) > 0
-        assert secret is not None and len(secret) > 0
-
-        self._client_v1 = Bittrex(key, secret, api_version=API_V1_1)
-        self._client_v2 = Bittrex(key, secret, api_version=API_V2_0)
+    def __init__(self, client_v1: Bittrex, client_v2: Bittrex):
+        self._client_v1 = client_v1
+        self._client_v2 = client_v2
 
     @property
     def transaction_fee_coefficient(self):
@@ -27,11 +27,34 @@ class BittrexMarket(Market):
 
         return Balance(currency, Decimal(result['result']['Available']))
 
-    def get_last_ticker(self, currency: str) -> Candle:
-        result = self._client_v1.get_ticker(currency)
+    def get_last_ticker(self, pair: MarketPair) -> Candle:
+        market = self.format_market_pair(pair)
+        result = self._client_v2.get_candles(market, TICKINTERVAL_ONEMIN)
         self._validate_result(result)
 
-        return Candle(datetime.datetime.now(), Decimal(result['result']['Bid']), Decimal(result['result']['Ask']))
+        last_candle = result['result'][-1]
+
+        return Candle(
+            dateutil.parser.parse(last_candle['T']),
+            Decimal(last_candle['O']),
+            Decimal(last_candle['C']),
+            Decimal(last_candle['L']),
+            Decimal(last_candle['H']),
+        )
+
+    def get_candles(self, pair: MarketPair) -> List[Candle]:
+        market = self.format_market_pair(pair)
+        result = self._client_v2.get_candles(market, TICKINTERVAL_ONEMIN)
+        self._validate_result(result)
+
+        for candle in result['result']:
+            yield Candle(
+                dateutil.parser.parse(candle['T']),
+                Decimal(candle['O']),
+                Decimal(candle['C']),
+                Decimal(candle['L']),
+                Decimal(candle['H']),
+            )
 
     def create_sell_order(self, order: Order) -> str:
         market = self.format_market_pair(order.pair)

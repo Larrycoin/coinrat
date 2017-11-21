@@ -5,3 +5,12 @@ Coinrat
 =======
 
 Modular auto-trading crypto-currency platform.
+
+Installation
+============
+
+InfluxDb (Ubuntu/Debian):
+* https://portal.influxdata.com/downloads#influxdb and https://github.com/influxdata/influxdb
+* Start fb: ``sudo service influxdb start``
+* ``curl -XPOST "http://localhost:8086/query" --data-urlencode "q=CREATE DATABASE coinrat"``
+
