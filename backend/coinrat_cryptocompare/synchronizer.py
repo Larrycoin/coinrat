@@ -34,11 +34,11 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
 
     def synchronize(self, pair: MarketPair) -> None:
         while self._number_of_runs is None or self._number_of_runs > 0:
-
             url = MINUTE_CANDLE_URL.format(pair.right, pair.left, MARKET_MAP[self._market_name])
             data = self.get_data_from_cryptocompare(url)
             candles_data: List[Dict] = data['Data']
-            self._storage.write_candles(self._market_name, pair, list(map(self._create_candle_from_raw, candles_data)))
+            candles = [self._create_candle_from_raw(pair, candle) for candle in candles_data]
+            self._storage.write_candles(candles)
 
             if self._number_of_runs is not None:
                 self._number_of_runs -= 1
@@ -55,9 +55,10 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
 
         return response
 
-    @staticmethod
-    def _create_candle_from_raw(candles_data: Dict) -> MinuteCandle:
+    def _create_candle_from_raw(self, pair: MarketPair, candles_data: Dict) -> MinuteCandle:
         return MinuteCandle(
+            self._market_name,
+            pair,
             datetime.fromtimestamp(candles_data['time']).astimezone(timezone.utc),
             Decimal(candles_data['open']),
             Decimal(candles_data['close']),

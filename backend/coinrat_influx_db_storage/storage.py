@@ -14,13 +14,15 @@ class MarketInnoDbStorage(MarketsCandleStorage):
     def __init__(self, influx_db_client: InfluxDBClient):
         self._client = influx_db_client
 
-    def write_candle(self, market: str, pair: MarketPair, candle: MinuteCandle) -> None:
-        self.write_candles(market, pair, [candle])
+    def write_candle(self, candle: MinuteCandle) -> None:
+        self.write_candles([candle])
 
-    def write_candles(self, market: str, pair: MarketPair, candles: List[MinuteCandle]) -> None:
-        self._client.write_points([self._transform_into_raw_data(market, pair, candle) for candle in candles])
+    def write_candles(self, candles: List[MinuteCandle]) -> None:
+        if len(candles) == 0:
+            return
+        self._client.write_points([self._transform_into_raw_data(candle) for candle in candles])
         candles_time_marks = ','.join(map(lambda c: c.time.isoformat(), candles))
-        logging.debug('Candles for "{}" inserted: [{}]'.format(market, candles_time_marks))
+        logging.debug('Candles for "{}" inserted: [{}]'.format(candles[0].market_name, candles_time_marks))
 
     def mean(
         self,
@@ -46,12 +48,12 @@ class MarketInnoDbStorage(MarketsCandleStorage):
         print(list(result.get_points()))
 
     @staticmethod
-    def _transform_into_raw_data(market: str, pair: MarketPair, candle: MinuteCandle):
+    def _transform_into_raw_data(candle: MinuteCandle):
         return {
             "measurement": "candles",
             "tags": {
-                "market": market,
-                "pair": MarketInnoDbStorage._create_pair_identifier(pair),
+                "market": candle.market_name,
+                "pair": MarketInnoDbStorage._create_pair_identifier(candle.pair),
             },
             "time": candle.time.isoformat(),
             "fields": {

@@ -2,7 +2,7 @@ import time
 from typing import Union
 
 from coinrat.domain import MarketStateSynchronizer, MarketsCandleStorage, MarketPair
-from .market import MARKET_BITREX, BittrexMarket
+from .market import BittrexMarket
 
 
 class BittrexSynchronizer(MarketStateSynchronizer):
@@ -22,7 +22,7 @@ class BittrexSynchronizer(MarketStateSynchronizer):
         while self._number_of_runs is None or self._number_of_runs > 0:
 
             candle = self._market.get_last_candle(pair)
-            self._storage.write_candle(MARKET_BITREX, pair, candle)
+            self._storage.write_candle(candle)
 
             if self._number_of_runs is not None:
                 self._number_of_runs -= 1

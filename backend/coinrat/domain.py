@@ -35,9 +35,32 @@ class Balance:
         return '{0:.8f} {1}'.format(self._available_amount, self._currency)
 
 
+class MarketPair:
+    def __init__(self, left: str, right: str) -> None:
+        assert left != 'USDT', \
+            'Some markets use USDT instead of USD, this is impl. detail of that market, use USD otherwise'
+        assert right not in ['USDT', 'USD'], 'This is probably error. Pairs are not usually represented in USD as right'
+
+        self._left = left
+        self._right = right
+
+    @property
+    def left(self) -> str:
+        return self._left
+
+    @property
+    def right(self) -> str:
+        return self._right
+
+    def __repr__(self):
+        return '{}-{}'.format(self._left, self._right)
+
+
 class MinuteCandle:
     def __init__(
         self,
+        market_name: str,
+        pair: MarketPair,
         time: datetime.datetime,
         open_price: Decimal,
         close_price: Decimal,
@@ -52,11 +75,21 @@ class MinuteCandle:
         assert time.second == 0
         assert time.microsecond == 0
 
+        self._market_name = market_name
+        self._pair = pair
         self._time = time
         self._open = open_price
         self._close = close_price
         self._low = low_price
         self._high = high_price
+
+    @property
+    def pair(self) -> MarketPair:
+        return self._pair
+
+    @property
+    def market_name(self) -> str:
+        return self._market_name
 
     @property
     def time(self) -> datetime.datetime:
@@ -85,27 +118,6 @@ class MinuteCandle:
     def __repr__(self):
         return '{0} O:{1:.8f} C:{2:.8f} L:{3:.8f} H:{2:.8f}' \
             .format(self._time.isoformat(), self._open, self._close, self._low, self._high)
-
-
-class MarketPair:
-    def __init__(self, left: str, right: str) -> None:
-        assert left != 'USDT', \
-            'Some markets use USDT instead of USD, this is impl. detail of that market, use USD otherwise'
-        assert right not in ['USDT', 'USD'], 'This is probably error. Pairs are not usually represented in USD as right'
-
-        self._left = left
-        self._right = right
-
-    @property
-    def left(self) -> str:
-        return self._left
-
-    @property
-    def right(self) -> str:
-        return self._right
-
-    def __repr__(self):
-        return '{}-{}'.format(self._left, self._right)
 
 
 class Order:
@@ -147,10 +159,10 @@ CANDLE_STORAGE_FIELD_HIGH = 'high'
 
 
 class MarketsCandleStorage:
-    def write_candle(self, market: str, pair: MarketPair, candle: MinuteCandle) -> None:
+    def write_candle(self, candle: MinuteCandle) -> None:
         pass
 
-    def write_candles(self, market: str, pair: MarketPair, candles: List[MinuteCandle]) -> None:
+    def write_candles(self, candles: List[MinuteCandle]) -> None:
         pass
 
     def mean(

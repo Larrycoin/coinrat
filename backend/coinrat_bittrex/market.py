@@ -5,17 +5,16 @@ from decimal import Decimal
 
 from coinrat.domain import Market, Balance, MarketPair, MinuteCandle, Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT
 
-MARKET_BITREX = 'bitrex'
-
 
 class BittrexMarketRequestException(Exception):
     pass
 
 
 class BittrexMarket(Market):
-    def __init__(self, client_v1: Bittrex, client_v2: Bittrex):
+    def __init__(self, client_v1: Bittrex, client_v2: Bittrex, market_name: str = 'bittrex'):
         self._client_v1 = client_v1
         self._client_v2 = client_v2
+        self._market_name = market_name
 
     @property
     def transaction_fee_coefficient(self) -> Decimal:
@@ -25,16 +24,16 @@ class BittrexMarket(Market):
         result = self._client_v2.get_balance(currency)
         self._validate_result(result)
 
-        return Balance(MARKET_BITREX, currency, Decimal(result['result']['Available']))
+        return Balance(self._market_name, currency, Decimal(result['result']['Available']))
 
     def get_last_candle(self, pair: MarketPair) -> MinuteCandle:
         result = self._get_sorted_candles_from_api(pair)
-        return self._create_candle_from_raw_ticker_data(result[-1])
+        return self._create_candle_from_raw_ticker_data(pair, result[-1])
 
     def get_candles(self, pair: MarketPair) -> List[MinuteCandle]:
         result = self._get_sorted_candles_from_api(pair)
-        for candle in result['result']:
-            yield self._create_candle_from_raw_ticker_data(candle)
+        for candle_data in result['result']:
+            yield self._create_candle_from_raw_ticker_data(pair, candle_data)
 
     def create_sell_order(self, order: Order) -> str:
         market = self.format_market_pair(order.pair)
@@ -88,9 +87,10 @@ class BittrexMarket(Market):
         result.sort(key=lambda candle: candle['T'])
         return result
 
-    @staticmethod
-    def _create_candle_from_raw_ticker_data(candle: Dict[str, str]) -> MinuteCandle:
+    def _create_candle_from_raw_ticker_data(self, pair: MarketPair, candle: Dict[str, str]) -> MinuteCandle:
         return MinuteCandle(
+            self._market_name,
+            pair,
             dateutil.parser.parse(candle['T']),
             Decimal(candle['O']),
             Decimal(candle['C']),
@@ -100,7 +100,7 @@ class BittrexMarket(Market):
 
     @staticmethod
     def format_market_pair(pair: MarketPair):
-        return '{}-{}'.format(pair.left, pair.right)
+        return '{}-{}'.format('USDT' if pair.left == 'USD' else pair.left, pair.right)
 
     @staticmethod
     def _validate_result(result: Dict):

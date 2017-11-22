@@ -35,6 +35,7 @@ setup(
             'coinrat_influx_db_storage = coinrat_influx_db_storage:storage_plugin',
         ],
         'coinrat_synchronizer_plugins': [
+            'coinrat_bittrex = coinrat_bittrex:synchronizer_plugin',
             'coinrat_cryptocompare = coinrat_cryptocompare:synchronizer_plugin',
         ],
     },
