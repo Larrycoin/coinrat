@@ -28,8 +28,14 @@ setup(
         'console_scripts': [
             'coinrat = coinrat.coinrat:main',
         ],
-        'coinrat_plugins': [
-            'bittrex = coinrat_bittrex.plugin',
+        'coinrat_market_plugins': [
+            'coinrat_bittrex = coinrat_bittrex:market_plugin',
+        ],
+        'coinrat_storage_plugins': [
+            'coinrat_influx_db_storage = coinrat_influx_db_storage:storage_plugin',
+        ],
+        'coinrat_synchronizer_plugins': [
+            'coinrat_cryptocompare = coinrat_cryptocompare:synchronizer_plugin',
         ],
     },
     setup_requires=['pytest-runner'],

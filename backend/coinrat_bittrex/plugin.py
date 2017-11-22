@@ -1,38 +1,28 @@
 import os
 import pluggy
-from typing import Dict
-from coinrat.domain import Plugin, Market, Strategy, MarketsCandleStorage
-
-from .synchronizer import BittrexSynchronizer
+from coinrat.market_plugins import MarketPluginSpecification
 from .market import bittrex_market_factory, MARKET_BITREX
 
-name = pluggy.HookspecMarker('coinrat')
-markets = pluggy.HookspecMarker('coinrat')
-strategies = pluggy.HookspecMarker('coinrat')
-storages = pluggy.HookspecMarker('coinrat')
-synchronizers = pluggy.HookspecMarker('coinrat')
+get_name_impl = pluggy.HookimplMarker('market_plugins')
+get_available_markets_spec = pluggy.HookimplMarker('market_plugins')
+get_market_impl = pluggy.HookimplMarker('market_plugins')
 
 
-class CoinRatBittrexPlugin(Plugin):
-    def __init__(self) -> None:
-        self._market = bittrex_market_factory(os.environ.get('BITREX_KEY'), os.environ.get('BITREX_SECRET'))
-
-    @name
-    def get_name(self) -> str:
+class MarketPlugin(MarketPluginSpecification):
+    @get_name_impl
+    def get_name(self):
         return 'bittrex'
 
-    @markets
-    def get_markets(self) -> Dict[str, Market]:
-        return {MARKET_BITREX: self._market}
+    @get_available_markets_spec
+    def get_available_markets(self):
+        return ['bittrex']
 
-    @strategies
-    def get_strategies(self) -> Dict[str, Strategy]:
-        pass
+    @get_market_impl
+    def get_market(self, name):
+        if name == MARKET_BITREX:
+            return bittrex_market_factory(os.environ.get('BITREX_KEY'), os.environ.get('BITREX_SECRET'))
 
-    @storages
-    def get_storages(self) -> Dict[str, MarketsCandleStorage]:
-        pass
+        raise ValueError('Market "{}" not supported by this plugin.'.format(name))
 
-    @synchronizers
-    def get_synchronizers(self) -> Dict[str, MarketsCandleStorage]:
-        return {BittrexSynchronizer(self._market, storage)}
+
+market_plugin = MarketPlugin()

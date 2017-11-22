@@ -29,17 +29,17 @@ class MarketNotProvidedByAnyPluginException(Exception):
 
 class MarketPlugins:
     def __init__(self):
-        storage_plugins = pluggy.PluginManager('market_plugins')
-        storage_plugins.add_hookspecs(MarketPluginSpecification)
-        storage_plugins.load_setuptools_entrypoints('coinrat_market_plugins')
-        self._plugins: Set[MarketPluginSpecification] = storage_plugins.get_plugins()
+        market_plugins = pluggy.PluginManager('market_plugins')
+        market_plugins.add_hookspecs(MarketPluginSpecification)
+        market_plugins.load_setuptools_entrypoints('coinrat_market_plugins')
+        self._plugins: Set[MarketPluginSpecification] = market_plugins.get_plugins()
 
-    def get_available_storages(self) -> List[str]:
-        return [storage_name for plugin in self._plugins for storage_name in plugin.get_available_markets]
+    def get_available_markets(self) -> List[str]:
+        return [market_name for plugin in self._plugins for market_name in plugin.get_available_markets]
 
     def get_storage(self, name: str) -> Market:
         for plugin in self._plugins:
             if name in plugin.get_available_markets():
                 return plugin.get_market(name)
 
-        raise MarketNotProvidedByAnyPluginException('Market {} not found.'.format(name))
+        raise MarketNotProvidedByAnyPluginException('Market "{}" not found.'.format(name))

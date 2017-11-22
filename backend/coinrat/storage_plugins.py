@@ -9,17 +9,19 @@ get_available_storages_spec = pluggy.HookspecMarker('storage_plugins')
 get_storage_spec = pluggy.HookspecMarker('storage_plugins')
 
 
+# Todo: solve, adding type-hints raised error:
+#   "ValueError: Function has keyword-only parameters or annotations, use getfullargspec() API which can support them"
 class StoragePluginSpecification:
     @get_name_spec
-    def get_name(self) -> str:
+    def get_name(self):
         pass
 
     @get_available_storages_spec
-    def get_available_storages(self, name: str) -> List[str]:
+    def get_available_storages(self, name):
         pass
 
     @get_storage_spec
-    def get_storage(self, name: str) -> MarketsCandleStorage:
+    def get_storage(self, name):
         pass
 
 
@@ -42,4 +44,4 @@ class StoragePlugins:
             if name in plugin.get_available_storages():
                 return plugin.get_storage(name)
 
-        raise StorageNotProvidedByAnyPluginException('Storage {} not found.'.format(name))
+        raise StorageNotProvidedByAnyPluginException('Storage "{}" not found.'.format(name))

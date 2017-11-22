@@ -29,13 +29,13 @@ def cli(ctx: Context) -> None:
 
 
 @cli.command()
-@click.argument('synchronizer', nargs=1)
+@click.argument('synchronizer_name', nargs=1)
 @click.argument('pair', nargs=2)
 @click.pass_context
 def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str]) -> None:
     pair = MarketPair(pair[0], pair[1])
 
-    synchronizer = synchronizer_plugins.get_synchronizer(synchronizer_name)
+    synchronizer = synchronizer_plugins.get_synchronizer(synchronizer_name, ctx.obj['market_inno_db_storage'])
     synchronizer.synchronize(pair)
 
 
