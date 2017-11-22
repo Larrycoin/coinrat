@@ -1,7 +1,7 @@
 import time
 from typing import Union
 
-from ..domain import MarketStateSynchronizer, MarketsCandleStorage, MarketPair
+from coinrat.domain import MarketStateSynchronizer, MarketsCandleStorage, MarketPair
 from .market import MARKET_BITREX, BittrexMarket
 
 

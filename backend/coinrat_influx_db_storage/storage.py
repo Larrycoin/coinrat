@@ -6,7 +6,7 @@ from decimal import Decimal
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
-from ..domain import MinuteCandle, MarketsCandleStorage, MarketPair, CANDLE_STORAGE_FIELD_HIGH, \
+from coinrat.domain import MinuteCandle, MarketsCandleStorage, MarketPair, CANDLE_STORAGE_FIELD_HIGH, \
     CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW
 
 
@@ -41,6 +41,7 @@ class MarketInnoDbStorage(MarketsCandleStorage):
             market_name,
             field
         )
+        print(sql)
         result: ResultSet = self._client.query(sql)
         print(list(result.get_points()))
 

@@ -1,7 +1,7 @@
 import datetime, time
 from typing import Union
 
-from ..domain import Strategy, MarketsCandleStorage, Signal, MarketPair
+from coinrat.domain import Strategy, MarketsCandleStorage, Signal, MarketPair
 
 DOUBLE_CROSSOVER_STRATEGY = 'double_crossover'
 
@@ -43,7 +43,7 @@ class DoubleCrossoverStrategy(Strategy):
             time.sleep(self._delay)
 
     def _check_for_signal(self) -> Union[Signal, None]:
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         long_interval = (now - self._long_average_interval, now)
         long_average = self._storage.mean(self._market_name, self._pair, 'closed', long_interval)
         print(long_average)

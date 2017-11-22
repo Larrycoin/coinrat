@@ -1,11 +1,11 @@
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Union
 
 from decimal import Decimal
 from requests import Session
 
-from ..domain import MarketStateSynchronizer, MarketsCandleStorage, MarketPair, MinuteCandle
+from coinrat.domain import MarketStateSynchronizer, MarketsCandleStorage, MarketPair, MinuteCandle
 
 MINUTE_CANDLE_URL = 'https://min-api.cryptocompare.com/data/histominute?fsym={}&tsym={}&limit=1&aggregate=1&e={}'
 MARKET_MAP = {
@@ -58,7 +58,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
     @staticmethod
     def _create_candle_from_raw(candles_data: Dict) -> MinuteCandle:
         return MinuteCandle(
-            datetime.fromtimestamp(candles_data['time']),
+            datetime.fromtimestamp(candles_data['time']).astimezone(timezone.utc),
             Decimal(candles_data['open']),
             Decimal(candles_data['close']),
             Decimal(candles_data['low']),

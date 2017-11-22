@@ -28,6 +28,9 @@ setup(
         'console_scripts': [
             'coinrat = coinrat.coinrat:main',
         ],
+        'coinrat_plugins': [
+            'bittrex = coinrat_bittrex.plugin',
+        ],
     },
     setup_requires=['pytest-runner'],
     tests_require=['pytest', 'coinrat'],
