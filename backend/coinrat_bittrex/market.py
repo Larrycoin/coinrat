@@ -1,3 +1,4 @@
+import datetime
 import dateutil.parser
 from typing import Dict, List
 from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, ORDERTYPE_LIMIT, ORDERTYPE_MARKET, TICKINTERVAL_ONEMIN
@@ -91,7 +92,7 @@ class BittrexMarket(Market):
         return MinuteCandle(
             self._market_name,
             pair,
-            dateutil.parser.parse(candle['T']),
+            dateutil.parser.parse(candle['T']).astimezone(datetime.timezone.utc),
             Decimal(candle['O']),
             Decimal(candle['C']),
             Decimal(candle['L']),

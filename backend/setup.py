@@ -10,8 +10,8 @@ setup(
     long_description=long_description,
     author='Petr Hejna',
     author_email='hejna.peter@gmail.com',
-    keywords='cryptocurency,crypto,bitcoin,trading,autotrading,tradingbot',
-    license='MIT',
+    keywords='crypto-currency,crypto,bitcoin,trading,auto-trading,trading-bot',
+    license='proprietary',
     url='https://github.com/achse/coinrat',
     packages=find_packages(),
     classifiers=[
@@ -37,6 +37,9 @@ setup(
         'coinrat_synchronizer_plugins': [
             'coinrat_bittrex = coinrat_bittrex:synchronizer_plugin',
             'coinrat_cryptocompare = coinrat_cryptocompare:synchronizer_plugin',
+        ],
+        'coinrat_strategy_plugins': [
+            'coinrat_double_crossover_strategy = coinrat_double_crossover_strategy:strategy_plugin',
         ],
     },
     setup_requires=['pytest-runner'],

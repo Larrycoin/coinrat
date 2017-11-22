@@ -75,6 +75,9 @@ class MinuteCandle:
         assert time.second == 0
         assert time.microsecond == 0
 
+        assert '+00:00' in time.isoformat()[-6:], \
+            ('Time must be in UTC and aware of its timezone ({})'.format(time.isoformat()))
+
         self._market_name = market_name
         self._pair = pair
         self._time = time
@@ -160,10 +163,10 @@ CANDLE_STORAGE_FIELD_HIGH = 'high'
 
 class MarketsCandleStorage:
     def write_candle(self, candle: MinuteCandle) -> None:
-        pass
+        raise NotImplementedError()
 
     def write_candles(self, candles: List[MinuteCandle]) -> None:
-        pass
+        raise NotImplementedError()
 
     def mean(
         self,
@@ -172,43 +175,44 @@ class MarketsCandleStorage:
         field: str,
         interval: Tuple[datetime.datetime, datetime.datetime]
     ) -> Decimal:
-        pass
+        raise NotImplementedError()
 
 
 class Market:
     def transaction_fee_coefficient(self):
-        pass
+        raise NotImplementedError()
 
     def get_balance(self, currency: str) -> Decimal:
-        pass
+        raise NotImplementedError()
 
     def create_sell_order(self, order: Order) -> str:
-        pass
+        raise NotImplementedError()
 
     def create_buy_order(self, order: Order) -> str:
-        pass
+        raise NotImplementedError()
 
     def cancel_order(self, order_id: str) -> None:
-        pass
+        raise NotImplementedError()
 
     def buy_max_available(self, pair: MarketPair) -> str:
-        pass
+        raise NotImplementedError()
 
     def sell_max_available(self, pair: MarketPair) -> str:
-        pass
+        raise NotImplementedError()
 
 
 class MarketStateSynchronizer:
     def synchronize(self, pair: MarketPair) -> None:
-        pass
+        raise NotImplementedError()
 
 
 class Signal:
     """
     Term used to describe point of view on the situation the market which is imperative to action (sell or buy)
     """
-    pass
+    pass  # Todo: implement
 
 
 class Strategy:
-    pass
+    def run(self):
+        raise NotImplementedError()

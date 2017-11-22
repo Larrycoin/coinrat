@@ -31,6 +31,11 @@ class MarketInnoDbStorage(MarketsCandleStorage):
         field: str,
         interval: Tuple[datetime.datetime, datetime.datetime]
     ) -> Decimal:
+        assert '+00:00' in interval[0].isoformat()[-6:], \
+            ('Time must be in UTC and aware of its timezone ({})'.format(interval[0].isoformat()))
+        assert '+00:00' in interval[0].isoformat()[-6:], \
+            ('Time must be in UTC and aware of its timezone ({})'.format(interval[1].isoformat()))
+
         sql = '''
             SELECT MEAN("{}") AS field_mean 
             FROM "candles" WHERE "time" > {} AND "time" < {} AND "pair"='{}' AND "market"='{}' 

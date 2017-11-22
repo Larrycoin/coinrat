@@ -1,14 +1,15 @@
 import logging
 import click
 import sys
-from typing import Tuple, Set
+from typing import Tuple
 from os.path import join, dirname
 
 from click import Context
 from dotenv import load_dotenv
 
-from .synchronizer_plugins import SynchronizerPlugins
 from .storage_plugins import StoragePlugins
+from .synchronizer_plugins import SynchronizerPlugins
+from .strategy_plugins import StrategyPlugins
 from .domain import MarketPair
 
 dotenv_path = join(dirname(__file__), '.env')
@@ -18,6 +19,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 storage_plugins = StoragePlugins()
 synchronizer_plugins = SynchronizerPlugins()
+strategy_plugins = StrategyPlugins()
 
 
 @click.group('coinrat')
@@ -41,24 +43,10 @@ def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str]) -> 
 
 @cli.command()
 @click.argument('strategy_name', nargs=1)
-@click.argument('market_name', nargs=1)  # Todo: strategy in the future is not bound to one market
-@click.argument('pair', nargs=2)  # Todo: strategy in the future is not bound to one pair
 @click.pass_context
-def run_strategy(ctx: Context, strategy_name: str, market_name: str, pair: Tuple[str, str]) -> None:
-    pair = MarketPair(pair[0], pair[1])
-
-    # if strategy_name == DOUBLE_CROSSOVER_STRATEGY:
-    #     strategy = DoubleCrossoverStrategy(
-    #         market_name,
-    #         pair,
-    #         ctx.obj['market_inno_db_storage'],
-    #         datetime.timedelta(hours=1),
-    #         datetime.timedelta(minutes=15)
-    #     )
-    #     strategy.run()
-    #
-    # else:
-    #     raise ValueError('not supported')
+def run_strategy(ctx: Context, strategy_name: str) -> None:
+    strategy = strategy_plugins.get_strategy(strategy_name, ctx.obj['market_inno_db_storage'])
+    strategy.run()
 
 
 def main():
