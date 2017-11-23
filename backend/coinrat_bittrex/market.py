@@ -99,8 +99,7 @@ class BittrexMarket(Market):
     def sell_max_available(self, pair: MarketPair) -> str:
         balance = self.get_balance(pair.market_currency)
         tick = self.get_last_candle(pair)
-        can_sell = (tick.average_price * balance.available_amount) * Decimal(1 - self.transaction_fee_coefficient)
-        return self.create_buy_order(Order(pair, ORDER_TYPE_LIMIT, can_sell, tick.average_price))
+        return self.create_sell_order(Order(pair, ORDER_TYPE_LIMIT, balance.available_amount, tick.average_price))
 
     def _get_sorted_candles_from_api(self, pair: MarketPair):
         market = self.format_market_pair(pair)
