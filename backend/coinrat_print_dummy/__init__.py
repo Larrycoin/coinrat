@@ -1,3 +1,3 @@
-from .plugin import market_plugin, synchronizer_plugin
+from .plugin import market_plugin
 
-__all__ = ['market_plugin', 'synchronizer_plugin']
+__all__ = ['market_plugin']

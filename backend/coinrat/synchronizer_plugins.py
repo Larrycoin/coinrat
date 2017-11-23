@@ -35,7 +35,9 @@ class SynchronizerPlugins:
         self._plugins: Set[SynchronizerPluginSpecification] = storage_plugins.get_plugins()
 
     def get_available_synchronizers(self) -> List[str]:
-        return [synchronize_name for plugin in self._plugins for synchronize_name in plugin.get_available_synchronizers]
+        return [
+            synchronize_name for plugin in self._plugins for synchronize_name in plugin.get_available_synchronizers()
+        ]
 
     def get_synchronizer(self, name: str, storage: MarketsCandleStorage) -> MarketStateSynchronizer:
         for plugin in self._plugins:

@@ -40,6 +40,13 @@ def markets() -> None:
 
 
 @cli.command()
+def synchronizers() -> None:
+    click.echo('Available synchronizers:')
+    for synchronizer_name in synchronizer_plugins.get_available_synchronizers():
+        click.echo('  - {}'.format(synchronizer_name))
+
+
+@cli.command()
 @click.argument('synchronizer_name', nargs=1)
 @click.argument('pair', nargs=2)
 @click.pass_context
