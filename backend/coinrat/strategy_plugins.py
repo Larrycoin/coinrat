@@ -30,7 +30,7 @@ class StrategyNotProvidedByAnyPluginException(Exception):
 
 
 class StrategyPlugins:
-    def __init__(self):
+    def __init__(self) -> None:
         strategy_plugins = pluggy.PluginManager('strategy_plugins')
         strategy_plugins.add_hookspecs(StrategyPluginSpecification)
         strategy_plugins.load_setuptools_entrypoints('coinrat_strategy_plugins')

@@ -2,8 +2,8 @@ import datetime, time
 from typing import Union, Tuple
 from decimal import Decimal
 
-from coinrat.domain import Strategy, MarketsCandleStorage, Signal, MarketPair, CANDLE_STORAGE_FIELD_CLOSE, SIGNAL_SELL, \
-    SIGNAL_BUY, Market
+from coinrat.domain import Strategy, MarketsCandleStorage, Signal, MarketPair, \
+    CANDLE_STORAGE_FIELD_CLOSE, SIGNAL_SELL, SIGNAL_BUY, Market
 
 DOUBLE_CROSSOVER_STRATEGY = 'double_crossover'
 
@@ -61,11 +61,19 @@ class DoubleCrossoverStrategy(Strategy):
     def get_averages(self) -> Tuple[Decimal, Decimal]:
         now = datetime.datetime.now().astimezone(datetime.timezone.utc)  # Todo: DateTimeFactory
         long_interval = (now - self._long_average_interval, now)
-        long_average = self._storage.mean(self._market.get_name(), self._pair, CANDLE_STORAGE_FIELD_CLOSE,
-                                          long_interval)
+        long_average = self._storage.mean(
+            self._market.get_name(),
+            self._pair,
+            CANDLE_STORAGE_FIELD_CLOSE,
+            long_interval
+        )
         short_interval = (now - self._short_average_interval, now)
-        short_average = self._storage.mean(self._market.get_name(), self._pair, CANDLE_STORAGE_FIELD_CLOSE,
-                                           short_interval)
+        short_average = self._storage.mean(
+            self._market.get_name(),
+            self._pair,
+            CANDLE_STORAGE_FIELD_CLOSE,
+            short_interval
+        )
 
         return long_average, short_average
 

@@ -7,6 +7,7 @@ from os.path import join, dirname
 from click import Context
 from dotenv import load_dotenv
 
+from .market_plugins import MarketPlugins
 from .storage_plugins import StoragePlugins
 from .synchronizer_plugins import SynchronizerPlugins
 from .strategy_plugins import StrategyPlugins
@@ -18,6 +19,7 @@ load_dotenv(dotenv_path)
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 storage_plugins = StoragePlugins()
+market_plugins = MarketPlugins()
 synchronizer_plugins = SynchronizerPlugins()
 strategy_plugins = StrategyPlugins()
 
@@ -28,6 +30,13 @@ strategy_plugins = StrategyPlugins()
 @click.pass_context
 def cli(ctx: Context) -> None:
     ctx.obj['market_inno_db_storage'] = storage_plugins.get_storage('influx_db')
+
+
+@cli.command()
+def markets() -> None:
+    click.echo('Available markers:')
+    for market_name in market_plugins.get_available_markets():
+        click.echo('  - {}'.format(market_name))
 
 
 @cli.command()

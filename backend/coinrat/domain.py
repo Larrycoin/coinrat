@@ -182,6 +182,7 @@ class Market:
     def get_name(self) -> str:
         raise NotImplementedError()
 
+    @property
     def transaction_fee_coefficient(self):
         raise NotImplementedError()
 

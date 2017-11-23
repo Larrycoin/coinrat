@@ -9,17 +9,19 @@ get_available_markets_spec = pluggy.HookspecMarker('market_plugins')
 get_market_spec = pluggy.HookspecMarker('market_plugins')
 
 
+# Todo: solve, adding type-hints raised error:
+#   "ValueError: Function has keyword-only parameters or annotations, use getfullargspec() API which can support them"
 class MarketPluginSpecification:
     @get_name_spec
-    def get_name(self) -> str:
+    def get_name(self):
         pass
 
     @get_available_markets_spec
-    def get_available_markets(self) -> List[str]:
+    def get_available_markets(self):
         pass
 
     @get_market_spec
-    def get_market(self, name: str) -> Market:
+    def get_market(self, name):
         pass
 
 
@@ -28,14 +30,14 @@ class MarketNotProvidedByAnyPluginException(Exception):
 
 
 class MarketPlugins:
-    def __init__(self):
+    def __init__(self) -> None:
         market_plugins = pluggy.PluginManager('market_plugins')
         market_plugins.add_hookspecs(MarketPluginSpecification)
         market_plugins.load_setuptools_entrypoints('coinrat_market_plugins')
         self._plugins: Set[MarketPluginSpecification] = market_plugins.get_plugins()
 
     def get_available_markets(self) -> List[str]:
-        return [market_name for plugin in self._plugins for market_name in plugin.get_available_markets]
+        return [market_name for plugin in self._plugins for market_name in plugin.get_available_markets()]
 
     def get_storage(self, name: str) -> Market:
         for plugin in self._plugins:

@@ -30,7 +30,7 @@ class StorageNotProvidedByAnyPluginException(Exception):
 
 
 class StoragePlugins:
-    def __init__(self):
+    def __init__(self) -> None:
         storage_plugins = pluggy.PluginManager('storage_plugins')
         storage_plugins.add_hookspecs(StoragePluginSpecification)
         storage_plugins.load_setuptools_entrypoints('coinrat_storage_plugins')
