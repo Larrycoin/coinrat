@@ -75,5 +75,12 @@ def run_strategy(ctx: Context, strategy_name: str, market_names: Tuple[str]) -> 
         sys.exit(1)
 
 
+@cli.command()
+@click.pass_context
+def testing(ctx: Context) -> None:  # Todo: Used only for testing during development, remove it after
+    market = market_plugins.get_market('bittrex')
+    print(market.get_pair_market_info(MarketPair('USD', 'BTC')))
+
+
 def main():
     cli(obj={})

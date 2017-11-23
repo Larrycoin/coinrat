@@ -37,3 +37,7 @@ class Order:
     @property
     def quantity(self) -> Decimal:
         return self._quantity
+
+    def __repr__(self) -> str:
+        return 'Pair: [{}], type: "{}", rate: {}, quantity: {}' \
+            .format(self._pair, self._type, self._rate, self._quantity)

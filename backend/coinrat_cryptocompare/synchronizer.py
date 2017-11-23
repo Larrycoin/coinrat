@@ -40,7 +40,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
     def synchronize(self, pair: MarketPair) -> None:
         retried = 0
         while self._number_of_runs is None or self._number_of_runs > 0:
-            url = MINUTE_CANDLE_URL.format(pair.right, pair.left, MARKET_MAP[self._market_name])
+            url = MINUTE_CANDLE_URL.format(pair.market_currency, pair.base_currency, MARKET_MAP[self._market_name])
 
             try:
                 data = self.get_data_from_cryptocompare(url)

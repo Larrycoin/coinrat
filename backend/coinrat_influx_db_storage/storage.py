@@ -79,7 +79,7 @@ class MarketInnoDbStorage(MarketsCandleStorage):
 
     @staticmethod
     def _create_pair_identifier(pair: MarketPair) -> str:
-        return '{}_{}'.format(pair.left, pair.right)
+        return '{}_{}'.format(pair.base_currency, pair.market_currency)
 
 
 def market_storage_factory(

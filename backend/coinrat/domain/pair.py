@@ -1,19 +1,27 @@
+from .coinrat import ForEndUserException
+
+
+class MarketPairDoesNotExistsException(ForEndUserException):
+    pass
+
+
 class MarketPair:
-    def __init__(self, left: str, right: str) -> None:
-        assert left != 'USDT', \
+    def __init__(self, base_currency: str, market_currency: str) -> None:
+        assert base_currency != 'USDT', \
             'Some markets use USDT instead of USD, this is impl. detail of that market, use USD otherwise'
-        assert right not in ['USDT', 'USD'], 'This is probably error. Pairs are not usually represented in USD as right'
+        assert market_currency not in ['USDT',
+                                       'USD'], 'This is probably error. Pairs are not usually represented in USD as right'
 
-        self._left = left
-        self._right = right
-
-    @property
-    def left(self) -> str:
-        return self._left
+        self._base_currency = base_currency
+        self._market_currency = market_currency
 
     @property
-    def right(self) -> str:
-        return self._right
+    def base_currency(self) -> str:
+        return self._base_currency
+
+    @property
+    def market_currency(self) -> str:
+        return self._market_currency
 
     def __repr__(self):
-        return '{}-{}'.format(self._left, self._right)
+        return '{}-{}'.format(self._base_currency, self._market_currency)

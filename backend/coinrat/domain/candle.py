@@ -6,6 +6,13 @@ from .pair import MarketPair
 
 
 class MinuteCandle:
+    """
+    OPEN, CLOSE: The open and close prices are the first and last transaction prices for that time period (minute).
+
+    LOW, HIGH: The high price is the highest price reached during a specific time period. The low price is the lowest
+    price reached during a specific period (minute).
+    """
+
     def __init__(
         self,
         market_name: str,
