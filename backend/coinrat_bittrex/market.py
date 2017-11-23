@@ -11,11 +11,17 @@ class BittrexMarketRequestException(Exception):
     pass
 
 
+MARKET_NAME = 'bittrex'
+
+
 class BittrexMarket(Market):
     def __init__(self, client_v1: Bittrex, client_v2: Bittrex, market_name: str = 'bittrex'):
         self._client_v1 = client_v1
         self._client_v2 = client_v2
         self._market_name = market_name
+
+    def get_name(self) -> str:
+        return MARKET_NAME
 
     @property
     def transaction_fee_coefficient(self) -> Decimal:
@@ -33,8 +39,7 @@ class BittrexMarket(Market):
 
     def get_candles(self, pair: MarketPair) -> List[MinuteCandle]:
         result = self._get_sorted_candles_from_api(pair)
-        for candle_data in result['result']:
-            yield self._create_candle_from_raw_ticker_data(pair, candle_data)
+        return [self._create_candle_from_raw_ticker_data(pair, candle_data) for candle_data in result]
 
     def create_sell_order(self, order: Order) -> str:
         market = self.format_market_pair(order.pair)
@@ -92,7 +97,7 @@ class BittrexMarket(Market):
         return MinuteCandle(
             self._market_name,
             pair,
-            dateutil.parser.parse(candle['T']).astimezone(datetime.timezone.utc),
+            dateutil.parser.parse(candle['T']).replace(tzinfo=datetime.timezone.utc),
             Decimal(candle['O']),
             Decimal(candle['C']),
             Decimal(candle['L']),

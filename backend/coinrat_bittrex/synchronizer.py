@@ -19,6 +19,8 @@ class BittrexSynchronizer(MarketStateSynchronizer):
         self._market = market
 
     def synchronize(self, pair: MarketPair):
+        self._import_historical_data(pair)
+
         while self._number_of_runs is None or self._number_of_runs > 0:
 
             candle = self._market.get_last_candle(pair)
@@ -27,3 +29,7 @@ class BittrexSynchronizer(MarketStateSynchronizer):
             if self._number_of_runs is not None:
                 self._number_of_runs -= 1
             time.sleep(self._delay)
+
+    def _import_historical_data(self, pair: MarketPair):
+        candles = self._market.get_candles(pair)
+        self._storage.write_candles(candles)

@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import datetime, timezone
 from typing import Dict, List, Union
@@ -24,18 +25,33 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
         storage: MarketsCandleStorage,
         session: Session,
         delay: int = 30,
-        number_of_runs: Union[int, None] = None
+        number_of_runs: Union[int, None] = None,
+        max_retry=5,
+        retry_delay=60
     ) -> None:
         self._delay = delay
         self._number_of_runs = number_of_runs
         self._market_name = market_name
         self._storage = storage
         self._session = session
+        self._max_retry = max_retry
+        self._retry_delay = retry_delay
 
     def synchronize(self, pair: MarketPair) -> None:
+        retried = 0
         while self._number_of_runs is None or self._number_of_runs > 0:
             url = MINUTE_CANDLE_URL.format(pair.right, pair.left, MARKET_MAP[self._market_name])
-            data = self.get_data_from_cryptocompare(url)
+
+            try:
+                data = self.get_data_from_cryptocompare(url)
+            except ConnectionRefusedError as exception:
+                if retried >= self._max_retry:
+                    raise exception
+
+                logging.warning('Cryptocompare ConnectionRefusedError: {}'.format(exception))
+                retried += 1
+                continue
+
             candles_data: List[Dict] = data['Data']
             candles = [self._create_candle_from_raw(pair, candle) for candle in candles_data]
             self._storage.write_candles(candles)

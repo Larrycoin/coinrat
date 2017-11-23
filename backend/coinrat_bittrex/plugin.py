@@ -4,14 +4,13 @@ from coinrat.market_plugins import MarketPluginSpecification
 from coinrat.synchronizer_plugins import SynchronizerPluginSpecification
 from .synchronizer import BittrexSynchronizer
 
-from .market import bittrex_market_factory
+from .market import bittrex_market_factory, MARKET_NAME
 
 get_name_impl = pluggy.HookimplMarker('market_plugins')
 get_available_markets_spec = pluggy.HookimplMarker('market_plugins')
 get_market_impl = pluggy.HookimplMarker('market_plugins')
 
 PLUGIN_NAME = 'coinrat_bittrex'
-MARKET_NAME = 'bittrex'
 SYNCHRONIZER_NAME = 'bittrex'
 
 bittrex_market = bittrex_market_factory(os.environ.get('BITREX_KEY'), os.environ.get('BITREX_SECRET'))

@@ -33,7 +33,6 @@ class SynchronizerPlugins:
         storage_plugins.add_hookspecs(SynchronizerPluginSpecification)
         storage_plugins.load_setuptools_entrypoints('coinrat_synchronizer_plugins')
         self._plugins: Set[SynchronizerPluginSpecification] = storage_plugins.get_plugins()
-        print(self._plugins)
 
     def get_available_synchronizers(self) -> List[str]:
         return [synchronize_name for plugin in self._plugins for synchronize_name in plugin.get_available_synchronizers]

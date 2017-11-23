@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Union, Generator
 
 from decimal import Decimal
 from influxdb import InfluxDBClient
@@ -17,10 +17,9 @@ class MarketInnoDbStorage(MarketsCandleStorage):
     def write_candle(self, candle: MinuteCandle) -> None:
         self.write_candles([candle])
 
-    def write_candles(self, candles: List[MinuteCandle]) -> None:
-        if len(candles) == 0:
-            return
+    def write_candles(self, candles: Union[Generator[MinuteCandle, None, None], List[MinuteCandle]]) -> None:
         self._client.write_points([self._transform_into_raw_data(candle) for candle in candles])
+        candles = candles[-20:]
         candles_time_marks = ','.join(map(lambda c: c.time.isoformat(), candles))
         logging.debug('Candles for "{}" inserted: [{}]'.format(candles[0].market_name, candles_time_marks))
 
@@ -37,20 +36,20 @@ class MarketInnoDbStorage(MarketsCandleStorage):
             ('Time must be in UTC and aware of its timezone ({})'.format(interval[1].isoformat()))
 
         sql = '''
-            SELECT MEAN("{}") AS field_mean 
-            FROM "candles" WHERE "time" > {} AND "time" < {} AND "pair"='{}' AND "market"='{}' 
+            SELECT MEAN("{}") AS "field_mean" 
+            FROM "candles" WHERE "time" > '{}' AND "time" < '{}' AND "pair"='{}' AND "market"='{}' 
             GROUP BY "{}"
         '''.format(
             field,
-            interval[0].timestamp(),
-            interval[1].timestamp(),
+            interval[0].isoformat(),
+            interval[1].isoformat(),
             self._create_pair_identifier(pair),
             market_name,
             field
         )
-        print(sql)
         result: ResultSet = self._client.query(sql)
-        print(list(result.get_points()))
+        mean = list(result.items()[0][1])[0]['field_mean']
+        return Decimal(mean)
 
     @staticmethod
     def _transform_into_raw_data(candle: MinuteCandle):

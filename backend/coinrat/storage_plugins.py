@@ -17,7 +17,7 @@ class StoragePluginSpecification:
         pass
 
     @get_available_storages_spec
-    def get_available_storages(self, name):
+    def get_available_storages(self):
         pass
 
     @get_storage_spec
