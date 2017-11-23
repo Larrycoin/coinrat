@@ -204,6 +204,9 @@ class Market:
     def sell_max_available(self, pair: MarketPair) -> str:
         raise NotImplementedError()
 
+    def __repr__(self) -> str:
+        return self.get_name()
+
 
 class MarketStateSynchronizer:
     def synchronize(self, pair: MarketPair) -> None:
@@ -234,5 +237,9 @@ class Signal:
 
 
 class Strategy:
-    def run(self):
+    def run(self, markets: List[Market]) -> None:
         raise NotImplementedError()
+
+
+class StrategyConfigurationException(Exception):
+    pass

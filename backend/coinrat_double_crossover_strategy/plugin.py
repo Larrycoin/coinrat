@@ -27,7 +27,6 @@ class StrategyPlugin(StrategyPluginSpecification):
     def get_strategy(self, name, storage):
         if name == STRATEGY_NAME:
             return DoubleCrossoverStrategy(
-                'bittrex',  # Todo: make this parameter for end user as well as times and delays
                 MarketPair('USD', 'BTC'),  # Todo: make this parameter for end user
                 storage,
                 datetime.timedelta(hours=1),

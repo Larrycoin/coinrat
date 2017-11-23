@@ -7,11 +7,11 @@ from os.path import join, dirname
 from click import Context
 from dotenv import load_dotenv
 
-from .market_plugins import MarketPlugins
+from .market_plugins import MarketPlugins, MarketNotProvidedByAnyPluginException
 from .storage_plugins import StoragePlugins
 from .synchronizer_plugins import SynchronizerPlugins
 from .strategy_plugins import StrategyPlugins
-from .domain import MarketPair
+from .domain import MarketPair, StrategyConfigurationException
 
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
@@ -23,6 +23,8 @@ market_plugins = MarketPlugins()
 synchronizer_plugins = SynchronizerPlugins()
 strategy_plugins = StrategyPlugins()
 
+
+# Todo: write helps for click commands
 
 @click.group('coinrat')
 @click.version_option(version='0.1')
@@ -59,10 +61,18 @@ def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str]) -> 
 
 @cli.command()
 @click.argument('strategy_name', nargs=1)
+@click.argument('market_names', nargs=-1)
 @click.pass_context
-def run_strategy(ctx: Context, strategy_name: str) -> None:
+def run_strategy(ctx: Context, strategy_name: str, market_names: Tuple[str]) -> None:
     strategy = strategy_plugins.get_strategy(strategy_name, ctx.obj['market_inno_db_storage'])
-    strategy.run()
+
+    try:
+        markers = [market_plugins.get_market(marker_name) for marker_name in market_names]
+    except (MarketNotProvidedByAnyPluginException, StrategyConfigurationException) as e:
+        click.echo(e, err=True)
+        sys.exit(1)
+
+    strategy.run(markers)
 
 
 def main():

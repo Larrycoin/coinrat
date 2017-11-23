@@ -30,7 +30,7 @@ setup(
         ],
         'coinrat_market_plugins': [
             'coinrat_bittrex = coinrat_bittrex:market_plugin',
-            'coinrat_print_dummy = coinrat_print_dummy:market_plugin',
+            'coinrat_dummy_print = coinrat_dummy_print:market_plugin',
         ],
         'coinrat_storage_plugins': [
             'coinrat_influx_db_storage = coinrat_influx_db_storage:storage_plugin',

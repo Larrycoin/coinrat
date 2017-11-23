@@ -42,32 +42,34 @@ class BittrexMarket(Market):
         return [self._create_candle_from_raw_ticker_data(pair, candle_data) for candle_data in result]
 
     def create_sell_order(self, order: Order) -> str:
-        market = self.format_market_pair(order.pair)
-
-        if order.type == ORDER_TYPE_MARKET:
-            raise Exception('Not implemented')  # Todo: implement
-
-        elif order.type == ORDER_TYPE_LIMIT:
-            result = self._client_v1.sell_limit(market, float(order.quantity), float(order.rate))
-            self._validate_result(result)
-            return result['result']['uuid']
-
-        else:
-            raise ValueError('Unknown order type: {}'.format(order.type))
+        pass
+        # market = self.format_market_pair(order.pair)
+        #
+        # if order.type == ORDER_TYPE_MARKET:
+        #     raise Exception('Not implemented')  # Todo: implement
+        #
+        # elif order.type == ORDER_TYPE_LIMIT:
+        #     result = self._client_v1.sell_limit(market, float(order.quantity), float(order.rate))
+        #     self._validate_result(result)
+        #     return result['result']['uuid']
+        #
+        # else:
+        #     raise ValueError('Unknown order type: {}'.format(order.type))
 
     def create_buy_order(self, order: Order) -> str:
-        market = self.format_market_pair(order.pair)
-
-        if order.type == ORDER_TYPE_MARKET:
-            raise Exception('Not implemented')  # Todo: implement
-
-        elif order.type == ORDER_TYPE_LIMIT:
-            result = self._client_v1.buy_limit(market, float(order.quantity), float(order.rate))
-            self._validate_result(result)
-            return result['result']['uuid']
-
-        else:
-            raise ValueError('Unknown order type: {}'.format(order.type))
+        pass
+        # market = self.format_market_pair(order.pair)
+        #
+        # if order.type == ORDER_TYPE_MARKET:
+        #     raise Exception('Not implemented')  # Todo: implement
+        #
+        # elif order.type == ORDER_TYPE_LIMIT:
+        #     result = self._client_v1.buy_limit(market, float(order.quantity), float(order.rate))
+        #     self._validate_result(result)
+        #     return result['result']['uuid']
+        #
+        # else:
+        #     raise ValueError('Unknown order type: {}'.format(order.type))
 
     def cancel_order(self, order_id: str) -> None:
         result = self._client_v1.cancel(order_id)

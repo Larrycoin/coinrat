@@ -39,7 +39,7 @@ class MarketPlugins:
     def get_available_markets(self) -> List[str]:
         return [market_name for plugin in self._plugins for market_name in plugin.get_available_markets()]
 
-    def get_storage(self, name: str) -> Market:
+    def get_market(self, name: str) -> Market:
         for plugin in self._plugins:
             if name in plugin.get_available_markets():
                 return plugin.get_market(name)

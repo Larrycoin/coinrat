@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from coinrat.domain import Market, Balance, MarketPair, Order
 
-MARKET_NAME = 'print_mockup'
+MARKET_NAME = 'dummy_print'
 DUMMY_STATIC_BALANCE = Decimal(0.5)
 DUMMY_ORDER_ID = 'aaaa-bbbb-cccc-dddd'
 
