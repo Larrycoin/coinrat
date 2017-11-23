@@ -121,4 +121,5 @@ class BittrexMarket(Market):
 
 
 def bittrex_market_factory(key: str, secret: str) -> BittrexMarket:
+    print(key, secret)
     return BittrexMarket(Bittrex(key, secret, api_version=API_V1_1), Bittrex(key, secret, api_version=API_V2_0))

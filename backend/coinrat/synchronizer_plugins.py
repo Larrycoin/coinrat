@@ -1,15 +1,16 @@
 import pluggy
 from typing import List, Set
 
+from .plugins import PluginSpecification, plugins_loader
 from .domain import MarketStateSynchronizer, MarketsCandleStorage
 
-get_name_spec = pluggy.HookspecMarker('synchronizer_plugins')
+get_name_spec = pluggy.HookspecMarker('coinrat_plugins')
 
-get_available_synchronizers_spec = pluggy.HookspecMarker('synchronizer_plugins')
-get_synchronizer_spec = pluggy.HookspecMarker('synchronizer_plugins')
+get_available_synchronizers_spec = pluggy.HookspecMarker('coinrat_plugins')
+get_synchronizer_spec = pluggy.HookspecMarker('coinrat_plugins')
 
 
-class SynchronizerPluginSpecification:
+class SynchronizerPluginSpecification(PluginSpecification):
     @get_name_spec
     def get_name(self):
         pass
@@ -28,11 +29,8 @@ class SynchronizerNotProvidedByAnyPluginException(Exception):
 
 
 class SynchronizerPlugins:
-    def __init__(self):
-        storage_plugins = pluggy.PluginManager('synchronizer_plugins')
-        storage_plugins.add_hookspecs(SynchronizerPluginSpecification)
-        storage_plugins.load_setuptools_entrypoints('coinrat_synchronizer_plugins')
-        self._plugins: Set[SynchronizerPluginSpecification] = storage_plugins.get_plugins()
+    def __init__(self) -> None:
+        self._plugins = plugins_loader('coinrat_synchronizer_plugins', SynchronizerPluginSpecification)
 
     def get_available_synchronizers(self) -> List[str]:
         return [

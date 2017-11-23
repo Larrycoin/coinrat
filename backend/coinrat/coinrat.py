@@ -4,6 +4,7 @@ import sys
 from typing import Tuple
 from os.path import join, dirname
 
+import os
 from click import Context
 from dotenv import load_dotenv
 
@@ -13,7 +14,7 @@ from .synchronizer_plugins import SynchronizerPlugins
 from .strategy_plugins import StrategyPlugins
 from .domain import MarketPair, ForEndUserException
 
-dotenv_path = join(dirname(__file__), '.env')
+dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
