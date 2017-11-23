@@ -1,6 +1,9 @@
 import datetime, time
+import logging
 from typing import Union, Tuple, List
 from decimal import Decimal
+
+import math
 
 from coinrat.domain import Strategy, MarketsCandleStorage, Signal, MarketPair, \
     CANDLE_STORAGE_FIELD_CLOSE, SIGNAL_SELL, SIGNAL_BUY, Market, StrategyConfigurationException
@@ -30,7 +33,8 @@ class DoubleCrossoverStrategy(Strategy):
         self._delay = delay
         self._number_of_runs = number_of_runs
         self._storage = storage
-        self._last_short_average = None
+        self._previous_sign = None
+        self._strategy_ticker = 0
 
     def run(self, markets: List[Market]) -> None:
         if len(markets) != 1:
@@ -48,18 +52,31 @@ class DoubleCrossoverStrategy(Strategy):
             if self._number_of_runs is not None:
                 self._number_of_runs -= 1
 
+            self._strategy_ticker += 1
             time.sleep(self._delay)
 
     def _check_for_signal(self, market: Market) -> Union[Signal, None]:
         long_average, short_average = self.get_averages(market)
 
-        if self._last_short_average is not None:
-            if self._last_short_average < long_average < short_average:
+        current_sign = math.copysign(1, long_average - short_average)
+
+        logging.debug(
+            '[{}] Previous_sign: {}, Current-sign: {}, Long-now: {}, Short-now: {}'.format(
+                self._strategy_ticker,
+                self._previous_sign,
+                current_sign,
+                long_average,
+                short_average
+            )
+        )
+
+        if self._previous_sign is not None and current_sign != self._previous_sign:
+            if self._previous_sign < current_sign:
                 return Signal(SIGNAL_BUY)
-            elif self._last_short_average > long_average > short_average:
+            elif self._previous_sign > current_sign:
                 return Signal(SIGNAL_SELL)
 
-        self._last_short_average = short_average
+        self._previous_sign = current_sign
         return None
 
     def get_averages(self, market: Market) -> Tuple[Decimal, Decimal]:
