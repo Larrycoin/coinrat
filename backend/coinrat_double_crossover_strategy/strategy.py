@@ -6,7 +6,8 @@ from decimal import Decimal
 import math
 
 from coinrat.domain import Strategy, MarketsCandleStorage, Signal, MarketPair, \
-    CANDLE_STORAGE_FIELD_CLOSE, SIGNAL_SELL, SIGNAL_BUY, Market, StrategyConfigurationException
+    CANDLE_STORAGE_FIELD_CLOSE, SIGNAL_SELL, SIGNAL_BUY, Market, \
+    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 
 DOUBLE_CROSSOVER_STRATEGY = 'double_crossover'
 
@@ -99,9 +100,15 @@ class DoubleCrossoverStrategy(Strategy):
         return long_average, short_average
 
     def _react_on_signal(self, market: Market, signal: Signal):
-        if signal.is_buy():
-            market.buy_max_available(self._pair)
-        elif signal.is_sell():
-            market.buy_max_available(self._pair)
-        else:
-            raise ValueError('Unknown signal: "{}"'.format(signal))
+        try:
+            if signal.is_buy():
+                market.buy_max_available(self._pair)
+            elif signal.is_sell():
+                market.buy_max_available(self._pair)
+            else:
+                raise ValueError('Unknown signal: "{}"'.format(signal))
+
+        except NotEnoughBalanceToPerformOrderException as e:
+            # Intentionally, this strategy does not need state od order,
+            # just ignores buy/sell and waits for next signal.
+            logging.warning(e)

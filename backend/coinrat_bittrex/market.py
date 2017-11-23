@@ -6,7 +6,7 @@ from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, ORDERTYPE_LIMIT, ORDERT
 from decimal import Decimal
 
 from coinrat.domain import Market, Balance, MarketPair, MinuteCandle, Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, \
-    PairMarketInfo, MarketPairDoesNotExistsException
+    PairMarketInfo, MarketPairDoesNotExistsException, NotEnoughBalanceToPerformOrderException
 
 
 class BittrexMarketRequestException(Exception):
@@ -59,6 +59,7 @@ class BittrexMarket(Market):
     def create_sell_order(self, order: Order) -> str:
         logging.info('Placing SELL order: {}'.format(order))
         market = self.format_market_pair(order.pair)
+        self._validate_minimal_order(order)
 
         if order.type == ORDER_TYPE_MARKET:
             raise NotImplementedError('Not implemented')  # Todo: implement
@@ -74,6 +75,7 @@ class BittrexMarket(Market):
     def create_buy_order(self, order: Order) -> str:
         logging.info('Placing BUY order: {}'.format(order))
         market = self.format_market_pair(order.pair)
+        self._validate_minimal_order(order)
 
         if order.type == ORDER_TYPE_MARKET:
             raise Exception('Not implemented')  # Todo: implement
@@ -93,8 +95,15 @@ class BittrexMarket(Market):
     def buy_max_available(self, pair: MarketPair) -> str:
         balance = self.get_balance(pair.base_currency)
         tick = self.get_last_candle(pair)
-        can_buy = (balance.available_amount / tick.average_price) * Decimal(1 - self.transaction_fee_coefficient)
-        return self.create_buy_order(Order(pair, ORDER_TYPE_LIMIT, can_buy, tick.average_price))
+        amount_to_buy = (balance.available_amount / tick.average_price) * Decimal(1 - self.transaction_fee_coefficient)
+        return self.create_buy_order(Order(pair, ORDER_TYPE_LIMIT, amount_to_buy, tick.average_price))
+
+    def _validate_minimal_order(self, order: Order) -> None:
+        pair_market_info = self.get_pair_market_info(order.pair)
+        if pair_market_info.minimal_order_size > order.quantity:
+            raise NotEnoughBalanceToPerformOrderException(
+                'You want {} but limit is {}.'.format(order.quantity, pair_market_info.minimal_order_size)
+            )
 
     def sell_max_available(self, pair: MarketPair) -> str:
         balance = self.get_balance(pair.market_currency)

@@ -1,10 +1,15 @@
 from decimal import Decimal
 from typing import Union
 
+from .coinrat import ForEndUserException
 from .pair import MarketPair
 
 ORDER_TYPE_LIMIT = 'limit'
 ORDER_TYPE_MARKET = 'market'
+
+
+class NotEnoughBalanceToPerformOrderException(ForEndUserException):
+    pass
 
 
 class Order:
