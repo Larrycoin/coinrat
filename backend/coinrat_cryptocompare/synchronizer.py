@@ -44,12 +44,16 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
 
             try:
                 data = self.get_data_from_cryptocompare(url)
-            except ConnectionRefusedError as exception:
+            except ConnectionError as exception:
                 if retried >= self._max_retry:
                     raise exception
 
-                logging.warning('Cryptocompare ConnectionRefusedError: {}'.format(exception))
+                logging.error(
+                    'Cryptocompare encountered ConnectionError: "{}". Retrying ({}) after {} seconds' \
+                        .format(exception, retried, self._retry_delay)
+                )
                 retried += 1
+                time.sleep(self._retry_delay)
                 continue
 
             candles_data: List[Dict] = data['Data']
