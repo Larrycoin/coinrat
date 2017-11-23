@@ -3,7 +3,7 @@ from typing import Union, Tuple, List
 from decimal import Decimal
 
 from coinrat.domain import Strategy, MarketsCandleStorage, Signal, MarketPair, \
-    CANDLE_STORAGE_FIELD_CLOSE, SIGNAL_SELL, SIGNAL_BUY, Market
+    CANDLE_STORAGE_FIELD_CLOSE, SIGNAL_SELL, SIGNAL_BUY, Market, StrategyConfigurationException
 
 DOUBLE_CROSSOVER_STRATEGY = 'double_crossover'
 
@@ -34,7 +34,8 @@ class DoubleCrossoverStrategy(Strategy):
 
     def run(self, markets: List[Market]) -> None:
         if len(markets) != 1:
-            raise ValueError('This strategy works only with one market. Given: [{}]'.format(', '.join(markets)))
+            message = 'This strategy works only with one market, {} given.'.format(len(markets))
+            raise StrategyConfigurationException(message)
 
         market = markets[0]
 

@@ -1,0 +1,2 @@
+class ForEndUserException(Exception):
+    pass

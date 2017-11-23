@@ -7,11 +7,11 @@ from os.path import join, dirname
 from click import Context
 from dotenv import load_dotenv
 
-from .market_plugins import MarketPlugins, MarketNotProvidedByAnyPluginException
+from .market_plugins import MarketPlugins
 from .storage_plugins import StoragePlugins
 from .synchronizer_plugins import SynchronizerPlugins
 from .strategy_plugins import StrategyPlugins
-from .domain import MarketPair, StrategyConfigurationException
+from .domain import MarketPair, ForEndUserException
 
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
@@ -68,11 +68,10 @@ def run_strategy(ctx: Context, strategy_name: str, market_names: Tuple[str]) -> 
 
     try:
         markers = [market_plugins.get_market(marker_name) for marker_name in market_names]
-    except (MarketNotProvidedByAnyPluginException, StrategyConfigurationException) as e:
-        click.echo(e, err=True)
+        strategy.run(markers)
+    except ForEndUserException as e:
+        click.echo('ERROR: {}'.format(e), err=True)
         sys.exit(1)
-
-    strategy.run(markers)
 
 
 def main():

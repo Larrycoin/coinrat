@@ -7,7 +7,10 @@ from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
 from coinrat.domain import MinuteCandle, MarketsCandleStorage, MarketPair, CANDLE_STORAGE_FIELD_HIGH, \
-    CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW
+    CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
+    NoCandlesForMarketInStorageException
+
+STORAGE_NAME = 'influx_db'
 
 
 class MarketInnoDbStorage(MarketsCandleStorage):
@@ -18,10 +21,10 @@ class MarketInnoDbStorage(MarketsCandleStorage):
         self.write_candles([candle])
 
     def write_candles(self, candles: Union[Generator[MinuteCandle, None, None], List[MinuteCandle]]) -> None:
+        if len(candles) == 0:
+            return
         self._client.write_points([self._transform_into_raw_data(candle) for candle in candles])
-        candles = candles[-20:]
-        candles_time_marks = ','.join(map(lambda c: c.time.isoformat(), candles))
-        logging.debug('Candles for "{}" inserted: [{}]'.format(candles[0].market_name, candles_time_marks))
+        logging.info('Into market "{}", {} candles inserted'.format(candles[0].market_name, len(candles)))
 
     def mean(
         self,
@@ -48,6 +51,11 @@ class MarketInnoDbStorage(MarketsCandleStorage):
             field
         )
         result: ResultSet = self._client.query(sql)
+        if len(result) == 0:
+            raise NoCandlesForMarketInStorageException(
+                'For market "{}" no candles in storage "{}".'.format(market_name, STORAGE_NAME)
+            )
+
         mean = list(result.items()[0][1])[0]['field_mean']
         return Decimal(mean)
 
