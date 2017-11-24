@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from coinrat.domain import Market, Balance, MarketPair, Order
+from coinrat.domain import Market, Balance, MarketPair, Order, PairMarketInfo
 
 MARKET_NAME = 'dummy_print'
 DUMMY_STATIC_BALANCE = Decimal(0.5)
@@ -8,6 +8,9 @@ DUMMY_ORDER_ID = 'aaaa-bbbb-cccc-dddd'
 
 
 class PrintDummyMarket(Market):
+    def get_pair_market_info(self, pair: MarketPair) -> PairMarketInfo:
+        return PairMarketInfo(pair, Decimal(0.004))
+
     def get_name(self) -> str:
         return MARKET_NAME
 
