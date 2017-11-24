@@ -1,4 +1,5 @@
 # CoinRat
+Modular auto-trading crypto-currency platform.
 
 ## Zadání diplomky
 > Cílem práce je vytvořit nástroj pro automatizované obchodování s kryptoměnami (Bitcoin, Ethereum a další), a to pomocí jejich vzájemného směňování. Do tohoto nástroje bude možné integrovat různé obchodní strategie. Jedna z těchto strategií bude implementována přímo v této práci.
@@ -16,5 +17,19 @@
 >   - Strategie je modul
 > - Vyzualizace transakcí na webovém rozhraní (backend API)
 
-# Run
-* Backend: `cd backend && gunicorn coinrat:app`
+# Installation
+
+## InfluxDb
+* https://portal.influxdata.com/downloads#influxdb and https://github.com/influxdata/influxdb
+* Start fb: `sudo service influxdb start`
+* `curl -XPOST "http://localhost:8086/query" --data-urlencode "q=CREATE DATABASE coinrat"`
+
+## Chronograph (Influx UI tool)
+* https://portal.influxdata.com/downloads and https://github.com/influxdata/chronograf
+* `service chronograf start`
+
+## Development (Python & Requirements)
+* `python3.6 -m venv __venv__`
+* `. __venv__/bin/activate`
+* `python -m pip install --upgrade git+https://github.com/ericsomdahl/python-bittrex.git`
+* `python -m pip install -r requirements.txt`
