@@ -57,7 +57,7 @@ class DoubleCrossoverStrategy(Strategy):
             time.sleep(self._delay)
 
     def _check_for_signal(self, market: Market) -> Union[Signal, None]:
-        long_average, short_average = self.get_averages(market)
+        long_average, short_average = self._get_averages(market)
         current_sign = math.copysign(1, short_average - long_average)
 
         logging.debug(
@@ -80,7 +80,7 @@ class DoubleCrossoverStrategy(Strategy):
         self._previous_sign = current_sign
         return signal
 
-    def get_averages(self, market: Market) -> Tuple[Decimal, Decimal]:
+    def _get_averages(self, market: Market) -> Tuple[Decimal, Decimal]:
         now = datetime.datetime.now().astimezone(datetime.timezone.utc)  # Todo: DateTimeFactory
         long_interval = (now - self._long_average_interval, now)
         long_average = self._storage.mean(
