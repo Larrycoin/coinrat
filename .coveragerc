@@ -3,7 +3,7 @@ branch = True
 omit =
     __venv__/*
     tests/*
-    test*.py
+    */test*.py
 
 [report]
 exclude_lines =
