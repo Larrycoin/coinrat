@@ -4,14 +4,13 @@ import pluggy
 from coinrat.strategy_plugins import StrategyPluginSpecification
 from coinrat.domain import MarketPair
 
-from .strategy import DoubleCrossoverStrategy
+from .strategy import DoubleCrossoverStrategy, STRATEGY_NAME
 
 get_name_impl = pluggy.HookimplMarker('strategy_plugins')
 get_available_strategies_spec = pluggy.HookimplMarker('strategy_plugins')
 get_strategy_impl = pluggy.HookimplMarker('strategy_plugins')
 
 PACKAGE_NAME = 'coinrat_double_crossover_strategy'
-STRATEGY_NAME = 'double_crossover'
 
 
 class StrategyPlugin(StrategyPluginSpecification):

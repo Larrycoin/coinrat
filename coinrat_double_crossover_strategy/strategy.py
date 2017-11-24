@@ -9,7 +9,7 @@ from coinrat.domain import Strategy, MarketsCandleStorage, Signal, MarketPair, \
     CANDLE_STORAGE_FIELD_CLOSE, SIGNAL_SELL, SIGNAL_BUY, Market, \
     StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 
-DOUBLE_CROSSOVER_STRATEGY = 'double_crossover'
+STRATEGY_NAME = 'double_crossover'
 
 
 class DoubleCrossoverStrategy(Strategy):

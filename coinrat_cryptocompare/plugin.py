@@ -2,14 +2,13 @@ import pluggy
 import requests
 
 from coinrat.synchronizer_plugins import SynchronizerPluginSpecification
-from .synchronizer import CryptocompareSynchronizer
+from .synchronizer import CryptocompareSynchronizer, SYNCHRONIZER_NAME
 
 get_name_impl = pluggy.HookimplMarker('synchronizer_plugins')
 get_available_synchronizers_spec = pluggy.HookimplMarker('synchronizer_plugins')
 get_synchronizer_impl = pluggy.HookimplMarker('synchronizer_plugins')
 
 PACKAGE_NAME = 'coinrat_cryptocompare'
-SYNCHRONIZER_NAME = 'cryptocompare'
 
 
 class SynchronizerPlugin(SynchronizerPluginSpecification):

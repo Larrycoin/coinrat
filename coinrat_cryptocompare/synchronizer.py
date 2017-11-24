@@ -18,6 +18,9 @@ class CryptocompareRequestException(Exception):
     pass
 
 
+SYNCHRONIZER_NAME = 'cryptocompare'
+
+
 class CryptocompareSynchronizer(MarketStateSynchronizer):
     def __init__(
         self,
