@@ -18,11 +18,15 @@ jobs:
             pip install -r requirements.txt
 
       - run:
-         name: install dependencies
+         name: install influxdb
          command: |
             wget https://dl.influxdata.com/influxdb/releases/influxdb_1.4.2_amd64.deb
             sudo dpkg -i influxdb_1.4.2_amd64.deb
-            sudo service influxdb start
+
+      - run:
+         name: run influxdb in background
+         command: sudo /usr/bin/influxd -config /etc/influxdb/influxdb.conf
+         background: true
 
       - run:
           name: run tests
