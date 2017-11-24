@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/Achse/coinrat.svg?style=svg&circle-token=33676128239f1d0da010339bfbfb34a0d42576b0)](https://circleci.com/gh/Achse/coinrat)
+
 # CoinRat
 Modular auto-trading crypto-currency platform.
 
