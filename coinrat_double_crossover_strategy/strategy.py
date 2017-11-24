@@ -104,7 +104,7 @@ class DoubleCrossoverStrategy(Strategy):
             if signal.is_buy():
                 market.buy_max_available(self._pair)
             elif signal.is_sell():
-                market.buy_max_available(self._pair)
+                market.sell_max_available(self._pair)
             else:
                 raise ValueError('Unknown signal: "{}"'.format(signal))
 
