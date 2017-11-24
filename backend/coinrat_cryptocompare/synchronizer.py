@@ -81,7 +81,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
             pair,
             datetime.fromtimestamp(candles_data['time']).astimezone(timezone.utc),
             Decimal(candles_data['open']),
-            Decimal(candles_data['close']),
+            Decimal(candles_data['high']),
             Decimal(candles_data['low']),
-            Decimal(candles_data['high'])
+            Decimal(candles_data['close'])
         )

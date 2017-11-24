@@ -1,7 +1,7 @@
 import pluggy
 
-from coinrat.storage_plugins import StoragePluginSpecification
 from .storage import market_storage_factory, STORAGE_NAME
+from coinrat.storage_plugins import StoragePluginSpecification
 
 get_name_impl = pluggy.HookimplMarker('storage_plugins')
 get_available_storages_spec = pluggy.HookimplMarker('storage_plugins')

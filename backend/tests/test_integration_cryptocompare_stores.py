@@ -2,9 +2,9 @@ import pytest
 import requests
 from influxdb import InfluxDBClient
 
+from coinrat.domain import MarketPair
 from coinrat_cryptocompare.synchronizer import CryptocompareSynchronizer
 from coinrat_influx_db_storage.storage import MarketInnoDbStorage
-from coinrat.domain import MarketPair
 
 
 @pytest.fixture

@@ -58,8 +58,7 @@ class DoubleCrossoverStrategy(Strategy):
 
     def _check_for_signal(self, market: Market) -> Union[Signal, None]:
         long_average, short_average = self.get_averages(market)
-
-        current_sign = math.copysign(1, long_average - short_average)
+        current_sign = math.copysign(1, short_average - long_average)
 
         logging.debug(
             '[{}] Previous_sign: {}, Current-sign: {}, Long-now: {}, Short-now: {}'.format(
@@ -71,14 +70,15 @@ class DoubleCrossoverStrategy(Strategy):
             )
         )
 
+        signal = None
         if self._previous_sign is not None and current_sign != self._previous_sign:
-            if self._previous_sign < current_sign:
-                return Signal(SIGNAL_BUY)
-            elif self._previous_sign > current_sign:
-                return Signal(SIGNAL_SELL)
+            if current_sign == 1:
+                signal = Signal(SIGNAL_BUY)
+            elif current_sign == -1:
+                signal = Signal(SIGNAL_SELL)
 
         self._previous_sign = current_sign
-        return None
+        return signal
 
     def get_averages(self, market: Market) -> Tuple[Decimal, Decimal]:
         now = datetime.datetime.now().astimezone(datetime.timezone.utc)  # Todo: DateTimeFactory

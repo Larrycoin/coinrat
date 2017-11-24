@@ -15,18 +15,19 @@ class MinuteCandle:
 
     def __init__(
         self,
-        market_name: str,
+        market_name:
+        str,
         pair: MarketPair,
         time: datetime.datetime,
         open_price: Decimal,
-        close_price: Decimal,
+        high_price: Decimal,
         low_price: Decimal,
-        high_price: Decimal
+        close_price: Decimal
     ) -> None:
         assert isinstance(open_price, Decimal)
-        assert isinstance(close_price, Decimal)
-        assert isinstance(low_price, Decimal)
         assert isinstance(high_price, Decimal)
+        assert isinstance(low_price, Decimal)
+        assert isinstance(close_price, Decimal)
 
         assert time.second == 0
         assert time.microsecond == 0
@@ -38,9 +39,9 @@ class MinuteCandle:
         self._pair = pair
         self._time = time
         self._open = open_price
-        self._close = close_price
-        self._low = low_price
         self._high = high_price
+        self._low = low_price
+        self._close = close_price
 
     @property
     def pair(self) -> MarketPair:

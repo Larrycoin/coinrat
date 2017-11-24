@@ -119,15 +119,9 @@ class BittrexMarket(Market):
         return result
 
     def _create_candle_from_raw_ticker_data(self, pair: MarketPair, candle: Dict[str, str]) -> MinuteCandle:
-        return MinuteCandle(
-            self._market_name,
-            pair,
-            dateutil.parser.parse(candle['T']).replace(tzinfo=datetime.timezone.utc),
-            Decimal(candle['O']),
-            Decimal(candle['C']),
-            Decimal(candle['L']),
-            Decimal(candle['H']),
-        )
+        return MinuteCandle(self._market_name, pair,
+                            dateutil.parser.parse(candle['T']).replace(tzinfo=datetime.timezone.utc),
+                            Decimal(candle['O']), Decimal(candle['H']), Decimal(candle['L']), Decimal(candle['C']))
 
     @staticmethod
     def format_market_pair(pair: MarketPair):

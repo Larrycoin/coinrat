@@ -1,5 +1,5 @@
 import pluggy
-from typing import List, Set
+from typing import List
 
 from .plugins import PluginSpecification, plugins_loader
 from .domain import MarketStateSynchronizer, MarketsCandleStorage

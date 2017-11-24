@@ -4,7 +4,6 @@ import sys
 from typing import Tuple
 from os.path import join, dirname
 
-import os
 from click import Context
 from dotenv import load_dotenv
 
