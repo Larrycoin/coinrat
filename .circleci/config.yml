@@ -10,15 +10,22 @@ jobs:
       - checkout
 
       - run:
-          name: install dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
+         name: install dependencies
+         command: |
+            python3 -m venv __venv__
+            . __venv__/bin/activate
             pip install --upgrade git+https://github.com/ericsomdahl/python-bittrex.git
             pip install -r requirements.txt
 
       - run:
+         name: install dependencies
+         command: |
+            wget https://dl.influxdata.com/influxdb/releases/influxdb_1.4.2_amd64.deb
+            sudo dpkg -i influxdb_1.4.2_amd64.deb
+            sudo service influxdb start
+
+      - run:
           name: run tests
           command: |
-            . venv/bin/activate
+            . __venv__/bin/activate
             python -m pytest tests --pyargs . --cov=. --cov-config .coveragerc
