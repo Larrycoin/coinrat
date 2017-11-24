@@ -15,21 +15,13 @@ def influx_database():
     influx.drop_database('coinrat_test')
 
 
-def test_wite_candle(influx_database: InfluxDBClient):
+def test_write_candle(influx_database: InfluxDBClient):
     storage = MarketInnoDbStorage(influx_database)
 
-    candle = MinuteCandle(
-        'dummy_market',
-        MarketPair('BSD', 'BTC'), datetime.datetime(2017, 7, 2, 0, 0, 0).replace(tzinfo=datetime.timezone.utc),
-        Decimal(8000),
-        Decimal(8001),
-        Decimal(8002),
-        Decimal(8003)
-    )
-    storage.write_candle(candle)
+    storage.write_candle(_create_dummy_candle())
+
     data = _get_all_from_influx_db(influx_database)
     assert 1 == len(data)
-
     expected_data = "{" \
                     + "'time': '2017-07-02T00:00:00Z', " \
                     + "'close': 8003, " \
@@ -40,6 +32,29 @@ def test_wite_candle(influx_database: InfluxDBClient):
                     + "'pair': 'BSD_BTC'" \
                     + "}"
     assert expected_data == str(data[0])
+
+
+def test_write_candles(influx_database: InfluxDBClient):
+    storage = MarketInnoDbStorage(influx_database)
+
+    storage.write_candles([_create_dummy_candle(1), _create_dummy_candle(2)])
+
+    data = _get_all_from_influx_db(influx_database)
+    assert 2 == len(data)
+    assert '2017-07-02T00:01:00Z' == data[0]['time']
+    assert '2017-07-02T00:02:00Z' == data[1]['time']
+
+
+def _create_dummy_candle(minute: int = 0) -> MinuteCandle:
+    return MinuteCandle(
+        'dummy_market',
+        MarketPair('BSD', 'BTC'),
+        datetime.datetime(2017, 7, 2, 0, minute, 0).replace(tzinfo=datetime.timezone.utc),
+        Decimal(8000),
+        Decimal(8001),
+        Decimal(8002),
+        Decimal(8003)
+    )
 
 
 def _get_all_from_influx_db(influx_database: InfluxDBClient):
