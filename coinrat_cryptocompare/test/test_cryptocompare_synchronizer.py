@@ -26,7 +26,7 @@ DUMMY_CANDLE_DATA = [
 ]
 
 
-def test_run_success():
+def test_synchronize_success():
     response = flexmock(status_code=200)
     response.should_receive('json').and_return({'Response': 'Success', 'Data': DUMMY_CANDLE_DATA})
     synchronizer = CryptocompareSynchronizer('bittrex', mock_storage(1), mock_session(response), 0, 1)
@@ -39,7 +39,7 @@ def mock_session(response):
     return session
 
 
-def test_run_invalid_response_code():
+def test_synchronize_invalid_response_code():
     response = flexmock(status_code=400)
     response.should_receive('text').and_return('')
     synchronizer = CryptocompareSynchronizer('bittrex', mock_storage(0), mock_session(response), 0, 1)
@@ -48,7 +48,7 @@ def test_run_invalid_response_code():
         synchronizer.synchronize(BTC_USD_PAIR)
 
 
-def test_run_response_field_indicates_error():
+def test_synchronize_response_field_indicates_error():
     response = flexmock(status_code=200)
     response.should_receive('json').and_return({'Response': 'Error', 'Data': []})
     response.should_receive('text').and_return('')

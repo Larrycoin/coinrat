@@ -20,7 +20,7 @@ class Order:
         if order_type == ORDER_TYPE_LIMIT:
             assert isinstance(rate, Decimal)
         if order_type == ORDER_TYPE_MARKET:
-            assert rate is None
+            assert rate is None, 'For market orders, rate must be None (does not make sense).'
 
         self._pair = pair
         self._type = order_type

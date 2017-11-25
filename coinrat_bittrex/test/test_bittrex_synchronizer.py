@@ -18,7 +18,7 @@ DUMMY_CANDLE = MinuteCandle(
 )
 
 
-def test_run_success():
+def test_synchronize_success():
     market = flexmock()
     market.should_receive('get_candles').and_return([DUMMY_CANDLE, DUMMY_CANDLE])
     market.should_receive('get_last_candle').and_return(DUMMY_CANDLE)

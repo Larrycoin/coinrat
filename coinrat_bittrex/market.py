@@ -2,7 +2,7 @@ import datetime
 import logging
 import dateutil.parser
 from typing import Dict, List
-from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, ORDERTYPE_LIMIT, ORDERTYPE_MARKET, TICKINTERVAL_ONEMIN
+from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, TICKINTERVAL_ONEMIN
 from decimal import Decimal
 
 from coinrat.domain import Market, Balance, MarketPair, MinuteCandle, Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, \
@@ -62,9 +62,10 @@ class BittrexMarket(Market):
         self._validate_minimal_order(order)
 
         if order.type == ORDER_TYPE_MARKET:
-            raise NotImplementedError('Not implemented')  # Todo: implement
+            raise NotImplementedError('Bittrex does not support that.')
 
         elif order.type == ORDER_TYPE_LIMIT:
+            print(market, float(order.quantity), float(order.rate))
             result = self._client_v1.sell_limit(market, float(order.quantity), float(order.rate))
             self._validate_result(result)
             return result['result']['uuid']
@@ -78,7 +79,7 @@ class BittrexMarket(Market):
         self._validate_minimal_order(order)
 
         if order.type == ORDER_TYPE_MARKET:
-            raise Exception('Not implemented')  # Todo: implement
+            raise NotImplementedError('Bittrex does not support that.')
 
         elif order.type == ORDER_TYPE_LIMIT:
             result = self._client_v1.buy_limit(market, float(order.quantity), float(order.rate))
@@ -93,9 +94,12 @@ class BittrexMarket(Market):
         self._validate_result(result)
 
     def buy_max_available(self, pair: MarketPair) -> str:
-        balance = self.get_balance(pair.base_currency)
+        base_currency_balance = self.get_balance(pair.base_currency)
         tick = self.get_last_candle(pair)
-        amount_to_buy = (balance.available_amount / tick.average_price) * Decimal(1 - self.transaction_fee_coefficient)
+
+        coefficient_due_fee = Decimal(1) - self.transaction_fee_coefficient
+        amount_to_buy = (base_currency_balance.available_amount / tick.average_price) * coefficient_due_fee
+
         return self.create_buy_order(Order(pair, ORDER_TYPE_LIMIT, amount_to_buy, tick.average_price))
 
     def _validate_minimal_order(self, order: Order) -> None:
@@ -106,9 +110,9 @@ class BittrexMarket(Market):
             )
 
     def sell_max_available(self, pair: MarketPair) -> str:
-        balance = self.get_balance(pair.market_currency)
+        market_currency_available = self.get_balance(pair.market_currency).available_amount
         tick = self.get_last_candle(pair)
-        return self.create_sell_order(Order(pair, ORDER_TYPE_LIMIT, balance.available_amount, tick.average_price))
+        return self.create_sell_order(Order(pair, ORDER_TYPE_LIMIT, market_currency_available, tick.average_price))
 
     def _get_sorted_candles_from_api(self, pair: MarketPair):
         market = self.format_market_pair(pair)
@@ -119,9 +123,15 @@ class BittrexMarket(Market):
         return result
 
     def _create_candle_from_raw_ticker_data(self, pair: MarketPair, candle: Dict[str, str]) -> MinuteCandle:
-        return MinuteCandle(self._market_name, pair,
-                            dateutil.parser.parse(candle['T']).replace(tzinfo=datetime.timezone.utc),
-                            Decimal(candle['O']), Decimal(candle['H']), Decimal(candle['L']), Decimal(candle['C']))
+        return MinuteCandle(
+            self._market_name,
+            pair,
+            dateutil.parser.parse(candle['T']).replace(tzinfo=datetime.timezone.utc),
+            Decimal(candle['O']),
+            Decimal(candle['H']),
+            Decimal(candle['L']),
+            Decimal(candle['C'])
+        )
 
     @staticmethod
     def format_market_pair(pair: MarketPair):
@@ -134,10 +144,6 @@ class BittrexMarket(Market):
     def _validate_result(result: Dict):
         if not result['success']:
             raise BittrexMarketRequestException(result['message'])
-
-    @staticmethod
-    def _map_order_type_to_bittrex(order_type: str):
-        return {ORDER_TYPE_LIMIT: ORDERTYPE_LIMIT, ORDER_TYPE_MARKET: ORDERTYPE_MARKET}[order_type]
 
     @staticmethod
     def _fix_currency(currency):
