@@ -1,9 +1,11 @@
-import time
+import time, logging
 from datetime import datetime, timezone
 from typing import Dict, List, Union
 
 from decimal import Decimal
-from requests import Session
+
+import requests
+from requests import Session, RequestException, TooManyRedirects
 
 from coinrat.domain import MarketStateSynchronizer, MarketsCandleStorage, MarketPair, MinuteCandle
 
@@ -51,7 +53,17 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
             time.sleep(self._delay)
 
     def get_data_from_cryptocompare(self, url: str) -> Dict:
-        response = self._session.get(url)
+        while True:
+            try:
+                response = self._session.get(url)
+                break
+            except TooManyRedirects as e:
+                raise e
+            except RequestException as e:
+                logging.error('Error in connection to "{url}", error: {}', e)
+
+            time.sleep(30)
+
         if response.status_code != 200:
             raise CryptocompareRequestException(response.text())
 
