@@ -29,7 +29,7 @@ class StrategyPlugins:
         self._plugins = plugins_loader('coinrat_strategy_plugins', StrategyPluginSpecification, )
 
     def get_available_strategies(self) -> List[str]:
-        return [strategy_name for plugin in self._plugins for strategy_name in plugin.get_available_strategies]
+        return [strategy_name for plugin in self._plugins for strategy_name in plugin.get_available_strategies()]
 
     def get_strategy(self, name: str, storage: MarketsCandleStorage) -> Strategy:
         for plugin in self._plugins:

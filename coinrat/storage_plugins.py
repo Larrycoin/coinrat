@@ -29,7 +29,7 @@ class StoragePlugins:
         self._plugins = plugins_loader('coinrat_storage_plugins', StoragePluginSpecification)
 
     def get_available_storages(self) -> List[str]:
-        return [storage_name for plugin in self._plugins for storage_name in plugin.get_available_storages]
+        return [storage_name for plugin in self._plugins for storage_name in plugin.get_available_storages()]
 
     def get_storage(self, name: str) -> MarketsCandleStorage:
         for plugin in self._plugins:

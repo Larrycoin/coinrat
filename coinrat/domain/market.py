@@ -19,7 +19,7 @@ class PairMarketInfo:
         return self._minimal_order_size
 
     def __repr__(self) -> str:
-        return 'Pair: [{}], minimal order size: {}'.format(self._pair, self._minimal_order_size)
+        return 'Pair: [{0}], minimal order size: {1:.8}'.format(self._pair, self._minimal_order_size)
 
 
 class Market:

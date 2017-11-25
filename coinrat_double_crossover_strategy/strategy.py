@@ -50,7 +50,7 @@ class DoubleCrossoverStrategy(Strategy):
             if signal is not None:
                 self._react_on_signal(market, signal)
 
-            if self._number_of_runs is not None:
+            if self._number_of_runs is not None:  # pragma: no cover
                 self._number_of_runs -= 1
 
             self._strategy_ticker += 1
@@ -122,7 +122,7 @@ class DoubleCrossoverStrategy(Strategy):
             elif signal.is_sell():
                 market.sell_max_available(self._pair)
             else:
-                raise ValueError('Unknown signal: "{}"'.format(signal))
+                raise ValueError('Unknown signal: "{}"'.format(signal)) # pragma: no cover
 
         except NotEnoughBalanceToPerformOrderException as e:
             # Intentionally, this strategy does not need state of order,

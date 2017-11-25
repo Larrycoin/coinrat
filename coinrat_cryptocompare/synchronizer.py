@@ -45,8 +45,9 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
             candles = [self._create_candle_from_raw(pair, candle) for candle in candles_data]
             self._storage.write_candles(candles)
 
-            if self._number_of_runs is not None:
+            if self._number_of_runs is not None:  # pragma: no cover
                 self._number_of_runs -= 1
+
             time.sleep(self._delay)
 
     def get_data_from_cryptocompare(self, url: str) -> Dict:

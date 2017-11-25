@@ -5,5 +5,11 @@ omit =
     tests/*
     */test*.py
 
+[report]
+exclude_lines =
+    pragma: no cover
+    pass
+    raise NotImplementedError()
+
 [html]
 directory = _coverage

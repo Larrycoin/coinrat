@@ -33,6 +33,7 @@ def test_get_balance():
 
     assert 'BTC' == balance.currency
     assert Decimal(MY_BTC_BALANCE) == balance.available_amount
+    assert 'bittrex' == balance.market_name
 
 
 def test_create_sell_order():
