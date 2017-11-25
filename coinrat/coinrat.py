@@ -1,4 +1,6 @@
 import logging
+from logging.handlers import RotatingFileHandler
+
 import click
 import sys
 from typing import Tuple
@@ -16,7 +18,11 @@ from .domain import MarketPair, ForEndUserException
 dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+# Todo: solve proper logging configuration
+logs_file = join(dirname(__file__), '../logs/log.log')
+logger = logging.getLogger()
+logger.addHandler(RotatingFileHandler(logs_file, maxBytes=200000, backupCount=5))
+logger.setLevel(logging.INFO)
 
 storage_plugins = StoragePlugins()
 market_plugins = MarketPlugins()

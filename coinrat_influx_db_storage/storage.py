@@ -24,7 +24,7 @@ class MarketInnoDbStorage(MarketsCandleStorage):
         if len(candles) == 0:
             return
         self._client.write_points([self._transform_into_raw_data(candle) for candle in candles])
-        logging.info('Into market "{}", {} candles inserted'.format(candles[0].market_name, len(candles)))
+        logging.debug('Into market "{}", {} candles inserted'.format(candles[0].market_name, len(candles)))
 
     def mean(
         self,
