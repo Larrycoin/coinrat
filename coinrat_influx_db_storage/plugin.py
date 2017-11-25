@@ -1,4 +1,4 @@
-import pluggy
+import os, pluggy
 
 from .storage import market_storage_factory, STORAGE_NAME
 from coinrat.storage_plugins import StoragePluginSpecification
@@ -9,7 +9,13 @@ get_storage_impl = pluggy.HookimplMarker('storage_plugins')
 
 PACKAGE_NAME = 'coinrat_influx_db_storage'
 
-storage = market_storage_factory('coinrat')  # Todo: move to .env
+storage = market_storage_factory(
+    os.environ.get('STORAGE_INFLUXFB_DATABASE'),
+    os.environ.get('STORAGE_INFLUXFB_HOST'),
+    os.environ.get('STORAGE_INFLUXFB_PORT'),
+    os.environ.get('STORAGE_INFLUXFB_USER'),
+    os.environ.get('STORAGE_INFLUXFB_PASSWORD'),
+)
 
 
 class StoragePlugin(StoragePluginSpecification):
