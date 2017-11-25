@@ -28,36 +28,19 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
         storage: MarketsCandleStorage,
         session: Session,
         delay: int = 30,
-        number_of_runs: Union[int, None] = None,
-        max_retry=5,
-        retry_delay=60
+        number_of_runs: Union[int, None] = None
     ) -> None:
         self._delay = delay
         self._number_of_runs = number_of_runs
         self._market_name = market_name
         self._storage = storage
         self._session = session
-        self._max_retry = max_retry
-        self._retry_delay = retry_delay
 
     def synchronize(self, pair: MarketPair) -> None:
-        retried = 0
         while self._number_of_runs is None or self._number_of_runs > 0:
             url = MINUTE_CANDLE_URL.format(pair.market_currency, pair.base_currency, MARKET_MAP[self._market_name])
 
-            try:
-                data = self.get_data_from_cryptocompare(url)
-            except ConnectionError as exception:
-                if retried >= self._max_retry:
-                    raise exception
-
-                logging.error(
-                    'Cryptocompare encountered ConnectionError: "{}". Retrying ({}) after {} seconds' \
-                        .format(exception, retried, self._retry_delay)
-                )
-                retried += 1
-                time.sleep(self._retry_delay)
-                continue
+            data = self.get_data_from_cryptocompare(url)
 
             candles_data: List[Dict] = data['Data']
             candles = [self._create_candle_from_raw(pair, candle) for candle in candles_data]
@@ -72,11 +55,11 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
         if response.status_code != 200:
             raise CryptocompareRequestException(response.text())
 
-        response = response.json()
-        if response['Response'] != 'Success':
+        json_data = response.json()
+        if json_data['Response'] != 'Success':
             raise CryptocompareRequestException(response.text())
 
-        return response
+        return json_data
 
     def _create_candle_from_raw(self, pair: MarketPair, candles_data: Dict) -> MinuteCandle:
         return MinuteCandle(
