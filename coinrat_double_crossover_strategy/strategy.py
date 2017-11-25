@@ -60,7 +60,7 @@ class DoubleCrossoverStrategy(Strategy):
         long_average, short_average = self._get_averages(market)
         current_sign = self._calculate_sign_of_change(long_average, short_average)
 
-        logging.debug(
+        logging.info(
             '[{}] Previous_sign: {}, Current-sign: {}, Long-now: {}, Short-now: {}'.format(
                 self._strategy_ticker,
                 self._previous_sign,
@@ -70,8 +70,7 @@ class DoubleCrossoverStrategy(Strategy):
             )
         )
 
-        # In equal situation, we are waiting for next price movement to decide
-        if current_sign == 0:
+        if current_sign == 0:  # In equal situation, we are waiting for next price movement to decide
             return None
 
         signal = None
@@ -122,7 +121,7 @@ class DoubleCrossoverStrategy(Strategy):
             elif signal.is_sell():
                 market.sell_max_available(self._pair)
             else:
-                raise ValueError('Unknown signal: "{}"'.format(signal)) # pragma: no cover
+                raise ValueError('Unknown signal: "{}"'.format(signal))  # pragma: no cover
 
         except NotEnoughBalanceToPerformOrderException as e:
             # Intentionally, this strategy does not need state of order,
