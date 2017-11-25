@@ -16,6 +16,7 @@ jobs:
             . __venv__/bin/activate
             pip install --upgrade git+https://github.com/ericsomdahl/python-bittrex.git
             pip install -r requirements.txt
+            python setup.py develop
 
       - run:
          name: install influxdb

@@ -1,13 +1,9 @@
 from setuptools import setup, find_packages
 
-with open('README.rst') as f:
-    long_description = ''.join(f.readlines())
-
 setup(
     name='coinrat',
     version='0.0.1',
     description='Modular auto-trading crypto-currency platform.',
-    long_description=long_description,
     author='Petr Hejna',
     author_email='hejna.peter@gmail.com',
     keywords='crypto-currency,crypto,bitcoin,trading,auto-trading,trading-bot',
