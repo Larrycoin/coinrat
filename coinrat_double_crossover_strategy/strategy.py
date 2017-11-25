@@ -58,7 +58,7 @@ class DoubleCrossoverStrategy(Strategy):
 
     def _check_for_signal(self, market: Market) -> Union[Signal, None]:
         long_average, short_average = self._get_averages(market)
-        current_sign = math.copysign(1, short_average - long_average)
+        current_sign = self._calculate_sign_of_change(long_average, short_average)
 
         logging.debug(
             '[{}] Previous_sign: {}, Current-sign: {}, Long-now: {}, Short-now: {}'.format(
@@ -70,6 +70,10 @@ class DoubleCrossoverStrategy(Strategy):
             )
         )
 
+        # In equal situation, we are waiting for next price movement to decide
+        if current_sign == 0:
+            return None
+
         signal = None
         if self._previous_sign is not None and current_sign != self._previous_sign:
             if current_sign == 1:
@@ -79,6 +83,14 @@ class DoubleCrossoverStrategy(Strategy):
 
         self._previous_sign = current_sign
         return signal
+
+    @staticmethod
+    def _calculate_sign_of_change(long_average: Decimal, short_average: Decimal) -> int:
+        diff = short_average - long_average
+        if diff == 0:
+            return 0
+
+        return int(math.copysign(1, diff))
 
     def _get_averages(self, market: Market) -> Tuple[Decimal, Decimal]:
         now = datetime.datetime.now().astimezone(datetime.timezone.utc)  # Todo: DateTimeFactory
@@ -109,6 +121,6 @@ class DoubleCrossoverStrategy(Strategy):
                 raise ValueError('Unknown signal: "{}"'.format(signal))
 
         except NotEnoughBalanceToPerformOrderException as e:
-            # Intentionally, this strategy does not need state od order,
+            # Intentionally, this strategy does not need state of order,
             # just ignores buy/sell and waits for next signal.
             logging.warning(e)
