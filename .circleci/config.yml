@@ -19,6 +19,12 @@ jobs:
             python setup.py develop
 
       - run:
+         name: prepare structure (dirs and files)
+         command: |
+            mkdir logs
+            mv .env_example .env
+
+      - run:
          name: install influxdb
          command: |
             wget https://dl.influxdata.com/influxdb/releases/influxdb_1.4.2_amd64.deb
