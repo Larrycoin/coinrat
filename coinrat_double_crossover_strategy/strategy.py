@@ -76,13 +76,17 @@ class DoubleCrossoverStrategy(Strategy):
 
         signal = None
         if self._previous_sign is not None and current_sign != self._previous_sign:
-            if current_sign == 1:
-                signal = Signal(SIGNAL_BUY)
-            elif current_sign == -1:
-                signal = Signal(SIGNAL_SELL)
+            signal = self._create_signal(current_sign)
 
         self._previous_sign = current_sign
         return signal
+
+    @staticmethod
+    def _create_signal(current_sign: int) -> Signal:
+        assert current_sign in [-1, 1]
+        if current_sign == 1:
+            return Signal(SIGNAL_BUY)
+        return Signal(SIGNAL_SELL)
 
     @staticmethod
     def _calculate_sign_of_change(long_average: Decimal, short_average: Decimal) -> int:

@@ -1,10 +1,11 @@
 import datetime
+import logging
 from typing import List, Union, Tuple
 
 import pytest
 from flexmock import flexmock, Mock
 
-from coinrat.domain import MarketPair, Market, StrategyConfigurationException
+from coinrat.domain import MarketPair, Market, StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 
 BTC_USD_PAIR = MarketPair('USD', 'BTC')
@@ -64,7 +65,7 @@ def test_sending_signal(expected_buy: int, expected_sell: int, mean_evolution: L
         expectation.and_return(mean[0]).and_return(mean[1])
 
     market = flexmock()
-    market.should_receive('get_name').and_return('dummy_market_name').mock()
+    market.should_receive('get_name').and_return('dummy_market_name')
     market.should_receive('buy_max_available').times(expected_buy)
     market.should_receive('sell_max_available').times(expected_sell)
 
@@ -76,4 +77,24 @@ def test_sending_signal(expected_buy: int, expected_sell: int, mean_evolution: L
         0,
         len(mean_evolution)
     )
+    strategy.run([market])
+
+
+def test_not_enough_balance_logs_warning():
+    storage = flexmock()
+    storage.should_receive('mean').and_return(8000).and_return(7900).and_return(8000).and_return(8100)
+
+    market = flexmock()
+    market.should_receive('get_name').and_return('dummy_market_name')
+    market.should_receive('buy_max_available').and_raise(NotEnoughBalanceToPerformOrderException)
+
+    strategy = DoubleCrossoverStrategy(
+        BTC_USD_PAIR,
+        storage,
+        datetime.timedelta(hours=1),
+        datetime.timedelta(minutes=15),
+        0,
+        2
+    )
+    flexmock(logging).should_receive('warning').once()
     strategy.run([market])
