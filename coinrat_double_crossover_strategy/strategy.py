@@ -80,8 +80,6 @@ class DoubleCrossoverStrategy(Strategy):
 
         current_price = self._candle_storage.get_current_candle().average_price
 
-        print(absolute_possible_percentage_gain(last_order.quantity, current_price))
-
         return absolute_possible_percentage_gain(last_order.quantity, current_price) > market.transaction_fee
 
     def _check_for_signal(self, market: Market) -> Union[Signal, None]:

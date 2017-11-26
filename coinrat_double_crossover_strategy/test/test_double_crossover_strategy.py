@@ -90,11 +90,10 @@ def test_sending_signal(
         flexmock(average_price=Decimal(current_candle_average_price))
     )
 
-    market = flexmock()
+    market = flexmock(transaction_fee=Decimal(0.0025))
     market.should_receive('name').and_return('dummy_market_name')
     market.should_receive('buy_max_available').times(expected_buy)
     market.should_receive('sell_max_available').times(expected_sell)
-    market.should_receive('transaction_fee').and_return(Decimal(0.0025))
 
     order_storage = flexmock()
     order_storage.should_receive('get_open_orders').and_return([])
