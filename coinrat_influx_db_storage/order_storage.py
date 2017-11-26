@@ -19,7 +19,7 @@ class OrderInnoDbStorage(OrderStorage):
         self._client = influx_db_client
 
     def save_order(self, order: Order) -> None:
-        self._client.write_points(self._get_serialized_order(order))
+        self._client.write_points([self._get_serialized_order(order)])
 
     @staticmethod
     def _get_serialized_order(order: Order) -> Dict:
@@ -33,10 +33,10 @@ class OrderInnoDbStorage(OrderStorage):
             'fields': {
                 ORDER_STORAGE_FIELD_ORDER_ID: str(order.order_id),
                 ORDER_STORAGE_FIELD_ID_ON_MARKET: order.id_on_market,
+                ORDER_STORAGE_FIELD_TYPE: order.type,
 
                 # Todo: figure out how to store decimals in influx (maybe int -> *100000)
                 ORDER_STORAGE_FIELD_QUANTITY: float(order.quantity),
                 ORDER_STORAGE_FIELD_RATE: float(order.rate),
-                ORDER_STORAGE_FIELD_TYPE: float(order.type),
             }
         }
