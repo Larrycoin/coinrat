@@ -1,4 +1,3 @@
-from typing import Tuple
 from uuid import UUID
 
 import pytest, datetime
@@ -18,7 +17,8 @@ DUMMY_ORDER = Order(
     BTC_USD_PAIR,
     ORDER_TYPE_LIMIT,
     Decimal(1),
-    Decimal(8000)
+    Decimal(8000),
+    'aaa-id-from-market'
 )
 
 
@@ -40,6 +40,7 @@ def test_save_oder(influx_database: InfluxDBClient):
     assert 1 == len(data)
     expected_data = "{" \
                     + "'time': '2017-11-26T10:11:12Z', " \
+                    + "'id_on_market': 'aaa-id-from-market', " \
                     + "'market': 'dummy_market_name', " \
                     + "'order_id': '16fd2706-8baf-433b-82eb-8c7fada847da', " \
                     + "'pair': 'USD_BTC', " \
