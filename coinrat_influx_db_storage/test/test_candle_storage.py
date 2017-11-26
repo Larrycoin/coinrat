@@ -6,7 +6,7 @@ from decimal import Decimal
 from influxdb import InfluxDBClient
 
 from coinrat.domain import MinuteCandle, MarketPair, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
-from coinrat_influx_db_storage.storage import MarketInnoDbStorage
+from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage
 
 DUMMY_MARKET = 'dummy_market'
 BTC_USD_PAIR = MarketPair('USD', 'BTC')
@@ -22,7 +22,7 @@ def influx_database():
 
 
 def test_write_candle(influx_database: InfluxDBClient):
-    storage = MarketInnoDbStorage(influx_database)
+    storage = CandleInnoDbStorage(influx_database)
 
     storage.write_candle(_create_dummy_candle())
 
@@ -41,7 +41,7 @@ def test_write_candle(influx_database: InfluxDBClient):
 
 
 def test_write_candles(influx_database: InfluxDBClient):
-    storage = MarketInnoDbStorage(influx_database)
+    storage = CandleInnoDbStorage(influx_database)
 
     storage.write_candles([_create_dummy_candle(1), _create_dummy_candle(2)])
 
@@ -55,7 +55,7 @@ def test_write_zero_candles():
     mock_influx_database = flexmock()
     mock_influx_database.should_receive('write_points').never()
 
-    storage = MarketInnoDbStorage(mock_influx_database)
+    storage = CandleInnoDbStorage(mock_influx_database)
     storage.write_candles([])
 
 
@@ -67,7 +67,7 @@ def test_write_zero_candles():
     ]
 )
 def test_mean(influx_database: InfluxDBClient, expected_mean: int, minute_interval: Tuple[int, int]):
-    storage = MarketInnoDbStorage(influx_database)
+    storage = CandleInnoDbStorage(influx_database)
     storage.write_candles([_create_dummy_candle(10, 8000), _create_dummy_candle(20, 8300)])
     interval = (
         datetime.datetime(2017, 7, 2, 0, minute_interval[0], 0, tzinfo=datetime.timezone.utc),
@@ -80,7 +80,7 @@ def test_mean(influx_database: InfluxDBClient, expected_mean: int, minute_interv
 
 def test_mean_no_data_raise_exception(influx_database: InfluxDBClient):
     """We want to raise exception to prevent invalid signal by dropping some price to 0."""
-    storage = MarketInnoDbStorage(influx_database)
+    storage = CandleInnoDbStorage(influx_database)
     interval = (
         datetime.datetime(2017, 7, 2, 0, 0, 0, tzinfo=datetime.timezone.utc),
         datetime.datetime(2017, 7, 2, 0, 30, 0, tzinfo=datetime.timezone.utc)

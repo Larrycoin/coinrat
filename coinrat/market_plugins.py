@@ -1,5 +1,5 @@
 import pluggy
-from typing import List
+from typing import List, Set
 
 from .plugins import PluginSpecification, plugins_loader
 from .domain import Market
@@ -26,7 +26,10 @@ class MarketNotProvidedByAnyPluginException(Exception):
 
 class MarketPlugins:
     def __init__(self) -> None:
-        self._plugins = plugins_loader('coinrat_market_plugins', MarketPluginSpecification)
+        self._plugins: Set[MarketPluginSpecification] = plugins_loader(
+            'coinrat_market_plugins',
+            MarketPluginSpecification
+        )
 
     def get_available_markets(self) -> List[str]:
         return [market_name for plugin in self._plugins for market_name in plugin.get_available_markets()]

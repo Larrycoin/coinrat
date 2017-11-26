@@ -1,5 +1,5 @@
 import pluggy
-from typing import List
+from typing import List, Set
 
 from .plugins import PluginSpecification, plugins_loader
 from .domain import Strategy, MarketsCandleStorage
@@ -26,7 +26,10 @@ class StrategyNotProvidedByAnyPluginException(Exception):
 
 class StrategyPlugins:
     def __init__(self) -> None:
-        self._plugins = plugins_loader('coinrat_strategy_plugins', StrategyPluginSpecification, )
+        self._plugins: Set[StrategyPluginSpecification] = plugins_loader(
+            'coinrat_strategy_plugins',
+            StrategyPluginSpecification
+        )
 
     def get_available_strategies(self) -> List[str]:
         return [strategy_name for plugin in self._plugins for strategy_name in plugin.get_available_strategies()]

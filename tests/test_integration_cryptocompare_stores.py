@@ -4,7 +4,7 @@ from influxdb import InfluxDBClient
 
 from coinrat.domain import MarketPair
 from coinrat_cryptocompare.synchronizer import CryptocompareSynchronizer
-from coinrat_influx_db_storage.storage import MarketInnoDbStorage
+from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def influx_database():
 def test_candle_ticks_are_stored(influx_database: InfluxDBClient):
     synchronizer = CryptocompareSynchronizer(
         'bittrex',
-        MarketInnoDbStorage(influx_database),
+        CandleInnoDbStorage(influx_database),
         requests.Session(),
         delay=0,
         number_of_runs=1
@@ -36,4 +36,4 @@ def test_candle_ticks_are_stored(influx_database: InfluxDBClient):
 
 
 def _get_all_from_influx_db(influx_database: InfluxDBClient):
-    return list(influx_database.query('SELECT * FROM candles').get_points())
+    return list(influx_database.query('SELECT * FROM "candles"').get_points())

@@ -10,7 +10,7 @@ from click import Context
 from dotenv import load_dotenv
 
 from .market_plugins import MarketPlugins
-from .storage_plugins import StoragePlugins
+from .candle_storage_plugins import CandleStoragePlugins
 from .synchronizer_plugins import SynchronizerPlugins
 from .strategy_plugins import StrategyPlugins
 from .domain import MarketPair, ForEndUserException
@@ -24,7 +24,7 @@ logger = logging.getLogger()
 logger.addHandler(RotatingFileHandler(logs_file, maxBytes=200000, backupCount=5))
 logger.setLevel(logging.INFO)
 
-storage_plugins = StoragePlugins()
+candle_storage_plugins = CandleStoragePlugins()
 market_plugins = MarketPlugins()
 synchronizer_plugins = SynchronizerPlugins()
 strategy_plugins = StrategyPlugins()
@@ -37,7 +37,7 @@ strategy_plugins = StrategyPlugins()
 @click.help_option()
 @click.pass_context
 def cli(ctx: Context) -> None:
-    ctx.obj['market_inno_db_storage'] = storage_plugins.get_storage('influx_db')
+    ctx.obj['market_influxdb_storage'] = candle_storage_plugins.get_candle_storage('influx_db')
 
 
 @cli.command()
@@ -61,7 +61,7 @@ def synchronizers() -> None:
 def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str]) -> None:
     pair = MarketPair(pair[0], pair[1])
 
-    synchronizer = synchronizer_plugins.get_synchronizer(synchronizer_name, ctx.obj['market_inno_db_storage'])
+    synchronizer = synchronizer_plugins.get_synchronizer(synchronizer_name, ctx.obj['market_influxdb_storage'])
     synchronizer.synchronize(pair)
 
 
@@ -70,7 +70,7 @@ def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str]) -> 
 @click.argument('market_names', nargs=-1)
 @click.pass_context
 def run_strategy(ctx: Context, strategy_name: str, market_names: Tuple[str]) -> None:
-    strategy = strategy_plugins.get_strategy(strategy_name, ctx.obj['market_inno_db_storage'])
+    strategy = strategy_plugins.get_strategy(strategy_name, ctx.obj['market_influxdb_storage'])
 
     try:
         markers = [market_plugins.get_market(marker_name) for marker_name in market_names]

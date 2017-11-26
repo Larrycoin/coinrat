@@ -28,8 +28,11 @@ setup(
             'coinrat_bittrex = coinrat_bittrex:market_plugin',
             'coinrat_dummy_print = coinrat_dummy_print:market_plugin',
         ],
-        'coinrat_storage_plugins': [
-            'coinrat_influx_db_storage = coinrat_influx_db_storage:storage_plugin',
+        'coinrat_candle_storage_plugins': [
+            'coinrat_influx_db_storage = coinrat_influx_db_storage:candle_storage_plugin',
+        ],
+        'coinrat_order_storage_plugins': [
+            'coinrat_influx_db_storage = coinrat_influx_db_storage:order_storage_plugin',
         ],
         'coinrat_synchronizer_plugins': [
             'coinrat_bittrex = coinrat_bittrex:synchronizer_plugin',

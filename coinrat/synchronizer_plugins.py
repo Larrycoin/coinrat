@@ -1,5 +1,5 @@
 import pluggy
-from typing import List
+from typing import List, Set
 
 from .plugins import PluginSpecification, plugins_loader
 from .domain import MarketStateSynchronizer, MarketsCandleStorage
@@ -30,7 +30,10 @@ class SynchronizerNotProvidedByAnyPluginException(Exception):
 
 class SynchronizerPlugins:
     def __init__(self) -> None:
-        self._plugins = plugins_loader('coinrat_synchronizer_plugins', SynchronizerPluginSpecification)
+        self._plugins: Set[SynchronizerPluginSpecification] = plugins_loader(
+            'coinrat_synchronizer_plugins',
+            SynchronizerPluginSpecification
+        )
 
     def get_available_synchronizers(self) -> List[str]:
         return [

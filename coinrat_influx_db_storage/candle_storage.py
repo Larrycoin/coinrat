@@ -10,10 +10,10 @@ from coinrat.domain import MinuteCandle, MarketsCandleStorage, MarketPair, CANDL
     CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
     NoCandlesForMarketInStorageException
 
-STORAGE_NAME = 'influx_db'
+CANDLE_STORAGE_NAME = 'influx_db'
 
 
-class MarketInnoDbStorage(MarketsCandleStorage):
+class CandleInnoDbStorage(MarketsCandleStorage):
     def __init__(self, influx_db_client: InfluxDBClient):
         self._client = influx_db_client
 
@@ -53,7 +53,7 @@ class MarketInnoDbStorage(MarketsCandleStorage):
         result: ResultSet = self._client.query(sql)
         if len(result) == 0:
             raise NoCandlesForMarketInStorageException(
-                'For market "{}" no candles in storage "{}".'.format(market_name, STORAGE_NAME)
+                'For market "{}" no candles in storage "{}".'.format(market_name, CANDLE_STORAGE_NAME)
             )
 
         mean = list(result.items()[0][1])[0]['field_mean']
@@ -65,7 +65,7 @@ class MarketInnoDbStorage(MarketsCandleStorage):
             "measurement": "candles",
             "tags": {
                 "market": candle.market_name,
-                "pair": MarketInnoDbStorage._create_pair_identifier(candle.pair),
+                "pair": CandleInnoDbStorage._create_pair_identifier(candle.pair),
             },
             "time": candle.time.isoformat(),
             "fields": {
@@ -80,13 +80,3 @@ class MarketInnoDbStorage(MarketsCandleStorage):
     @staticmethod
     def _create_pair_identifier(pair: MarketPair) -> str:
         return '{}_{}'.format(pair.base_currency, pair.market_currency)
-
-
-def market_storage_factory(
-    database: str,
-    host: str = 'localhost',
-    port: int = 8086,
-    user: str = 'root',
-    password: str = 'root',
-):
-    return MarketInnoDbStorage(InfluxDBClient(host, port, user, password, database))

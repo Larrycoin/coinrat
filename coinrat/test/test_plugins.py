@@ -2,7 +2,7 @@ import pytest
 from flexmock import flexmock
 
 from coinrat.market_plugins import MarketPlugins, MarketNotProvidedByAnyPluginException
-from coinrat.storage_plugins import StoragePlugins, StorageNotProvidedByAnyPluginException
+from coinrat.candle_storage_plugins import CandleStoragePlugins, CandleStorageNotProvidedByAnyPluginException
 from coinrat.strategy_plugins import StrategyPlugins, StrategyNotProvidedByAnyPluginException
 from coinrat.synchronizer_plugins import SynchronizerPlugins, SynchronizerNotProvidedByAnyPluginException
 from coinrat.domain import MarketsCandleStorage, Strategy, Market, MarketStateSynchronizer
@@ -28,13 +28,13 @@ def test_market_plugins():
         plugins.get_market('gandalf')
 
 
-def test_storage_plugins():
-    plugins = StoragePlugins()
-    assert 'influx_db' in plugins.get_available_storages()
+def test_candle_storage_plugins():
+    plugins = CandleStoragePlugins()
+    assert 'influx_db' in plugins.get_available_candle_storages()
 
-    assert isinstance(plugins.get_storage('influx_db'), MarketsCandleStorage)
-    with pytest.raises(StorageNotProvidedByAnyPluginException):
-        plugins.get_storage('gandalf')
+    assert isinstance(plugins.get_candle_storage('influx_db'), MarketsCandleStorage)
+    with pytest.raises(CandleStorageNotProvidedByAnyPluginException):
+        plugins.get_candle_storage('gandalf')
 
 
 def test_strategy_plugins():
