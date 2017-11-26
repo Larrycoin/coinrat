@@ -1,14 +1,17 @@
-import copy, pytest
+import copy
+import datetime
+import pytest
 import uuid
-from decimal import Decimal
+from decimal import Decimal, getcontext
+from typing import Dict, Union
 from uuid import UUID
 
-import datetime
 from flexmock import flexmock
 
-from coinrat_bittrex.market import BittrexMarket, BittrexMarketRequestException
 from coinrat.domain import Pair, Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, \
     NotEnoughBalanceToPerformOrderException
+from coinrat_bittrex.market import BittrexMarket, BittrexMarketRequestException
+from coinrat_bittrex.test.fixtures import MARKET_USDT_BTC_DATA, DUMMY_ORDER_ID_ON_MARKET, OPEN_ORDER, CLOSED_ORDER
 
 BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_LIMIT_ORDER = Order(
@@ -31,20 +34,6 @@ DUMMY_MARKET_ORDER = Order(
 )
 MY_BTC_BALANCE = 100
 MY_USD_BALANCE = 1000000
-
-MARKET_USDT_BTC_DATA = {
-    'MarketCurrency': 'BTC',
-    'BaseCurrency': 'USDT',
-    'MarketCurrencyLong': 'Bitcoin',
-    'BaseCurrencyLong': 'Tether',
-    'MinTradeSize': 0.00039117,
-    'MarketName': 'USDT-BTC',
-    'IsActive': True,
-    'Created': '2015-12-11T06:31:40.633',
-    'Notice': None,
-    'IsSponsored': None,
-    'LogoUrl': None
-}
 
 # Todo: rewrite do proper DI to be able mockID for each test separately
 flexmock(uuid).should_receive('uuid4').and_return(UUID('16fd2706-8baf-433b-82eb-8c7fada847da'))
@@ -149,6 +138,35 @@ def test_sell_max_available():
 
     market = BittrexMarket(client_v1, mock_client_v2())
     market.sell_max_available(BTC_USD_PAIR)
+
+
+@pytest.mark.parametrize(['expected_open', 'expected_closed_at', 'expected_quantity_amount', 'bittrex_response'],
+    [
+        (True, None, Decimal(0.00310976), OPEN_ORDER),
+        (
+            False,
+            datetime.datetime(2017, 11, 26, 13, 8, 14, 497000, tzinfo=datetime.timezone.utc),
+            Decimal(0),
+            CLOSED_ORDER
+        ),
+    ]
+)
+def test_get_oder_status(
+    expected_open: bool,
+    expected_closed_at: Union[datetime.datetime, None],
+    expected_quantity_amount: Decimal,
+    bittrex_response: Dict
+):
+    client_v2 = flexmock()
+    client_v2.should_receive('get_order').with_args(DUMMY_ORDER_ID_ON_MARKET).and_return(bittrex_response)
+
+    market = BittrexMarket(flexmock(), client_v2)
+    order = flexmock(id_on_market=DUMMY_ORDER_ID_ON_MARKET)
+    order_status = market.get_order_status(order)
+
+    assert expected_open == order_status.is_open
+    assert expected_closed_at == order_status.closed_at
+    assert expected_quantity_amount == order_status.quantity_remaining
 
 
 def test_result_validation():

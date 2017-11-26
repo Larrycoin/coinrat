@@ -5,10 +5,10 @@ import uuid
 import dateutil.parser
 from typing import Dict, List
 from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, TICKINTERVAL_ONEMIN
-from decimal import Decimal
 
+from decimal import Decimal
 from coinrat.domain import Market, Balance, Pair, MinuteCandle, Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, \
-    PairMarketInfo, MarketPairDoesNotExistsException, NotEnoughBalanceToPerformOrderException
+    PairMarketInfo, MarketPairDoesNotExistsException, NotEnoughBalanceToPerformOrderException, OrderMarketInfo
 
 
 class BittrexMarketRequestException(Exception):
@@ -96,6 +96,17 @@ class BittrexMarket(Market):
 
         else:
             raise ValueError('Unknown order type: {}'.format(order.type))
+
+    def get_order_status(self, order: Order) -> OrderMarketInfo:
+        result = self._client_v2.get_order(order.id_on_market)
+        self._validate_result(result)
+        info_data = result['result']
+
+        closed_at = info_data['Closed']
+        if closed_at is not None:
+            closed_at = dateutil.parser.parse(closed_at).replace(tzinfo=datetime.timezone.utc)
+
+        return OrderMarketInfo(order, info_data['IsOpen'], closed_at, Decimal(info_data['QuantityRemaining']))
 
     def cancel_order(self, order_id: str) -> None:
         result = self._client_v1.cancel(order_id)

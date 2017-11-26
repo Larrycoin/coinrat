@@ -102,3 +102,33 @@ class Order:
             self._rate,
             self._quantity
         )
+
+
+class OrderMarketInfo:
+    def __init__(
+        self,
+        order: Order,
+        is_open: bool,
+        closed_at: Union[datetime.datetime, None],
+        quantity_remaining: Decimal
+    ) -> None:
+        self._order = order
+        self._is_open = is_open
+        self._closed_at = closed_at
+        self._quantity_remaining = quantity_remaining
+
+    @property
+    def order(self) -> Order:
+        return self._order
+
+    @property
+    def is_open(self) -> bool:
+        return self._is_open
+
+    @property
+    def closed_at(self) -> datetime.datetime:
+        return self._closed_at
+
+    @property
+    def quantity_remaining(self) -> Decimal:
+        return self._quantity_remaining

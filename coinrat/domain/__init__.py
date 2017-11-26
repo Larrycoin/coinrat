@@ -2,7 +2,7 @@ from .balance import Balance
 from .candle import MinuteCandle
 from .coinrat import ForEndUserException
 from .market import Market, PairMarketInfo
-from .order import Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, NotEnoughBalanceToPerformOrderException
+from .order import Order, OrderMarketInfo, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, NotEnoughBalanceToPerformOrderException
 from .pair import Pair, MarketPairDoesNotExistsException
 from .signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from .candle_storage import CandleStorage, NoCandlesForMarketInStorageException, \
@@ -20,7 +20,7 @@ __all__ = [
 
     'Market', 'PairMarketInfo',
 
-    'Order', 'ORDER_TYPE_LIMIT', 'ORDER_TYPE_MARKET', 'NotEnoughBalanceToPerformOrderException',
+    'Order', 'OrderMarketInfo', 'ORDER_TYPE_LIMIT', 'ORDER_TYPE_MARKET', 'NotEnoughBalanceToPerformOrderException',
 
     'Pair',
 

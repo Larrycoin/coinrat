@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Union
 
-from .order import Order
+from .order import Order, OrderMarketInfo
 from .pair import Pair
 
 
@@ -41,6 +41,9 @@ class Market:
         raise NotImplementedError()
 
     def create_buy_order(self, order: Order) -> Order:
+        raise NotImplementedError()
+
+    def get_order_status(self, order: Order) -> OrderMarketInfo:
         raise NotImplementedError()
 
     def cancel_order(self, order_id: str) -> None:
