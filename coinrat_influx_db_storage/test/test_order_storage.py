@@ -63,6 +63,10 @@ def test_get_open_orders(influx_database: InfluxDBClient):
     assert str(orders[0].order_id) == '16fd2706-8baf-433b-82eb-8c7fada847da'
 
 
+def test_find_last_order(influx_database: InfluxDBClient):
+    raise NotImplementedError()
+
+
 def create_dummy_data(influx_database: InfluxDBClient):
     storage = OrderInnoDbStorage(influx_database)
     storage.save_order(Order(

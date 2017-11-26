@@ -10,5 +10,5 @@ class OrderStorage:
     def get_open_orders(self, market_name: str, pair: Pair) -> List[Order]:
         raise NotImplementedError()
 
-    def find_last_order(self) -> Union[Order, None]:
+    def find_last_order(self, market_name: str, pair: Pair) -> Union[Order, None]:
         raise NotImplementedError()

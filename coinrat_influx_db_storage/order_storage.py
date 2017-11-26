@@ -42,6 +42,18 @@ class OrderInnoDbStorage(OrderStorage):
 
         return [self._create_order_from_serialized(row) for row in data]
 
+    def find_last_order(self, market_name: str, pair: Pair) -> Union[Order, None]:
+        sql = '''
+            SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' ORDER BY "time" LIMIT 1
+        '''.format(MEASUREMENT_ORDERS_NAME, create_pair_identifier(pair), market_name)
+
+        result: ResultSet = self._client.query(sql)
+        result = result.get_points()
+        if len(result) == 0:
+            return None
+
+        return self._create_order_from_serialized(result[0])
+
     @staticmethod
     def _get_serialized_order(order: Order) -> Dict:
         return {
