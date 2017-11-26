@@ -2,6 +2,8 @@ from decimal import Decimal
 from typing import Union
 from uuid import UUID
 
+import datetime
+
 from .coinrat import ForEndUserException
 from .pair import Pair
 
@@ -18,12 +20,16 @@ class Order:
         self,
         order_id: UUID,
         market_name: str,
+        created_at: datetime.datetime,
         pair: Pair,
         order_type: str,
         quantity: Decimal,
         rate: Union[Decimal, None] = None,
         market_id: Union[str, None] = None
     ) -> None:
+        assert '+00:00' in created_at.isoformat()[-6:], \
+            ('Time must be in UTC and aware of its timezone ({})'.format(created_at.isoformat()))
+
         assert order_type in [ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET], 'Unknown type of order: "{}".'.format(order_type)
         assert isinstance(quantity, Decimal)
 
@@ -34,6 +40,7 @@ class Order:
 
         self._order_id = order_id
         self._market_name = market_name
+        self._created_at = created_at
         self._pair = pair
         self._type = order_type
         self._quantity = quantity
@@ -47,6 +54,10 @@ class Order:
     @property
     def market_name(self) -> str:
         return self._market_name
+
+    @property
+    def created_at(self) -> datetime.datetime:
+        return self._created_at
 
     @property
     def pair(self) -> Pair:
@@ -72,9 +83,19 @@ class Order:
         self._id_on_market = id_on_market
 
     def __repr__(self) -> str:
-        return 'Id: "{}, "Market: "{}", ID on market: "{}", Pair: [{}], Type: "{}", Rate: {}, Quantity: {}'.format(
+        return (
+            'Id: "{}, '
+            + 'Market: "{}", '
+            + 'Created: "{}, '
+            + '"ID on market: "{}", '
+            + 'Pair: [{}], '
+            + 'Type: "{}", '
+            + 'Rate: {}, '
+            + 'Quantity: {}'
+        ).format(
             self._order_id,
             self._market_name,
+            self._created_at.isoformat(),
             self._id_on_market,
             self._pair,
             self._type,

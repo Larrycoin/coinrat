@@ -107,8 +107,20 @@ class BittrexMarket(Market):
 
         coefficient_due_fee = Decimal(1) - self.transaction_fee_coefficient
         amount_to_buy = (base_currency_balance.available_amount / tick.average_price) * coefficient_due_fee
-        order = Order(uuid.uuid4(), self.name, pair, ORDER_TYPE_LIMIT, amount_to_buy, tick.average_price)
+
+        order = self._create_order_entity(ORDER_TYPE_LIMIT, pair, amount_to_buy, tick.average_price)
+
         return self.create_buy_order(order)
+
+    def sell_max_available(self, pair: Pair) -> Order:
+        market_currency_available = self.get_balance(pair.market_currency).available_amount
+        tick = self.get_last_candle(pair)
+        order = self._create_order_entity(ORDER_TYPE_LIMIT, pair, market_currency_available, tick.average_price)
+        return self.create_sell_order(order)
+
+    def _create_order_entity(self, order_type: str, pair: Pair, amount_to_buy: Decimal, rate: Decimal) -> Order:
+        created_at = datetime.datetime.now().astimezone(datetime.timezone.utc)
+        return Order(uuid.uuid4(), self.name, created_at, pair, order_type, amount_to_buy, rate)
 
     def _validate_minimal_order(self, order: Order) -> None:
         pair_market_info = self.get_pair_market_info(order.pair)
@@ -116,12 +128,6 @@ class BittrexMarket(Market):
             raise NotEnoughBalanceToPerformOrderException(
                 'You want {} but limit is {}.'.format(order.quantity, pair_market_info.minimal_order_size)
             )
-
-    def sell_max_available(self, pair: Pair) -> Order:
-        market_currency_available = self.get_balance(pair.market_currency).available_amount
-        tick = self.get_last_candle(pair)
-        order = Order(uuid.uuid4(), self.name, pair, ORDER_TYPE_LIMIT, market_currency_available, tick.average_price)
-        return self.create_sell_order(order)
 
     def _get_sorted_candles_from_api(self, pair: Pair):
         market = self.format_market_pair(pair)

@@ -63,13 +63,13 @@ class CandleInnoDbStorage(CandleStorage):
     @staticmethod
     def _transform_into_raw_data(candle: MinuteCandle):
         return {
-            "measurement": "candles",
-            "tags": {
-                "market": candle.market_name,
-                "pair": create_pair_identifier(candle.pair),
+            'measurement': 'candles',
+            'tags': {
+                'market': candle.market_name,
+                'pair': create_pair_identifier(candle.pair),
             },
-            "time": candle.time.isoformat(),
-            "fields": {
+            'time': candle.time.isoformat(),
+            'fields': {
                 # Todo: figure out how to store decimals in influx (maybe int -> *100000)
                 CANDLE_STORAGE_FIELD_OPEN: float(candle.open),
                 CANDLE_STORAGE_FIELD_CLOSE: float(candle.close),

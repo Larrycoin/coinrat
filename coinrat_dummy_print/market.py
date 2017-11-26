@@ -1,6 +1,8 @@
 import uuid
 from decimal import Decimal
 
+import datetime
+
 from coinrat.domain import Market, Balance, Pair, Order, PairMarketInfo, ORDER_TYPE_LIMIT
 
 MARKET_NAME = 'dummy_print'
@@ -46,6 +48,7 @@ class PrintDummyMarket(Market):
         return Order(
             uuid.uuid4(),
             MARKET_NAME,
+            datetime.datetime.now().astimezone(datetime.timezone.utc),
             pair,
             ORDER_TYPE_LIMIT,
             Decimal(1),

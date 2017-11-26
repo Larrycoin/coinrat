@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import math
 
-from coinrat.domain import Strategy, CandleStorage, OrderStorage, Signal, Pair, \
+from coinrat.domain import Strategy, CandleStorage, Order, OrderStorage, Signal, Pair, \
     CANDLE_STORAGE_FIELD_CLOSE, SIGNAL_SELL, SIGNAL_BUY, Market, \
     StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 
@@ -47,16 +47,24 @@ class DoubleCrossoverStrategy(Strategy):
         market = markets[0]
 
         while self._number_of_runs is None or self._number_of_runs > 0:
-
-            signal = self._check_for_signal(market)
-            if signal is not None:
-                self._react_on_signal(market, signal)
+            self._check_if_orders_processed()
+            self._check_and_trade(market)
 
             if self._number_of_runs is not None:  # pragma: no cover
                 self._number_of_runs -= 1
 
             self._strategy_ticker += 1
             time.sleep(self._delay)
+
+    def _check_if_orders_processed(self):
+        pass  # Todo: implement
+
+    def _check_and_trade(self, market: Market):
+        signal = self._check_for_signal(market)
+        if signal is not None:
+            order = self._react_on_market_by_signal(market, signal)
+            if order is not None:
+                self._order_storage.save_order(order)
 
     def _check_for_signal(self, market: Market) -> Union[Signal, None]:
         long_average, short_average = self._get_averages(market)
@@ -116,12 +124,12 @@ class DoubleCrossoverStrategy(Strategy):
 
         return long_average, short_average
 
-    def _react_on_signal(self, market: Market, signal: Signal):
+    def _react_on_market_by_signal(self, market: Market, signal: Signal) -> Union[Order, None]:
         try:
             if signal.is_buy():
-                market.buy_max_available(self._pair)
+                return market.buy_max_available(self._pair)
             elif signal.is_sell():
-                market.sell_max_available(self._pair)
+                return market.sell_max_available(self._pair)
             else:
                 raise ValueError('Unknown signal: "{}"'.format(signal))  # pragma: no cover
 

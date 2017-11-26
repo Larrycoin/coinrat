@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -8,6 +9,7 @@ BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
     'dummy_market_name',
+    datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_LIMIT,
     Decimal(1),

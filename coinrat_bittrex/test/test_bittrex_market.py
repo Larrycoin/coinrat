@@ -3,6 +3,7 @@ import uuid
 from decimal import Decimal
 from uuid import UUID
 
+import datetime
 from flexmock import flexmock
 
 from coinrat_bittrex.market import BittrexMarket, BittrexMarketRequestException
@@ -13,6 +14,7 @@ BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_LIMIT_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
     'bittrex',
+    datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_LIMIT,
     Decimal(1),
@@ -21,6 +23,7 @@ DUMMY_LIMIT_ORDER = Order(
 DUMMY_MARKET_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
     'bittrex',
+    datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_MARKET,
     Decimal(1),
