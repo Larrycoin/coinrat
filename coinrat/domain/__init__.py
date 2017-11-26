@@ -4,7 +4,6 @@ from .coinrat import ForEndUserException
 from .market import Market, PairMarketInfo
 from .order import Order, OrderMarketInfo, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, NotEnoughBalanceToPerformOrderException
 from .pair import Pair, MarketPairDoesNotExistsException
-from .signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from .candle_storage import CandleStorage, NoCandlesForMarketInStorageException, \
     CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, CANDLE_STORAGE_FIELD_HIGH
 from .order_storage import OrderStorage
@@ -23,8 +22,6 @@ __all__ = [
     'Order', 'OrderMarketInfo', 'ORDER_TYPE_LIMIT', 'ORDER_TYPE_MARKET', 'NotEnoughBalanceToPerformOrderException',
 
     'Pair',
-
-    'Signal', 'SIGNAL_BUY', 'SIGNAL_SELL',
 
     'CandleStorage', 'StorageException', 'NoCandlesForMarketInStorageException',
     'CANDLE_STORAGE_FIELD_OPEN', 'CANDLE_STORAGE_FIELD_CLOSE', 'CANDLE_STORAGE_FIELD_LOW', 'CANDLE_STORAGE_FIELD_HIGH',

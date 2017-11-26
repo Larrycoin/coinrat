@@ -1,6 +1,6 @@
 import pytest
 
-from coinrat.domain import Signal, SIGNAL_BUY, SIGNAL_SELL
+from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 
 
 def test_signal():

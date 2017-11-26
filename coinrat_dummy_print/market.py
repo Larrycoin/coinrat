@@ -17,7 +17,7 @@ class PrintDummyMarket(Market):
         return MARKET_NAME
 
     @property
-    def transaction_fee_coefficient(self) -> Decimal:
+    def transaction_fee(self) -> Decimal:
         return Decimal(0.0025)
 
     def get_balance(self, currency: str):

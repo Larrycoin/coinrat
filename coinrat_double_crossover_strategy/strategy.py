@@ -5,9 +5,10 @@ from decimal import Decimal
 
 import math
 
-from coinrat.domain import Strategy, CandleStorage, Order, OrderStorage, Signal, Pair, \
-    CANDLE_STORAGE_FIELD_CLOSE, SIGNAL_SELL, SIGNAL_BUY, Market, \
+from coinrat.domain import Strategy, CandleStorage, Order, OrderStorage, Pair, CANDLE_STORAGE_FIELD_CLOSE, Market, \
     StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
+from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
+from coinrat_double_crossover_strategy.utils import absolute_possible_percentage_gain
 
 STRATEGY_NAME = 'double_crossover'
 
@@ -47,8 +48,8 @@ class DoubleCrossoverStrategy(Strategy):
         market = markets[0]
 
         while self._number_of_runs is None or self._number_of_runs > 0:
-            self._check_if_orders_processed(market)
-            self._check_and_trade(market)
+            self._check_and_process_open_orders(market)
+            self._check_for_signal_and_trade(market)
 
             if self._number_of_runs is not None:  # pragma: no cover
                 self._number_of_runs -= 1
@@ -56,7 +57,7 @@ class DoubleCrossoverStrategy(Strategy):
             self._strategy_ticker += 1
             time.sleep(self._delay)
 
-    def _check_if_orders_processed(self, market: Market):
+    def _check_and_process_open_orders(self, market: Market):
         orders = self._order_storage.get_open_orders(market.name, self._pair)
         for order in orders:
             status = market.get_order_status(order)
@@ -64,12 +65,24 @@ class DoubleCrossoverStrategy(Strategy):
                 order.close(status.closed_at)
                 self._order_storage.save_order(order)
 
-    def _check_and_trade(self, market: Market):
+    def _check_for_signal_and_trade(self, market: Market):
         signal = self._check_for_signal(market)
-        if signal is not None:
-            order = self._react_on_market_by_signal(market, signal)
+        if signal is not None and self._does_trade_worth_it(market):
+            order = self._trade_on_signal(market, signal)
             if order is not None:
                 self._order_storage.save_order(order)
+
+    def _does_trade_worth_it(self, market: Market) -> bool:
+        last_order = self._order_storage.find_last_order()
+        print(last_order)
+        if last_order is None:
+            return True
+
+        current_price = self._candle_storage.get_current_candle().average_price
+
+        print(absolute_possible_percentage_gain(last_order.quantity, current_price))
+
+        return absolute_possible_percentage_gain(last_order.quantity, current_price) > market.transaction_fee
 
     def _check_for_signal(self, market: Market) -> Union[Signal, None]:
         long_average, short_average = self._get_averages(market)
@@ -129,7 +142,7 @@ class DoubleCrossoverStrategy(Strategy):
 
         return long_average, short_average
 
-    def _react_on_market_by_signal(self, market: Market, signal: Signal) -> Union[Order, None]:
+    def _trade_on_signal(self, market: Market, signal: Signal) -> Union[Order, None]:
         try:
             if signal.is_buy():
                 return market.buy_max_available(self._pair)

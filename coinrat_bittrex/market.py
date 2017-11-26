@@ -28,7 +28,7 @@ class BittrexMarket(Market):
         return MARKET_NAME
 
     @property
-    def transaction_fee_coefficient(self) -> Decimal:
+    def transaction_fee(self) -> Decimal:
         return Decimal(0.0025)
 
     def get_balance(self, currency: str):
@@ -116,7 +116,7 @@ class BittrexMarket(Market):
         base_currency_balance = self.get_balance(pair.base_currency)
         tick = self.get_last_candle(pair)
 
-        coefficient_due_fee = Decimal(1) - self.transaction_fee_coefficient
+        coefficient_due_fee = Decimal(1) - self.transaction_fee
         amount_to_buy = (base_currency_balance.available_amount / tick.average_price) * coefficient_due_fee
 
         order = self._create_order_entity(ORDER_TYPE_LIMIT, pair, amount_to_buy, tick.average_price)

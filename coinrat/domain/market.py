@@ -28,7 +28,7 @@ class Market:
         raise NotImplementedError()
 
     @property
-    def transaction_fee_coefficient(self):
+    def transaction_fee(self):
         raise NotImplementedError()
 
     def get_balance(self, currency: str) -> Decimal:

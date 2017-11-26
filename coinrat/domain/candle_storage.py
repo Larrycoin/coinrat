@@ -32,3 +32,6 @@ class CandleStorage:
         interval: Tuple[datetime.datetime, datetime.datetime]
     ) -> Decimal:
         raise NotImplementedError()
+
+    def get_current_candle(self) -> MinuteCandle:
+        raise NotImplementedError()
