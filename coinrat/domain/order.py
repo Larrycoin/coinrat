@@ -25,7 +25,8 @@ class Order:
         order_type: str,
         quantity: Decimal,
         rate: Union[Decimal, None] = None,
-        market_id: Union[str, None] = None
+        market_id: Union[str, None] = None,
+        is_open: bool = True
     ) -> None:
         assert '+00:00' in created_at.isoformat()[-6:], \
             ('Time must be in UTC and aware of its timezone ({})'.format(created_at.isoformat()))
@@ -46,6 +47,7 @@ class Order:
         self._quantity = quantity
         self._rate = rate
         self._id_on_market = market_id
+        self._is_open = is_open
 
     @property
     def order_id(self) -> UUID:
@@ -79,6 +81,10 @@ class Order:
     def id_on_market(self) -> Union[str, None]:
         return self._id_on_market
 
+    @property
+    def is_open(self) -> bool:
+        return self._is_open
+
     def set_id_on_market(self, id_on_market: str) -> None:
         self._id_on_market = id_on_market
 
@@ -87,6 +93,7 @@ class Order:
             'Id: "{}, '
             + 'Market: "{}", '
             + 'Created: "{}, '
+            + 'Open: "{}, '
             + '"ID on market: "{}", '
             + 'Pair: [{}], '
             + 'Type: "{}", '
@@ -96,6 +103,7 @@ class Order:
             self._order_id,
             self._market_name,
             self._created_at.isoformat(),
+            'OPEN' if self._is_open else 'CLOSED',
             self._id_on_market,
             self._pair,
             self._type,

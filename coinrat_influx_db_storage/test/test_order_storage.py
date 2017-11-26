@@ -1,3 +1,4 @@
+import copy
 from uuid import UUID
 
 import pytest, datetime
@@ -5,14 +6,15 @@ from decimal import Decimal
 from influxdb import InfluxDBClient
 
 from coinrat.domain import Order, ORDER_TYPE_LIMIT, Pair
-from coinrat_influx_db_storage.order_storage import OrderInnoDbStorage
+from coinrat_influx_db_storage.order_storage import OrderInnoDbStorage, MEASUREMENT_ORDERS_NAME
+from coinrat_influx_db_storage.test.utils import get_all_from_influx_db
 
 DUMMY_MARKET = 'dummy_market'
 BTC_USD_PAIR = Pair('USD', 'BTC')
 
 DUMMY_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
-    'dummy_market_name',
+    DUMMY_MARKET,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_LIMIT,
@@ -36,20 +38,52 @@ def test_save_oder(influx_database: InfluxDBClient):
 
     storage.save_order(DUMMY_ORDER)
 
-    data = _get_all_from_influx_db(influx_database)
-    assert 1 == len(data)
+    data = get_all_from_influx_db(influx_database, MEASUREMENT_ORDERS_NAME)
+    assert len(data) == 1
     expected_data = "{" \
                     + "'time': '2017-11-26T10:11:12Z', " \
                     + "'id_on_market': 'aaa-id-from-market', " \
-                    + "'market': 'dummy_market_name', " \
+                    + "'is_open': True, " \
+                    + "'market': 'dummy_market', " \
                     + "'order_id': '16fd2706-8baf-433b-82eb-8c7fada847da', " \
                     + "'pair': 'USD_BTC', " \
                     + "'quantity': 1, " \
                     + "'rate': 8000, " \
                     + "'type': 'limit'" \
                     + "}"
-    assert expected_data == str(data[0])
+    assert str(data[0]) == expected_data
 
 
-def _get_all_from_influx_db(influx_database: InfluxDBClient):
-    return list(influx_database.query('SELECT * FROM "orders"').get_points())
+def test_get_open_orders(influx_database: InfluxDBClient):
+    create_dummy_data(influx_database)
+    storage = OrderInnoDbStorage(influx_database)
+    orders = storage.get_open_orders(DUMMY_MARKET, BTC_USD_PAIR)
+    assert len(orders) == 1
+    assert orders[0].is_open is False
+    assert str(orders[0].order_id) == '16fd2706-8baf-433b-82eb-8c7fada847db'
+
+
+def create_dummy_data(influx_database: InfluxDBClient):
+    storage = OrderInnoDbStorage(influx_database)
+    storage.save_order(Order(
+        UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
+        DUMMY_MARKET,
+        datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
+        BTC_USD_PAIR,
+        ORDER_TYPE_LIMIT,
+        Decimal(1),
+        Decimal(8000),
+        'aaa-id-from-market',
+        is_open=True
+    ))
+    storage.save_order(Order(
+        UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
+        DUMMY_MARKET,
+        datetime.datetime(2017, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc),
+        BTC_USD_PAIR,
+        ORDER_TYPE_LIMIT,
+        Decimal(2),
+        Decimal(9000),
+        'bbb-id-from-market',
+        is_open=False
+    ))

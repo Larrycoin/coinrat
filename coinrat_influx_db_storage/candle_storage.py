@@ -12,6 +12,7 @@ from coinrat.domain import MinuteCandle, CandleStorage, Pair, CANDLE_STORAGE_FIE
 from .utils import create_pair_identifier
 
 CANDLE_STORAGE_NAME = 'influx_db'
+MEASUREMENT_CANDLES_NAME = 'candles'
 
 
 class CandleInnoDbStorage(CandleStorage):
@@ -41,10 +42,11 @@ class CandleInnoDbStorage(CandleStorage):
 
         sql = '''
             SELECT MEAN("{}") AS "field_mean" 
-            FROM "candles" WHERE "time" > '{}' AND "time" < '{}' AND "pair"='{}' AND "market"='{}' 
+            FROM "{}" WHERE "time" > '{}' AND "time" < '{}' AND "pair"='{}' AND "market"='{}' 
             GROUP BY "{}"
         '''.format(
             field,
+            MEASUREMENT_CANDLES_NAME,
             interval[0].isoformat(),
             interval[1].isoformat(),
             create_pair_identifier(pair),
@@ -63,7 +65,7 @@ class CandleInnoDbStorage(CandleStorage):
     @staticmethod
     def _transform_into_raw_data(candle: MinuteCandle):
         return {
-            'measurement': 'candles',
+            'measurement': MEASUREMENT_CANDLES_NAME,
             'tags': {
                 'market': candle.market_name,
                 'pair': create_pair_identifier(candle.pair),

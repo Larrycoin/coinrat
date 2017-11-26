@@ -6,7 +6,8 @@ from decimal import Decimal
 from influxdb import InfluxDBClient
 
 from coinrat.domain import MinuteCandle, Pair, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
-from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage
+from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage, MEASUREMENT_CANDLES_NAME
+from coinrat_influx_db_storage.test.utils import get_all_from_influx_db
 
 DUMMY_MARKET = 'dummy_market'
 BTC_USD_PAIR = Pair('USD', 'BTC')
@@ -26,7 +27,7 @@ def test_write_candle(influx_database: InfluxDBClient):
 
     storage.write_candle(_create_dummy_candle())
 
-    data = _get_all_from_influx_db(influx_database)
+    data = get_all_from_influx_db(influx_database, MEASUREMENT_CANDLES_NAME)
     assert 1 == len(data)
     expected_data = "{" \
                     + "'time': '2017-07-02T00:00:00Z', " \
@@ -45,7 +46,7 @@ def test_write_candles(influx_database: InfluxDBClient):
 
     storage.write_candles([_create_dummy_candle(1), _create_dummy_candle(2)])
 
-    data = _get_all_from_influx_db(influx_database)
+    data = get_all_from_influx_db(influx_database, MEASUREMENT_CANDLES_NAME)
     assert 2 == len(data)
     assert '2017-07-02T00:01:00Z' == data[0]['time']
     assert '2017-07-02T00:02:00Z' == data[1]['time']
@@ -99,7 +100,3 @@ def _create_dummy_candle(minute: int = 0, close: int = 8300) -> MinuteCandle:
         Decimal(8200),
         Decimal(close)
     )
-
-
-def _get_all_from_influx_db(influx_database: InfluxDBClient):
-    return list(influx_database.query('SELECT * FROM "candles"').get_points())
