@@ -2,11 +2,11 @@ from decimal import Decimal
 from typing import Union
 
 from .order import Order
-from .pair import MarketPair
+from .pair import Pair
 
 
 class PairMarketInfo:
-    def __init__(self, pair: MarketPair, minimal_order_size: Union[Decimal, None]) -> None:
+    def __init__(self, pair: Pair, minimal_order_size: Union[Decimal, None]) -> None:
         self._pair = pair
         self._minimal_order_size = minimal_order_size
 
@@ -23,7 +23,8 @@ class PairMarketInfo:
 
 
 class Market:
-    def get_name(self) -> str:
+    @property
+    def name(self) -> str:
         raise NotImplementedError()
 
     @property
@@ -33,23 +34,23 @@ class Market:
     def get_balance(self, currency: str) -> Decimal:
         raise NotImplementedError()
 
-    def get_pair_market_info(self, pair: MarketPair) -> PairMarketInfo:
+    def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:
         raise NotImplementedError()
 
-    def create_sell_order(self, order: Order) -> str:
+    def create_sell_order(self, order: Order) -> Order:
         raise NotImplementedError()
 
-    def create_buy_order(self, order: Order) -> str:
+    def create_buy_order(self, order: Order) -> Order:
         raise NotImplementedError()
 
     def cancel_order(self, order_id: str) -> None:
         raise NotImplementedError()
 
-    def buy_max_available(self, pair: MarketPair) -> str:
+    def buy_max_available(self, pair: Pair) -> Order:
         raise NotImplementedError()
 
-    def sell_max_available(self, pair: MarketPair) -> str:
+    def sell_max_available(self, pair: Pair) -> Order:
         raise NotImplementedError()
 
     def __repr__(self) -> str:
-        return self.get_name()
+        return self.name

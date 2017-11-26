@@ -6,9 +6,10 @@ from decimal import Decimal
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
-from coinrat.domain import MinuteCandle, CandleStorage, MarketPair, CANDLE_STORAGE_FIELD_HIGH, \
+from coinrat.domain import MinuteCandle, CandleStorage, Pair, CANDLE_STORAGE_FIELD_HIGH, \
     CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
     NoCandlesForMarketInStorageException
+from .utils import create_pair_identifier
 
 CANDLE_STORAGE_NAME = 'influx_db'
 
@@ -29,7 +30,7 @@ class CandleInnoDbStorage(CandleStorage):
     def mean(
         self,
         market_name: str,
-        pair: MarketPair,
+        pair: Pair,
         field: str,
         interval: Tuple[datetime.datetime, datetime.datetime]
     ) -> Decimal:
@@ -46,7 +47,7 @@ class CandleInnoDbStorage(CandleStorage):
             field,
             interval[0].isoformat(),
             interval[1].isoformat(),
-            self._create_pair_identifier(pair),
+            create_pair_identifier(pair),
             market_name,
             field
         )
@@ -65,7 +66,7 @@ class CandleInnoDbStorage(CandleStorage):
             "measurement": "candles",
             "tags": {
                 "market": candle.market_name,
-                "pair": CandleInnoDbStorage._create_pair_identifier(candle.pair),
+                "pair": create_pair_identifier(candle.pair),
             },
             "time": candle.time.isoformat(),
             "fields": {
@@ -76,7 +77,3 @@ class CandleInnoDbStorage(CandleStorage):
                 CANDLE_STORAGE_FIELD_HIGH: float(candle.high),
             }
         }
-
-    @staticmethod
-    def _create_pair_identifier(pair: MarketPair) -> str:
-        return '{}_{}'.format(pair.base_currency, pair.market_currency)

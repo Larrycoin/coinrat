@@ -5,10 +5,10 @@ from typing import List, Union, Tuple
 import pytest
 from flexmock import flexmock, Mock
 
-from coinrat.domain import MarketPair, Market, StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
+from coinrat.domain import Pair, Market, StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 
-BTC_USD_PAIR = MarketPair('USD', 'BTC')
+BTC_USD_PAIR = Pair('USD', 'BTC')
 
 
 @pytest.mark.parametrize(['error', 'markets'],
@@ -22,7 +22,7 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
     candle_storage = flexmock().should_receive('mean').and_return(0).mock()
 
     if len(markets) == 1:  # Todo: Flexmock is not working properly with @pytest.mark.parametrize (MethodSignatureError)
-        markets = [markets[0].should_receive('get_name').and_return('dummy_market_name').mock()]
+        markets = [markets[0].should_receive('name').and_return('dummy_market_name').mock()]
 
     strategy = DoubleCrossoverStrategy(
         BTC_USD_PAIR,
@@ -68,7 +68,7 @@ def test_sending_signal(expected_buy: int, expected_sell: int, mean_evolution: L
         expectation.and_return(mean[0]).and_return(mean[1])
 
     market = flexmock()
-    market.should_receive('get_name').and_return('dummy_market_name')
+    market.should_receive('name').and_return('dummy_market_name')
     market.should_receive('buy_max_available').times(expected_buy)
     market.should_receive('sell_max_available').times(expected_sell)
 
@@ -89,7 +89,7 @@ def test_not_enough_balance_logs_warning():
     candle_storage.should_receive('mean').and_return(8000).and_return(7900).and_return(8000).and_return(8100)
 
     market = flexmock()
-    market.should_receive('get_name').and_return('dummy_market_name')
+    market.should_receive('name').and_return('dummy_market_name')
     market.should_receive('buy_max_available').and_raise(NotEnoughBalanceToPerformOrderException)
 
     strategy = DoubleCrossoverStrategy(

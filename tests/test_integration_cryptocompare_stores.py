@@ -2,7 +2,7 @@ import pytest
 import requests
 from influxdb import InfluxDBClient
 
-from coinrat.domain import MarketPair
+from coinrat.domain import Pair
 from coinrat_cryptocompare.synchronizer import CryptocompareSynchronizer
 from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage
 
@@ -24,13 +24,13 @@ def test_candle_ticks_are_stored(influx_database: InfluxDBClient):
         delay=0,
         number_of_runs=1
     )
-    synchronizer.synchronize(MarketPair('USD', 'BTC'))
+    synchronizer.synchronize(Pair('USD', 'BTC'))
 
     stored_candles = _get_all_from_influx_db(influx_database)
     assert 2 == len(stored_candles)
 
     # Test that same data won't be stored twice
-    synchronizer.synchronize(MarketPair('USD', 'BTC'))
+    synchronizer.synchronize(Pair('USD', 'BTC'))
     second_sample = _get_all_from_influx_db(influx_database)
     assert stored_candles == second_sample
 

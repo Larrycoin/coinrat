@@ -5,11 +5,11 @@ from flexmock import flexmock
 from decimal import Decimal
 from influxdb import InfluxDBClient
 
-from coinrat.domain import MinuteCandle, MarketPair, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
+from coinrat.domain import MinuteCandle, Pair, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
 from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage
 
 DUMMY_MARKET = 'dummy_market'
-BTC_USD_PAIR = MarketPair('USD', 'BTC')
+BTC_USD_PAIR = Pair('USD', 'BTC')
 
 
 @pytest.fixture

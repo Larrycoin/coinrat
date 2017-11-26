@@ -2,9 +2,9 @@ import pytest
 from flexmock import flexmock
 
 from coinrat_cryptocompare.synchronizer import CryptocompareSynchronizer, CryptocompareRequestException
-from coinrat.domain import MarketPair
+from coinrat.domain import Pair
 
-BTC_USD_PAIR = MarketPair('USD', 'BTC')
+BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_CANDLE_DATA = [
     {
         'time': 1511608020,

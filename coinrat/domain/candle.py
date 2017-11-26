@@ -2,7 +2,7 @@ import datetime
 
 from decimal import Decimal
 
-from .pair import MarketPair
+from .pair import Pair
 
 
 class MinuteCandle:
@@ -17,7 +17,7 @@ class MinuteCandle:
         self,
         market_name:
         str,
-        pair: MarketPair,
+        pair: Pair,
         time: datetime.datetime,
         open_price: Decimal,
         high_price: Decimal,
@@ -44,7 +44,7 @@ class MinuteCandle:
         self._close = close_price
 
     @property
-    def pair(self) -> MarketPair:
+    def pair(self) -> Pair:
         return self._pair
 
     @property

@@ -2,7 +2,7 @@ import datetime
 import pluggy
 
 from coinrat.strategy_plugins import StrategyPluginSpecification
-from coinrat.domain import MarketPair
+from coinrat.domain import Pair
 
 from .strategy import DoubleCrossoverStrategy, STRATEGY_NAME
 
@@ -26,7 +26,7 @@ class StrategyPlugin(StrategyPluginSpecification):
     def get_strategy(self, name, candle_storage, order_storage):
         if name == STRATEGY_NAME:
             return DoubleCrossoverStrategy(
-                MarketPair('USD', 'BTC'),  # Todo: make this parameter for end user
+                Pair('USD', 'BTC'),  # Todo: make this parameter for end user
                 candle_storage,
                 order_storage,
                 datetime.timedelta(hours=1),

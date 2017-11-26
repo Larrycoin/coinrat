@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from .coinrat import ForEndUserException
 from .candle import MinuteCandle
-from .pair import MarketPair
+from .pair import Pair
 
 CANDLE_STORAGE_FIELD_OPEN = 'open'
 CANDLE_STORAGE_FIELD_CLOSE = 'close'
@@ -27,7 +27,7 @@ class CandleStorage:
     def mean(
         self,
         market: str,
-        pair: MarketPair,
+        pair: Pair,
         field: str,
         interval: Tuple[datetime.datetime, datetime.datetime]
     ) -> Decimal:

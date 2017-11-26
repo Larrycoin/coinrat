@@ -5,14 +5,14 @@ from decimal import Decimal
 import pytest
 
 from coinrat_bittrex.market import bittrex_market_factory
-from coinrat.domain import MarketPair, MarketPairDoesNotExistsException
+from coinrat.domain import Pair, MarketPairDoesNotExistsException
 
-BTC_USD_PAIR = MarketPair('USD', 'BTC')
+BTC_USD_PAIR = Pair('USD', 'BTC')
 
 
 def test_bittrex_static_data():
     synchronizer = bittrex_market_factory('', '')
-    assert 'bittrex' == synchronizer.get_name()
+    assert 'bittrex' == synchronizer.name
     assert Decimal(0.0025) == synchronizer.transaction_fee_coefficient
 
 
@@ -24,7 +24,7 @@ def test_get_pair_market_info():
 
 def test_get_pair_market_info_invalid_pair():
     with pytest.raises(MarketPairDoesNotExistsException):
-        bittrex_market_factory('', '').get_pair_market_info(MarketPair('YOLO', 'SWAG'))
+        bittrex_market_factory('', '').get_pair_market_info(Pair('YOLO', 'SWAG'))
 
 
 def test_get_last_candle():

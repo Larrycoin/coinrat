@@ -7,7 +7,7 @@ from decimal import Decimal
 import requests
 from requests import Session, RequestException, TooManyRedirects
 
-from coinrat.domain import MarketStateSynchronizer, CandleStorage, MarketPair, MinuteCandle
+from coinrat.domain import MarketStateSynchronizer, CandleStorage, Pair, MinuteCandle
 
 MINUTE_CANDLE_URL = 'https://min-api.cryptocompare.com/data/histominute?fsym={}&tsym={}&limit=1&aggregate=1&e={}'
 MARKET_MAP = {
@@ -37,7 +37,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
         self._storage = storage
         self._session = session
 
-    def synchronize(self, pair: MarketPair) -> None:
+    def synchronize(self, pair: Pair) -> None:
         while self._number_of_runs is None or self._number_of_runs > 0:
             url = MINUTE_CANDLE_URL.format(pair.market_currency, pair.base_currency, MARKET_MAP[self._market_name])
 
@@ -73,7 +73,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
 
         return json_data
 
-    def _create_candle_from_raw(self, pair: MarketPair, candles_data: Dict) -> MinuteCandle:
+    def _create_candle_from_raw(self, pair: Pair, candles_data: Dict) -> MinuteCandle:
         return MinuteCandle(
             self._market_name,
             pair,

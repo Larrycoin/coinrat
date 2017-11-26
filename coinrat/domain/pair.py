@@ -5,12 +5,12 @@ class MarketPairDoesNotExistsException(ForEndUserException):
     pass
 
 
-class MarketPair:
+class Pair:
     def __init__(self, base_currency: str, market_currency: str) -> None:
         assert base_currency != 'USDT', \
             'Some markets use USDT instead of USD, this is impl. detail of that market, use USD otherwise'
-        assert market_currency not in ['USDT',
-                                       'USD'], 'This is probably error. Pairs are not usually represented in USD as right'
+        assert market_currency not in ['USDT', 'USD'], \
+            'This is probably error. Pairs are not usually represented in USD as market_currency'
 
         self._base_currency = base_currency
         self._market_currency = market_currency

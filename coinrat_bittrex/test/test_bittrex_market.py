@@ -1,14 +1,31 @@
 import copy, pytest
+import uuid
 from decimal import Decimal
+from uuid import UUID
+
 from flexmock import flexmock
 
 from coinrat_bittrex.market import BittrexMarket, BittrexMarketRequestException
-from coinrat.domain import MarketPair, Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, \
+from coinrat.domain import Pair, Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, \
     NotEnoughBalanceToPerformOrderException
 
-BTC_USD_PAIR = MarketPair('USD', 'BTC')
-DUMMY_LIMIT_ORDER = Order(BTC_USD_PAIR, ORDER_TYPE_LIMIT, Decimal(1), Decimal(8000))
-DUMMY_MARKET_ORDER = Order(BTC_USD_PAIR, ORDER_TYPE_MARKET, Decimal(1), None)
+BTC_USD_PAIR = Pair('USD', 'BTC')
+DUMMY_LIMIT_ORDER = Order(
+    UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
+    'bittrex',
+    BTC_USD_PAIR,
+    ORDER_TYPE_LIMIT,
+    Decimal(1),
+    Decimal(8000)
+)
+DUMMY_MARKET_ORDER = Order(
+    UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
+    'bittrex',
+    BTC_USD_PAIR,
+    ORDER_TYPE_MARKET,
+    Decimal(1),
+    None
+)
 MY_BTC_BALANCE = 100
 MY_USD_BALANCE = 1000000
 
@@ -25,6 +42,9 @@ MARKET_USDT_BTC_DATA = {
     'IsSponsored': None,
     'LogoUrl': None
 }
+
+# Todo: rewrite do proper DI to be able mockID for each test separately
+flexmock(uuid).should_receive('uuid4').and_return(UUID('16fd2706-8baf-433b-82eb-8c7fada847da'))
 
 
 def test_get_balance():
@@ -43,10 +63,12 @@ def test_create_sell_order():
         .with_args('USDT-BTC', 1, 8000) \
         .and_return({'success': True, 'result': {'uuid': 'abcd'}}) \
         .once()
-
     market = BittrexMarket(client_v1, mock_client_v2())
 
-    assert 'abcd' == market.create_sell_order(DUMMY_LIMIT_ORDER)
+    order = market.create_sell_order(DUMMY_LIMIT_ORDER)
+
+    assert '16fd2706-8baf-433b-82eb-8c7fada847da' == str(order.order_id)
+    assert 'abcd' == order.id_on_market
 
 
 def test_create_buy_order():
@@ -56,10 +78,12 @@ def test_create_buy_order():
         .with_args('USDT-BTC', 1, 8000) \
         .and_return({'success': True, 'result': {'uuid': 'abcd'}}) \
         .once()
-
     market = BittrexMarket(client_v1, mock_client_v2())
 
-    assert 'abcd' == market.create_buy_order(DUMMY_LIMIT_ORDER)
+    order = market.create_buy_order(DUMMY_LIMIT_ORDER)
+
+    assert '16fd2706-8baf-433b-82eb-8c7fada847da' == str(order.order_id)
+    assert 'abcd' == order.id_on_market
 
 
 def test_market_order_not_implemented():

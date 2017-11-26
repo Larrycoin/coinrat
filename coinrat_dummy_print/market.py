@@ -1,17 +1,17 @@
+import uuid
 from decimal import Decimal
 
-from coinrat.domain import Market, Balance, MarketPair, Order, PairMarketInfo
+from coinrat.domain import Market, Balance, Pair, Order, PairMarketInfo, ORDER_TYPE_LIMIT
 
 MARKET_NAME = 'dummy_print'
 DUMMY_STATIC_BALANCE = Decimal(0.5)
-DUMMY_ORDER_ID = 'aaaa-bbbb-cccc-dddd'
 
 
 class PrintDummyMarket(Market):
-    def get_pair_market_info(self, pair: MarketPair) -> PairMarketInfo:
+    def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:
         return PairMarketInfo(pair, Decimal(0.004))
 
-    def get_name(self) -> str:
+    def name(self) -> str:
         return MARKET_NAME
 
     @property
@@ -21,22 +21,33 @@ class PrintDummyMarket(Market):
     def get_balance(self, currency: str):
         return Balance(MARKET_NAME, currency, DUMMY_STATIC_BALANCE)
 
-    def create_sell_order(self, order: Order) -> str:
+    def create_sell_order(self, order: Order) -> Order:
         print('Creating SELL order {}'.format(order))
-        return DUMMY_ORDER_ID
+        return order
 
-    def create_buy_order(self, order: Order) -> str:
+    def create_buy_order(self, order: Order) -> Order:
         print('Creating BUY order {}'.format(order))
-        return DUMMY_ORDER_ID
+        return order
 
     def cancel_order(self, order_id: str) -> None:
         print('Cancelling order #{}'.format(order_id))
         pass
 
-    def buy_max_available(self, pair: MarketPair) -> str:
+    def buy_max_available(self, pair: Pair) -> Order:
         print('BUYING max available for: {}'.format(pair))
-        return DUMMY_ORDER_ID
+        return self._create_fake_order(pair)
 
-    def sell_max_available(self, pair: MarketPair) -> str:
+    def sell_max_available(self, pair: Pair) -> Order:
         print('SELLING max available for: {}'.format(pair))
-        return DUMMY_ORDER_ID
+        return self._create_fake_order(pair)
+
+    @staticmethod
+    def _create_fake_order(pair: Pair) -> Order:
+        return Order(
+            uuid.uuid4(),
+            MARKET_NAME,
+            pair,
+            ORDER_TYPE_LIMIT,
+            Decimal(1),
+            Decimal(8000)
+        )

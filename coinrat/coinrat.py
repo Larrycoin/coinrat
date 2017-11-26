@@ -14,7 +14,7 @@ from .market_plugins import MarketPlugins
 from .candle_storage_plugins import CandleStoragePlugins
 from .synchronizer_plugins import SynchronizerPlugins
 from .strategy_plugins import StrategyPlugins
-from .domain import MarketPair, ForEndUserException
+from .domain import Pair, ForEndUserException
 
 dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
@@ -62,7 +62,7 @@ def synchronizers() -> None:
 @click.argument('pair', nargs=2)
 @click.pass_context
 def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str]) -> None:
-    pair = MarketPair(pair[0], pair[1])
+    pair = Pair(pair[0], pair[1])
 
     synchronizer = synchronizer_plugins.get_synchronizer(synchronizer_name, ctx.obj['influxdb_candle_storage'])
     synchronizer.synchronize(pair)
@@ -90,7 +90,7 @@ def run_strategy(ctx: Context, strategy_name: str, market_names: Tuple[str]) -> 
 @cli.command()
 @click.pass_context
 def testing(ctx: Context) -> None:  # Todo: Used only for testing during development, remove it after
-    pair = MarketPair('USD', 'BTC')
+    pair = Pair('USD', 'BTC')
     market = market_plugins.get_market('bittrex')
     print(market.get_pair_market_info(pair))
 

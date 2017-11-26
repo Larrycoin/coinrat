@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import math
 
-from coinrat.domain import Strategy, CandleStorage, OrderStorage, Signal, MarketPair, \
+from coinrat.domain import Strategy, CandleStorage, OrderStorage, Signal, Pair, \
     CANDLE_STORAGE_FIELD_CLOSE, SIGNAL_SELL, SIGNAL_BUY, Market, \
     StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 
@@ -19,7 +19,7 @@ class DoubleCrossoverStrategy(Strategy):
 
     def __init__(
         self,
-        pair: MarketPair,
+        pair: Pair,
         candle_storage: CandleStorage,
         order_storage: OrderStorage,
         long_average_interval: datetime.timedelta,
@@ -101,14 +101,14 @@ class DoubleCrossoverStrategy(Strategy):
         now = datetime.datetime.now().astimezone(datetime.timezone.utc)  # Todo: DateTimeFactory
         long_interval = (now - self._long_average_interval, now)
         long_average = self._candle_storage.mean(
-            market.get_name(),
+            market.name,
             self._pair,
             CANDLE_STORAGE_FIELD_CLOSE,
             long_interval
         )
         short_interval = (now - self._short_average_interval, now)
         short_average = self._candle_storage.mean(
-            market.get_name(),
+            market.name,
             self._pair,
             CANDLE_STORAGE_FIELD_CLOSE,
             short_interval
