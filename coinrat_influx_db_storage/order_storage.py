@@ -34,7 +34,7 @@ class OrderInnoDbStorage(OrderStorage):
 
     def get_open_orders(self, market_name: str, pair: Pair) -> List[Order]:
         sql = '''
-            SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' AND is_open = False
+            SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' AND is_open = True
         '''.format(MEASUREMENT_ORDERS_NAME, create_pair_identifier(pair), market_name)
 
         result: ResultSet = self._client.query(sql)

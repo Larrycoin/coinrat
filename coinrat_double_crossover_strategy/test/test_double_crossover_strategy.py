@@ -27,7 +27,7 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
     strategy = DoubleCrossoverStrategy(
         BTC_USD_PAIR,
         candle_storage,
-        flexmock(),
+        mock_order_storage(),
         datetime.timedelta(hours=1),
         datetime.timedelta(minutes=15),
         0,
@@ -75,7 +75,7 @@ def test_sending_signal(expected_buy: int, expected_sell: int, mean_evolution: L
     strategy = DoubleCrossoverStrategy(
         BTC_USD_PAIR,
         candle_storage,
-        flexmock(),
+        mock_order_storage(),
         datetime.timedelta(hours=1),
         datetime.timedelta(minutes=15),
         0,
@@ -95,7 +95,7 @@ def test_not_enough_balance_logs_warning():
     strategy = DoubleCrossoverStrategy(
         BTC_USD_PAIR,
         candle_storage,
-        flexmock(),
+        mock_order_storage(),
         datetime.timedelta(hours=1),
         datetime.timedelta(minutes=15),
         0,
@@ -103,3 +103,10 @@ def test_not_enough_balance_logs_warning():
     )
     flexmock(logging).should_receive('warning').once()
     strategy.run([market])
+
+
+def mock_order_storage():
+    mock = flexmock()
+    mock.should_receive('get_open_orders').and_return([])
+
+    return mock

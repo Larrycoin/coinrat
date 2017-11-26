@@ -47,7 +47,7 @@ class DoubleCrossoverStrategy(Strategy):
         market = markets[0]
 
         while self._number_of_runs is None or self._number_of_runs > 0:
-            self._check_if_orders_processed()
+            self._check_if_orders_processed(market)
             self._check_and_trade(market)
 
             if self._number_of_runs is not None:  # pragma: no cover
@@ -56,8 +56,13 @@ class DoubleCrossoverStrategy(Strategy):
             self._strategy_ticker += 1
             time.sleep(self._delay)
 
-    def _check_if_orders_processed(self):
-        pass  # Todo: implement
+    def _check_if_orders_processed(self, market: Market):
+        orders = self._order_storage.get_open_orders(market.name, self._pair)
+        for order in orders:
+            status = market.get_order_status(order)
+            if status.is_open is False:
+                order.close(status.closed_at)
+                self._order_storage.save_order(order)
 
     def _check_and_trade(self, market: Market):
         signal = self._check_for_signal(market)

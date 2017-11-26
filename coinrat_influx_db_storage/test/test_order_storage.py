@@ -59,8 +59,8 @@ def test_get_open_orders(influx_database: InfluxDBClient):
     storage = OrderInnoDbStorage(influx_database)
     orders = storage.get_open_orders(DUMMY_MARKET, BTC_USD_PAIR)
     assert len(orders) == 1
-    assert orders[0].is_open is False
-    assert str(orders[0].order_id) == '16fd2706-8baf-433b-82eb-8c7fada847db'
+    assert orders[0].is_open is True
+    assert str(orders[0].order_id) == '16fd2706-8baf-433b-82eb-8c7fada847da'
 
 
 def create_dummy_data(influx_database: InfluxDBClient):
