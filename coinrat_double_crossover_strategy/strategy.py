@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import math
 
-from coinrat.domain import Strategy, MarketsCandleStorage, Signal, MarketPair, \
+from coinrat.domain import Strategy, CandleStorage, OrderStorage, Signal, MarketPair, \
     CANDLE_STORAGE_FIELD_CLOSE, SIGNAL_SELL, SIGNAL_BUY, Market, \
     StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 
@@ -20,7 +20,8 @@ class DoubleCrossoverStrategy(Strategy):
     def __init__(
         self,
         pair: MarketPair,
-        storage: MarketsCandleStorage,
+        candle_storage: CandleStorage,
+        order_storage: OrderStorage,
         long_average_interval: datetime.timedelta,
         short_average_interval: datetime.timedelta,
         delay: int = 30,
@@ -28,12 +29,13 @@ class DoubleCrossoverStrategy(Strategy):
     ) -> None:
         assert short_average_interval < long_average_interval
 
+        self._pair = pair
+        self._candle_storage = candle_storage
+        self._order_storage = order_storage
         self._long_average_interval = long_average_interval
         self._short_average_interval = short_average_interval
-        self._pair = pair
         self._delay = delay
         self._number_of_runs = number_of_runs
-        self._storage = storage
         self._previous_sign = None
         self._strategy_ticker = 0
 
@@ -98,14 +100,14 @@ class DoubleCrossoverStrategy(Strategy):
     def _get_averages(self, market: Market) -> Tuple[Decimal, Decimal]:
         now = datetime.datetime.now().astimezone(datetime.timezone.utc)  # Todo: DateTimeFactory
         long_interval = (now - self._long_average_interval, now)
-        long_average = self._storage.mean(
+        long_average = self._candle_storage.mean(
             market.get_name(),
             self._pair,
             CANDLE_STORAGE_FIELD_CLOSE,
             long_interval
         )
         short_interval = (now - self._short_average_interval, now)
-        short_average = self._storage.mean(
+        short_average = self._candle_storage.mean(
             market.get_name(),
             self._pair,
             CANDLE_STORAGE_FIELD_CLOSE,

@@ -2,7 +2,7 @@ import pluggy
 from typing import List, Set
 
 from .plugins import PluginSpecification, plugins_loader
-from .domain import MarketStateSynchronizer, MarketsCandleStorage
+from .domain import MarketStateSynchronizer, CandleStorage
 
 get_name_spec = pluggy.HookspecMarker('coinrat_plugins')
 
@@ -40,7 +40,7 @@ class SynchronizerPlugins:
             synchronize_name for plugin in self._plugins for synchronize_name in plugin.get_available_synchronizers()
         ]
 
-    def get_synchronizer(self, name: str, storage: MarketsCandleStorage) -> MarketStateSynchronizer:
+    def get_synchronizer(self, name: str, storage: CandleStorage) -> MarketStateSynchronizer:
         for plugin in self._plugins:
             if name in plugin.get_available_synchronizers():
                 return plugin.get_synchronizer(name, storage)

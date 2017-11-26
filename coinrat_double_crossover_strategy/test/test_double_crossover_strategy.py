@@ -19,12 +19,15 @@ BTC_USD_PAIR = MarketPair('USD', 'BTC')
     ]
 )
 def test_number_of_markets_validation(error: bool, markets: List[Union[Market, Mock]]):
+    candle_storage = flexmock().should_receive('mean').and_return(0).mock()
+
     if len(markets) == 1:  # Todo: Flexmock is not working properly with @pytest.mark.parametrize (MethodSignatureError)
         markets = [markets[0].should_receive('get_name').and_return('dummy_market_name').mock()]
 
     strategy = DoubleCrossoverStrategy(
         BTC_USD_PAIR,
-        flexmock().should_receive('mean').and_return(0).mock(),
+        candle_storage,
+        flexmock(),
         datetime.timedelta(hours=1),
         datetime.timedelta(minutes=15),
         0,
@@ -59,8 +62,8 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
     ]
 )
 def test_sending_signal(expected_buy: int, expected_sell: int, mean_evolution: List[Tuple[int, int]]):
-    storage = flexmock()
-    expectation = storage.should_receive('mean')
+    candle_storage = flexmock()
+    expectation = candle_storage.should_receive('mean')
     for mean in mean_evolution:
         expectation.and_return(mean[0]).and_return(mean[1])
 
@@ -71,7 +74,8 @@ def test_sending_signal(expected_buy: int, expected_sell: int, mean_evolution: L
 
     strategy = DoubleCrossoverStrategy(
         BTC_USD_PAIR,
-        storage,
+        candle_storage,
+        flexmock(),
         datetime.timedelta(hours=1),
         datetime.timedelta(minutes=15),
         0,
@@ -81,8 +85,8 @@ def test_sending_signal(expected_buy: int, expected_sell: int, mean_evolution: L
 
 
 def test_not_enough_balance_logs_warning():
-    storage = flexmock()
-    storage.should_receive('mean').and_return(8000).and_return(7900).and_return(8000).and_return(8100)
+    candle_storage = flexmock()
+    candle_storage.should_receive('mean').and_return(8000).and_return(7900).and_return(8000).and_return(8100)
 
     market = flexmock()
     market.should_receive('get_name').and_return('dummy_market_name')
@@ -90,7 +94,8 @@ def test_not_enough_balance_logs_warning():
 
     strategy = DoubleCrossoverStrategy(
         BTC_USD_PAIR,
-        storage,
+        candle_storage,
+        flexmock(),
         datetime.timedelta(hours=1),
         datetime.timedelta(minutes=15),
         0,

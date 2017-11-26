@@ -2,7 +2,7 @@ import pluggy
 from typing import List, Set
 
 from .plugins import PluginSpecification, plugins_loader
-from .domain import MarketsCandleStorage
+from .domain import CandleStorage
 
 get_available_candle_storages_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_candle_storage_spec = pluggy.HookspecMarker('coinrat_plugins')
@@ -34,7 +34,7 @@ class CandleStoragePlugins:
     def get_available_candle_storages(self) -> List[str]:
         return [storage_name for plugin in self._plugins for storage_name in plugin.get_available_candle_storages()]
 
-    def get_candle_storage(self, name: str) -> MarketsCandleStorage:
+    def get_candle_storage(self, name: str) -> CandleStorage:
         for plugin in self._plugins:
             if name in plugin.get_available_candle_storages():
                 return plugin.get_candle_storage(name)

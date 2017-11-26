@@ -5,7 +5,7 @@ from coinrat.market_plugins import MarketPlugins, MarketNotProvidedByAnyPluginEx
 from coinrat.candle_storage_plugins import CandleStoragePlugins, CandleStorageNotProvidedByAnyPluginException
 from coinrat.strategy_plugins import StrategyPlugins, StrategyNotProvidedByAnyPluginException
 from coinrat.synchronizer_plugins import SynchronizerPlugins, SynchronizerNotProvidedByAnyPluginException
-from coinrat.domain import MarketsCandleStorage, Strategy, Market, MarketStateSynchronizer
+from coinrat.domain import CandleStorage, Strategy, Market, MarketStateSynchronizer
 
 
 def test_synchronizer_plugins():
@@ -32,7 +32,7 @@ def test_candle_storage_plugins():
     plugins = CandleStoragePlugins()
     assert 'influx_db' in plugins.get_available_candle_storages()
 
-    assert isinstance(plugins.get_candle_storage('influx_db'), MarketsCandleStorage)
+    assert isinstance(plugins.get_candle_storage('influx_db'), CandleStorage)
     with pytest.raises(CandleStorageNotProvidedByAnyPluginException):
         plugins.get_candle_storage('gandalf')
 
@@ -41,6 +41,6 @@ def test_strategy_plugins():
     plugins = StrategyPlugins()
     assert 'double_crossover' in plugins.get_available_strategies()
 
-    assert isinstance(plugins.get_strategy('double_crossover', flexmock()), Strategy)
+    assert isinstance(plugins.get_strategy('double_crossover', flexmock(), flexmock()), Strategy)
     with pytest.raises(StrategyNotProvidedByAnyPluginException):
-        plugins.get_strategy('gandalf', flexmock())
+        plugins.get_strategy('gandalf', flexmock(), flexmock())

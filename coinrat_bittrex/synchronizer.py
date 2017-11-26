@@ -1,7 +1,7 @@
 import time
 from typing import Union
 
-from coinrat.domain import MarketStateSynchronizer, MarketsCandleStorage, MarketPair
+from coinrat.domain import MarketStateSynchronizer, CandleStorage, MarketPair
 from .market import BittrexMarket
 
 
@@ -9,7 +9,7 @@ class BittrexSynchronizer(MarketStateSynchronizer):
     def __init__(
         self,
         market: BittrexMarket,
-        storage: MarketsCandleStorage,
+        storage: CandleStorage,
         delay: int = 30,
         number_of_runs: Union[int, None] = None
     ):

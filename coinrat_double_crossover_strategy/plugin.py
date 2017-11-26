@@ -23,11 +23,12 @@ class StrategyPlugin(StrategyPluginSpecification):
         return [STRATEGY_NAME]
 
     @get_strategy_impl
-    def get_strategy(self, name, storage):
+    def get_strategy(self, name, candle_storage, order_storage):
         if name == STRATEGY_NAME:
             return DoubleCrossoverStrategy(
                 MarketPair('USD', 'BTC'),  # Todo: make this parameter for end user
-                storage,
+                candle_storage,
+                order_storage,
                 datetime.timedelta(hours=1),
                 datetime.timedelta(minutes=15)
             )

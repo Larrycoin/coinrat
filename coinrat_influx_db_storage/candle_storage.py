@@ -6,14 +6,14 @@ from decimal import Decimal
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
-from coinrat.domain import MinuteCandle, MarketsCandleStorage, MarketPair, CANDLE_STORAGE_FIELD_HIGH, \
+from coinrat.domain import MinuteCandle, CandleStorage, MarketPair, CANDLE_STORAGE_FIELD_HIGH, \
     CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
     NoCandlesForMarketInStorageException
 
 CANDLE_STORAGE_NAME = 'influx_db'
 
 
-class CandleInnoDbStorage(MarketsCandleStorage):
+class CandleInnoDbStorage(CandleStorage):
     def __init__(self, influx_db_client: InfluxDBClient):
         self._client = influx_db_client
 

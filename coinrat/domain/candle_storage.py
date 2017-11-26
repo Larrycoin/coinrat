@@ -17,7 +17,7 @@ class NoCandlesForMarketInStorageException(ForEndUserException):
     pass
 
 
-class MarketsCandleStorage:
+class CandleStorage:
     def write_candle(self, candle: MinuteCandle) -> None:
         raise NotImplementedError()
 
