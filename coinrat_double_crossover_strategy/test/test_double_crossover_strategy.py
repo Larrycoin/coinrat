@@ -7,7 +7,7 @@ import pytest
 from decimal import Decimal
 from flexmock import flexmock, Mock
 
-from coinrat.domain import Pair, Market, ORDER_TYPE_LIMIT, Order, OrderMarketInfo, \
+from coinrat.domain import Pair, Market, ORDER_TYPE_LIMIT, Order, OrderMarketInfo, DIRECTION_BUY, \
     StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 
@@ -16,6 +16,7 @@ BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_CLOSED_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
     DUMMY_MARKET,
+    DIRECTION_BUY,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_LIMIT,
@@ -28,6 +29,7 @@ DUMMY_CLOSED_ORDER = Order(
 DUMMY_OPEN_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
     DUMMY_MARKET,
+    DIRECTION_BUY,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_LIMIT,
@@ -39,7 +41,8 @@ DUMMY_OPEN_ORDER = Order(
 )
 
 
-@pytest.mark.parametrize(['error', 'markets'],
+@pytest.mark.parametrize(
+    ['error', 'markets'],
     [
         (True, []),
         (False, [flexmock()]),

@@ -37,10 +37,10 @@ class Market:
     def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:
         raise NotImplementedError()
 
-    def create_sell_order(self, order: Order) -> Order:
+    def place_sell_order(self, order: Order) -> Order:
         raise NotImplementedError()
 
-    def create_buy_order(self, order: Order) -> Order:
+    def place_buy_order(self, order: Order) -> Order:
         raise NotImplementedError()
 
     def get_order_status(self, order: Order) -> OrderMarketInfo:

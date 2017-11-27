@@ -2,13 +2,14 @@ import datetime
 from decimal import Decimal
 from uuid import UUID
 
-from coinrat.domain import Pair, Order, ORDER_TYPE_LIMIT
+from coinrat.domain import Pair, Order, ORDER_TYPE_LIMIT, DIRECTION_BUY
 from coinrat_dummy_print.market import PrintDummyMarket
 
 BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
     'dummy_market_name',
+    DIRECTION_BUY,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_LIMIT,
@@ -24,8 +25,8 @@ def test_market():
     assert '0.50000000 BTC' == str(market.get_balance('BTC'))
     assert '0.50000000 LOL' == str(market.get_balance('LOL'))
     assert Decimal(0.0025) == market.transaction_fee
-    assert DUMMY_ORDER == market.create_sell_order(DUMMY_ORDER)
-    assert DUMMY_ORDER == market.create_buy_order(DUMMY_ORDER)
+    assert DUMMY_ORDER == market.place_sell_order(DUMMY_ORDER)
+    assert DUMMY_ORDER == market.place_buy_order(DUMMY_ORDER)
     assert market.cancel_order('xxx') is None
     buy_order = market.buy_max_available(BTC_USD_PAIR)
     assert isinstance(buy_order, Order)

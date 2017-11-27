@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import datetime
 
-from coinrat.domain import Market, Balance, Pair, Order, PairMarketInfo, ORDER_TYPE_LIMIT
+from coinrat.domain import Market, Balance, Pair, Order, PairMarketInfo, ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY
 
 MARKET_NAME = 'dummy_print'
 DUMMY_STATIC_BALANCE = Decimal(0.5)
@@ -23,11 +23,11 @@ class PrintDummyMarket(Market):
     def get_balance(self, currency: str):
         return Balance(MARKET_NAME, currency, DUMMY_STATIC_BALANCE)
 
-    def create_sell_order(self, order: Order) -> Order:
+    def place_sell_order(self, order: Order) -> Order:
         print('Creating SELL order {}'.format(order))
         return order
 
-    def create_buy_order(self, order: Order) -> Order:
+    def place_buy_order(self, order: Order) -> Order:
         print('Creating BUY order {}'.format(order))
         return order
 
@@ -37,17 +37,18 @@ class PrintDummyMarket(Market):
 
     def buy_max_available(self, pair: Pair) -> Order:
         print('BUYING max available for: {}'.format(pair))
-        return self._create_fake_order(pair)
+        return self._create_fake_order(pair, DIRECTION_BUY)
 
     def sell_max_available(self, pair: Pair) -> Order:
         print('SELLING max available for: {}'.format(pair))
-        return self._create_fake_order(pair)
+        return self._create_fake_order(pair, DIRECTION_SELL)
 
     @staticmethod
-    def _create_fake_order(pair: Pair) -> Order:
+    def _create_fake_order(pair: Pair, direction: str) -> Order:
         return Order(
             uuid.uuid4(),
             MARKET_NAME,
+            direction,
             datetime.datetime.now().astimezone(datetime.timezone.utc),
             pair,
             ORDER_TYPE_LIMIT,

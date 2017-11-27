@@ -8,7 +8,8 @@ from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, TICKINTERVAL_ONEMIN
 
 from decimal import Decimal
 from coinrat.domain import Market, Balance, Pair, MinuteCandle, Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, \
-    PairMarketInfo, MarketPairDoesNotExistsException, NotEnoughBalanceToPerformOrderException, OrderMarketInfo
+    PairMarketInfo, MarketPairDoesNotExistsException, NotEnoughBalanceToPerformOrderException, OrderMarketInfo, \
+    DIRECTION_BUY, DIRECTION_SELL
 
 
 class BittrexMarketRequestException(Exception):
@@ -58,8 +59,9 @@ class BittrexMarket(Market):
             'MarketPair "{}" not found on the "{}".'.format(market, self.name)
         )
 
-    def create_sell_order(self, order: Order) -> Order:
+    def place_sell_order(self, order: Order) -> Order:
         assert order.market_name == self.name
+        assert order.is_sell()
 
         logging.info('Placing SELL order: {}'.format(order))
         market = self.format_market_pair(order.pair)
@@ -77,8 +79,9 @@ class BittrexMarket(Market):
         else:
             raise ValueError('Unknown order type: {}'.format(order.type))
 
-    def create_buy_order(self, order: Order) -> Order:
+    def place_buy_order(self, order: Order) -> Order:
         assert order.market_name == self.name
+        assert order.is_buy()
 
         logging.info('Placing BUY order: {}'.format(order))
         market = self.format_market_pair(order.pair)
@@ -118,25 +121,42 @@ class BittrexMarket(Market):
         coefficient_due_fee = Decimal(1) - self.transaction_fee
         amount_to_buy = (base_currency_balance.available_amount / tick.average_price) * coefficient_due_fee
 
-        order = self._create_order_entity(ORDER_TYPE_LIMIT, pair, amount_to_buy, tick.average_price)
-
-        return self.create_buy_order(order)
+        return self.place_buy_order(self._create_order_entity(
+            DIRECTION_BUY,
+            ORDER_TYPE_LIMIT,
+            pair,
+            amount_to_buy,
+            tick.average_price
+        ))
 
     def sell_max_available(self, pair: Pair) -> Order:
         market_currency_available = self.get_balance(pair.market_currency).available_amount
         tick = self.get_last_candle(pair)
-        order = self._create_order_entity(ORDER_TYPE_LIMIT, pair, market_currency_available, tick.average_price)
-        return self.create_sell_order(order)
 
-    def _create_order_entity(self, order_type: str, pair: Pair, amount_to_buy: Decimal, rate: Decimal) -> Order:
+        return self.place_sell_order(self._create_order_entity(
+            DIRECTION_SELL,
+            ORDER_TYPE_LIMIT,
+            pair,
+            market_currency_available,
+            tick.average_price
+        ))
+
+    def _create_order_entity(
+        self,
+        order_direction: str,
+        order_type: str,
+        pair: Pair,
+        amount_to_buy: Decimal,
+        rate: Decimal
+    ) -> Order:
         created_at = datetime.datetime.now().astimezone(datetime.timezone.utc)
-        return Order(uuid.uuid4(), self.name, created_at, pair, order_type, amount_to_buy, rate)
+        return Order(uuid.uuid4(), self.name, order_direction, created_at, pair, order_type, amount_to_buy, rate)
 
     def _validate_minimal_order(self, order: Order) -> None:
         pair_market_info = self.get_pair_market_info(order.pair)
         if pair_market_info.minimal_order_size > order.quantity:
             raise NotEnoughBalanceToPerformOrderException(
-                'You want {} but limit is {}.'.format(order.quantity, pair_market_info.minimal_order_size)
+                'You want {0:.8} but limit is {1:.8}.'.format(order.quantity, pair_market_info.minimal_order_size)
             )
 
     def _get_sorted_candles_from_api(self, pair: Pair):

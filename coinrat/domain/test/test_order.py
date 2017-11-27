@@ -3,11 +3,12 @@ from uuid import UUID
 
 from decimal import Decimal
 
-from coinrat.domain import Order, Pair, ORDER_TYPE_LIMIT, OrderMarketInfo
+from coinrat.domain import Order, Pair, ORDER_TYPE_LIMIT, OrderMarketInfo, DIRECTION_BUY
 
 DUMMY_ORDER = order = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
     'lorem_ipsum',
+    DIRECTION_BUY,
     datetime.datetime(2017, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc),
     Pair('USD', 'BTC'),
     ORDER_TYPE_LIMIT,

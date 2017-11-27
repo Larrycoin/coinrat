@@ -10,6 +10,9 @@ from .pair import Pair
 ORDER_TYPE_LIMIT = 'limit'
 ORDER_TYPE_MARKET = 'market'
 
+DIRECTION_SELL = 'sell'
+DIRECTION_BUY = 'buy'
+
 
 class NotEnoughBalanceToPerformOrderException(ForEndUserException):
     pass
@@ -20,6 +23,7 @@ class Order:
         self,
         order_id: UUID,
         market_name: str,
+        direction: str,
         created_at: datetime.datetime,
         pair: Pair,
         order_type: str,
@@ -27,7 +31,9 @@ class Order:
         rate: Union[Decimal, None] = None,
         market_id: Union[str, None] = None,
         is_open: bool = True,
-        closed_at: Union[datetime.datetime, None] = None
+        closed_at: Union[datetime.datetime, None] = None,
+        is_canceled: bool = False,
+        canceled_at: Union[datetime.datetime, None] = None
     ) -> None:
         assert '+00:00' in created_at.isoformat()[-6:], \
             ('Time must be in UTC and aware of its timezone ({})'.format(created_at.isoformat()))
@@ -40,9 +46,15 @@ class Order:
         if order_type == ORDER_TYPE_MARKET:
             assert rate is None, 'For market orders, rate must be None (does not make sense).'
 
+        assert (is_open and closed_at is None) or (not is_open and closed_at is not None)
+        assert (is_canceled and canceled_at is not None) or (not is_canceled and closed_at is None)
+
+        assert direction in [DIRECTION_SELL, DIRECTION_BUY]
+
         self._order_id = order_id
         self._market_name = market_name
         self._created_at = created_at
+        self._direction = direction
         self._pair = pair
         self._type = order_type
         self._quantity = quantity
@@ -50,6 +62,14 @@ class Order:
         self._id_on_market = market_id
         self._is_open = is_open
         self._closed_at = closed_at
+        self._is_canceled = is_canceled
+        self._canceled_at = canceled_at
+
+    def is_sell(self) -> bool:
+        return self._direction == DIRECTION_SELL
+
+    def is_buy(self) -> bool:
+        return self._direction == DIRECTION_BUY
 
     @property
     def order_id(self) -> UUID:
@@ -85,11 +105,26 @@ class Order:
 
     @property
     def is_open(self) -> bool:
+        """Open means, it's placed on the marked, ready to be processed if condition (price, ...) met."""
         return self._is_open
 
     @property
-    def closed_at(self) -> datetime.datetime:
+    def is_closed(self) -> bool:
+        """Closed means, this deal is done. Money transferred. It's SUCCESSFULLY done."""
+        return self._is_open
+
+    @property
+    def closed_at(self) -> Union[datetime.datetime, None]:
         return self._closed_at
+
+    @property
+    def is_canceled(self) -> bool:
+        """Order was cancelled before it proceeds."""
+        return self._is_canceled
+
+    @property
+    def canceled_at(self) -> Union[datetime.datetime, None]:
+        return self._canceled_at
 
     def set_id_on_market(self, id_on_market: str) -> None:
         self._id_on_market = id_on_market
@@ -98,10 +133,22 @@ class Order:
         self._is_open = False
         self._closed_at = closed_at
 
+    def cancel(self, canceled_at: datetime.datetime):
+        self._is_canceled = True
+        self._canceled_at = canceled_at
+
+    def _status(self):
+        """Internal use only!!! You date to IF it!!!"""
+        if self.is_canceled:
+            return 'CANCELED'
+
+        return 'OPEN' if self.is_open else 'CLOSED'
+
     def __repr__(self) -> str:
         return (
             'Id: "{}", '
             + 'Market: "{}", '
+            + '{}, '
             + 'Created: "{}", '
             + '{}, '
             + 'Closed: "{}", '
@@ -113,8 +160,9 @@ class Order:
         ).format(
             self._order_id,
             self._market_name,
+            self._direction,
             self._created_at.isoformat(),
-            'OPEN' if self._is_open else 'CLOSED',
+            self._status,
             self._closed_at.isoformat() if self._closed_at is not None else 'None',
             self._id_on_market,
             self._pair,

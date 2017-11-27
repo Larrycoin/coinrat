@@ -7,7 +7,7 @@ class OrderStorage:
     def save_order(self, order: Order) -> None:
         raise NotImplementedError()
 
-    def get_open_orders(self, market_name: str, pair: Pair) -> List[Order]:
+    def find_by(self, market_name: str, pair: Pair, is_open: bool = None, direction: str = None) -> List[Order]:
         raise NotImplementedError()
 
     def find_last_order(self, market_name: str, pair: Pair) -> Union[Order, None]:

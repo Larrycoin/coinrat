@@ -14,6 +14,7 @@ from .utils import create_pair_identifier
 ORDER_STORAGE_NAME = 'influx_db'
 
 ORDER_STORAGE_FIELD_MARKET = 'market'
+ORDER_STORAGE_FIELD_DIRECTION = 'direction'
 ORDER_STORAGE_FIELD_PAIR = 'pair'
 ORDER_STORAGE_FIELD_ORDER_ID = 'order_id'
 ORDER_STORAGE_FIELD_ID_ON_MARKET = 'id_on_market'
@@ -32,12 +33,22 @@ class OrderInnoDbStorage(OrderStorage):
     def save_order(self, order: Order) -> None:
         self._client.write_points([self._get_serialized_order(order)])
 
-    def get_open_orders(self, market_name: str, pair: Pair) -> List[Order]:
-        sql = '''
-            SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' AND is_open = True
-        '''.format(MEASUREMENT_ORDERS_NAME, create_pair_identifier(pair), market_name)
+    def find_by(self, market_name: str, pair: Pair, is_open: bool = None, direction: str = None) -> List[Order]:
+        parameters = {
+            ORDER_STORAGE_FIELD_MARKET: market_name,
+            ORDER_STORAGE_FIELD_PAIR: create_pair_identifier(pair),
+        }
+        if is_open is not None:
+            parameters[ORDER_STORAGE_FIELD_IS_OPEN] = is_open
+        if direction is not None:
+            parameters[ORDER_STORAGE_FIELD_DIRECTION] = direction
 
-        result: ResultSet = self._client.query(sql)
+        sql = '''SELECT * FROM "{}" WHERE '''.format(MEASUREMENT_ORDERS_NAME)
+        where = '1'
+        for key, value in parameters.items():
+            where += ' "{}" = :{}'.format(key, key)
+
+        result: ResultSet = self._client.query(sql + where, parameters)
         data = result.get_points()
 
         return [self._create_order_from_serialized(row) for row in data]
@@ -82,6 +93,7 @@ class OrderInnoDbStorage(OrderStorage):
         return Order(
             UUID(row[ORDER_STORAGE_FIELD_ORDER_ID]),
             row[ORDER_STORAGE_FIELD_MARKET],
+            row[ORDER_STORAGE_FIELD_DIRECTION],
             dateutil.parser.parse(row['time']).replace(tzinfo=datetime.timezone.utc),
             Pair(pair_data[0], pair_data[1]),
             row[ORDER_STORAGE_FIELD_TYPE],

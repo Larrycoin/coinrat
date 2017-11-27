@@ -6,7 +6,7 @@ from decimal import Decimal
 import math
 
 from coinrat.domain import Strategy, CandleStorage, Order, OrderStorage, Pair, CANDLE_STORAGE_FIELD_CLOSE, Market, \
-    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
+    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException, DIRECTION_SELL, DIRECTION_BUY
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from coinrat_double_crossover_strategy.utils import absolute_possible_percentage_gain
 
@@ -58,7 +58,7 @@ class DoubleCrossoverStrategy(Strategy):
             time.sleep(self._delay)
 
     def _check_and_process_open_orders(self, market: Market):
-        orders = self._order_storage.get_open_orders(market.name, self._pair)
+        orders = self._order_storage.find_by(market_name=market.name, pair=self._pair, is_open=True)
         for order in orders:
             status = market.get_order_status(order)
             if status.is_open is False:
@@ -67,7 +67,7 @@ class DoubleCrossoverStrategy(Strategy):
 
     def _check_for_signal_and_trade(self, market: Market):
         signal = self._check_for_signal(market)
-        if signal is not None and self._does_trade_worth_it(market):
+        if signal is not None:
             order = self._trade_on_signal(market, signal)
             if order is not None:
                 self._order_storage.save_order(order)
@@ -82,7 +82,8 @@ class DoubleCrossoverStrategy(Strategy):
         does_worth_it = absolute_possible_percentage_gain(last_order.rate, current_price) > market.transaction_fee
         if not does_worth_it:
             logging.info(
-                'Skipping trade at current price: "{}" (last order at: "{}")'.format(current_price, last_order.rate)
+                'Skipping trade at current price: "{0:.8}" (last order at: "{1:.8}")' \
+                    .format(current_price, last_order.rate)
             )
 
         return does_worth_it
@@ -92,7 +93,7 @@ class DoubleCrossoverStrategy(Strategy):
         current_sign = self._calculate_sign_of_change(long_average, short_average)
 
         logging.info(
-            '[{}] Previous_sign: {}, Current-sign: {}, Long-now: {}, Short-now: {}'.format(
+            '[{0}] Previous_sign: {1}, Current-sign: {2}, Long-now: {3:.8}, Short-now: {4:.8}'.format(
                 self._strategy_ticker,
                 self._previous_sign,
                 current_sign,
@@ -146,11 +147,17 @@ class DoubleCrossoverStrategy(Strategy):
         return long_average, short_average
 
     def _trade_on_signal(self, market: Market, signal: Signal) -> Union[Order, None]:
+        order = None
         try:
             if signal.is_buy():
-                return market.buy_max_available(self._pair)
+                self._cancel_open_order(market, DIRECTION_SELL)
+                if self._does_trade_worth_it(market):
+                    order = market.buy_max_available(self._pair)
+
             elif signal.is_sell():
-                return market.sell_max_available(self._pair)
+                self._cancel_open_order(market, DIRECTION_BUY)
+                if self._does_trade_worth_it(market):
+                    order = market.sell_max_available(self._pair)
             else:
                 raise ValueError('Unknown signal: "{}"'.format(signal))  # pragma: no cover
 
@@ -158,3 +165,17 @@ class DoubleCrossoverStrategy(Strategy):
             # Intentionally, this strategy does not need state of order,
             # just ignores buy/sell and waits for next signal.
             logging.warning(e)
+
+        return order
+
+    def _cancel_open_order(self, market: Market, direction: str):
+        orders = self._order_storage.find_by(
+            market_name=market.name,
+            pair=self._pair,
+            is_open=True,
+            direction=direction
+        )
+        for order in orders:
+            market.cancel_order(order.id_on_market)
+            order.cancel()
+            self._order_storage.save_order(order)

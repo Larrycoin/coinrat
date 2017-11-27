@@ -8,7 +8,7 @@ from uuid import UUID
 
 from flexmock import flexmock
 
-from coinrat.domain import Pair, Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, \
+from coinrat.domain import Pair, Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, DIRECTION_BUY, \
     NotEnoughBalanceToPerformOrderException
 from coinrat_bittrex.market import BittrexMarket, BittrexMarketRequestException
 from coinrat_bittrex.test.fixtures import MARKET_USDT_BTC_DATA, DUMMY_ORDER_ID_ON_MARKET, OPEN_ORDER, CLOSED_ORDER
@@ -17,6 +17,7 @@ BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_LIMIT_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
     'bittrex',
+    DIRECTION_BUY,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_LIMIT,
@@ -26,6 +27,7 @@ DUMMY_LIMIT_ORDER = Order(
 DUMMY_MARKET_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
     'bittrex',
+    DIRECTION_BUY,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_MARKET,
@@ -57,7 +59,7 @@ def test_create_sell_order():
         .once()
     market = BittrexMarket(client_v1, mock_client_v2())
 
-    order = market.create_sell_order(DUMMY_LIMIT_ORDER)
+    order = market.place_sell_order(DUMMY_LIMIT_ORDER)
 
     assert '16fd2706-8baf-433b-82eb-8c7fada847da' == str(order.order_id)
     assert 'abcd' == order.id_on_market
@@ -72,7 +74,7 @@ def test_create_buy_order():
         .once()
     market = BittrexMarket(client_v1, mock_client_v2())
 
-    order = market.create_buy_order(DUMMY_LIMIT_ORDER)
+    order = market.place_buy_order(DUMMY_LIMIT_ORDER)
 
     assert '16fd2706-8baf-433b-82eb-8c7fada847da' == str(order.order_id)
     assert 'abcd' == order.id_on_market
@@ -81,9 +83,9 @@ def test_create_buy_order():
 def test_market_order_not_implemented():
     market = BittrexMarket(flexmock(), mock_client_v2())
     with pytest.raises(NotImplementedError):
-        market.create_buy_order(DUMMY_MARKET_ORDER)
+        market.place_buy_order(DUMMY_MARKET_ORDER)
     with pytest.raises(NotImplementedError):
-        market.create_sell_order(DUMMY_MARKET_ORDER)
+        market.place_sell_order(DUMMY_MARKET_ORDER)
 
 
 def test_invalid_order():
@@ -92,9 +94,9 @@ def test_invalid_order():
 
     market = BittrexMarket(flexmock(), mock_client_v2())
     with pytest.raises(ValueError):
-        market.create_buy_order(order)
+        market.place_buy_order(order)
     with pytest.raises(ValueError):
-        market.create_sell_order(order)
+        market.place_sell_order(order)
 
 
 def test_not_enough_balance():
@@ -103,9 +105,9 @@ def test_not_enough_balance():
 
     market = BittrexMarket(flexmock(), mock_client_v2())
     with pytest.raises(NotEnoughBalanceToPerformOrderException):
-        market.create_buy_order(order)
+        market.place_buy_order(order)
     with pytest.raises(NotEnoughBalanceToPerformOrderException):
-        market.create_sell_order(order)
+        market.place_sell_order(order)
 
 
 def test_cancel_order():
