@@ -77,7 +77,7 @@ class DoubleCrossoverStrategy(Strategy):
         if last_order is None:
             return True
 
-        current_price = self._candle_storage.get_current_candle().average_price
+        current_price = self._candle_storage.get_current_candle(market.name, self._pair).average_price
 
         does_worth_it = absolute_possible_percentage_gain(last_order.rate, current_price) > market.transaction_fee
         if not does_worth_it:
