@@ -44,11 +44,11 @@ class OrderInnoDbStorage(OrderStorage):
 
     def find_last_order(self, market_name: str, pair: Pair) -> Union[Order, None]:
         sql = '''
-            SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' ORDER BY "time" LIMIT 1
+            SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' ORDER BY "time" DESC LIMIT 1
         '''.format(MEASUREMENT_ORDERS_NAME, create_pair_identifier(pair), market_name)
 
         result: ResultSet = self._client.query(sql)
-        result = result.get_points()
+        result = list(result.get_points())
         if len(result) == 0:
             return None
 

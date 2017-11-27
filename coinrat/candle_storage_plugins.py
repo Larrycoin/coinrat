@@ -8,7 +8,7 @@ get_available_candle_storages_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_candle_storage_spec = pluggy.HookspecMarker('coinrat_plugins')
 
 
-# Todo: solve, adding type-hints raised error:
+# Todo: solve, adding type-hints raises error:
 #   "ValueError: Function has keyword-only parameters or annotations, use getfullargspec() API which can support them"
 class CandleStoragePluginSpecification(PluginSpecification):
     @get_available_candle_storages_spec
@@ -39,4 +39,4 @@ class CandleStoragePlugins:
             if name in plugin.get_available_candle_storages():
                 return plugin.get_candle_storage(name)
 
-        raise CandleStorageNotProvidedByAnyPluginException('Storage "{}" not found.'.format(name))
+        raise CandleStorageNotProvidedByAnyPluginException('Candle storage "{}" not found.'.format(name))

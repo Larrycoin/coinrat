@@ -64,7 +64,30 @@ def test_get_open_orders(influx_database: InfluxDBClient):
 
 
 def test_find_last_order(influx_database: InfluxDBClient):
-    raise NotImplementedError()
+    storage = OrderInnoDbStorage(influx_database)
+
+    order = storage.find_last_order(DUMMY_MARKET, BTC_USD_PAIR)
+    assert order is None
+
+    storage.save_order(DUMMY_ORDER)
+
+    order = storage.find_last_order(DUMMY_MARKET, BTC_USD_PAIR)
+    assert str(order.order_id) == '16fd2706-8baf-433b-82eb-8c7fada847da'
+
+    later_order = Order(
+        UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
+        DUMMY_MARKET,
+        datetime.datetime(2017, 11, 26, 10, 11, 13, tzinfo=datetime.timezone.utc),
+        BTC_USD_PAIR,
+        ORDER_TYPE_LIMIT,
+        Decimal(1),
+        Decimal(8000),
+        'aaa-id-from-market'
+    )
+    storage.save_order(later_order)
+
+    order = storage.find_last_order(DUMMY_MARKET, BTC_USD_PAIR)
+    assert str(order.order_id) == '16fd2706-8baf-433b-82eb-8c7fada847db'
 
 
 def create_dummy_data(influx_database: InfluxDBClient):

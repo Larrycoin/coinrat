@@ -69,7 +69,6 @@ class BittrexMarket(Market):
             raise NotImplementedError('Bittrex does not support that.')
 
         elif order.type == ORDER_TYPE_LIMIT:
-            print(market, float(order.quantity), float(order.rate))
             result = self._client_v1.sell_limit(market, float(order.quantity), float(order.rate))
             self._validate_result(result)
             order.set_id_on_market(result['result']['uuid'])

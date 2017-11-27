@@ -100,16 +100,16 @@ class Order:
 
     def __repr__(self) -> str:
         return (
-            'Id: "{}, '
+            'Id: "{}", '
             + 'Market: "{}", '
-            + 'Created: "{}, '
-            + 'Open: "{}, '
-            + 'Closed: "{}, '
-            + '"ID on market: "{}", '
+            + 'Created: "{}", '
+            + '{}, '
+            + 'Closed: "{}", '
+            + 'ID on market: "{}", '
             + 'Pair: [{}], '
             + 'Type: "{}", '
-            + 'Rate: {}, '
-            + 'Quantity: {}'
+            + 'Rate: "{}", '
+            + 'Quantity: "{}"'
         ).format(
             self._order_id,
             self._market_name,
@@ -152,3 +152,16 @@ class OrderMarketInfo:
     @property
     def quantity_remaining(self) -> Decimal:
         return self._quantity_remaining
+
+    def __repr__(self) -> str:
+        return (
+            'Order Id: "{}", '
+            + '{}, '
+            + 'Closed at: "{}", '
+            + 'Remaining quantity: "{}"'
+        ).format(
+            self._order.order_id,
+            'OPEN' if self._is_open else 'CLOSED',
+            self._closed_at.isoformat() if self._closed_at is not None else '',
+            self._quantity_remaining
+        )

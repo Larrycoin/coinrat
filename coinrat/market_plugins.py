@@ -8,7 +8,7 @@ get_available_markets_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_market_spec = pluggy.HookspecMarker('coinrat_plugins')
 
 
-# Todo: solve, adding type-hints raised error:
+# Todo: solve, adding type-hints raises error:
 #   "ValueError: Function has keyword-only parameters or annotations, use getfullargspec() API which can support them"
 class MarketPluginSpecification(PluginSpecification):
     @get_available_markets_spec

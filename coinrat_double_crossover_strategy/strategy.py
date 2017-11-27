@@ -73,14 +73,19 @@ class DoubleCrossoverStrategy(Strategy):
                 self._order_storage.save_order(order)
 
     def _does_trade_worth_it(self, market: Market) -> bool:
-        last_order = self._order_storage.find_last_order()
-        print(last_order)
+        last_order = self._order_storage.find_last_order(market.name, self._pair)
         if last_order is None:
             return True
 
         current_price = self._candle_storage.get_current_candle().average_price
 
-        return absolute_possible_percentage_gain(last_order.quantity, current_price) > market.transaction_fee
+        does_worth_it = absolute_possible_percentage_gain(last_order.rate, current_price) > market.transaction_fee
+        if not does_worth_it:
+            logging.info(
+                'Skipping trade at current price: "{}" (last order at: "{}")'.format(current_price, last_order.rate)
+            )
+
+        return does_worth_it
 
     def _check_for_signal(self, market: Market) -> Union[Signal, None]:
         long_average, short_average = self._get_averages(market)

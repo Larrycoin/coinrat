@@ -1,15 +1,42 @@
 import datetime
 import logging
 from typing import List, Union, Tuple
+from uuid import UUID
 
 import pytest
 from decimal import Decimal
 from flexmock import flexmock, Mock
 
-from coinrat.domain import Pair, Market, StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
+from coinrat.domain import Pair, Market, ORDER_TYPE_LIMIT, Order, OrderMarketInfo, \
+    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 
+DUMMY_MARKET = 'dummy_market'
 BTC_USD_PAIR = Pair('USD', 'BTC')
+DUMMY_CLOSED_ORDER = Order(
+    UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
+    DUMMY_MARKET,
+    datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
+    BTC_USD_PAIR,
+    ORDER_TYPE_LIMIT,
+    Decimal(1),
+    Decimal(8000),
+    'aaa-id-from-market',
+    False,
+    datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc)
+)
+DUMMY_OPEN_ORDER = Order(
+    UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
+    DUMMY_MARKET,
+    datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
+    BTC_USD_PAIR,
+    ORDER_TYPE_LIMIT,
+    Decimal(1),
+    Decimal(8000),
+    'aaa-id-from-market',
+    is_open=True,
+    closed_at=None
+)
 
 
 @pytest.mark.parametrize(['error', 'markets'],
@@ -46,7 +73,7 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
         'expected_buy',
         'expected_sell',
         'mean_evolution',
-        'previous_order_quantity',
+        'previous_order_rate',
         'current_candle_average_price',
     ],
     [
@@ -79,7 +106,7 @@ def test_sending_signal(
     expected_buy: int,
     expected_sell: int,
     mean_evolution: List[Tuple[int, int]],
-    previous_order_quantity: Union[int, None],
+    previous_order_rate: Union[int, None],
     current_candle_average_price: int
 ):
     candle_storage = flexmock()
@@ -92,14 +119,16 @@ def test_sending_signal(
 
     market = flexmock(transaction_fee=Decimal(0.0025))
     market.should_receive('name').and_return('dummy_market_name')
-    market.should_receive('buy_max_available').times(expected_buy)
-    market.should_receive('sell_max_available').times(expected_sell)
+    market.should_receive('buy_max_available').times(expected_buy).and_return(DUMMY_CLOSED_ORDER)
+    market.should_receive('sell_max_available').times(expected_sell).and_return(DUMMY_CLOSED_ORDER)
 
     order_storage = flexmock()
     order_storage.should_receive('get_open_orders').and_return([])
+    order_storage.should_receive('save_order').times(expected_buy + expected_sell)
+
     previous_order = None
-    if previous_order_quantity is not None:
-        previous_order = flexmock(quantity=Decimal(previous_order_quantity))
+    if previous_order_rate is not None:
+        previous_order = flexmock(rate=Decimal(previous_order_rate))
     order_storage.should_receive('find_last_order').and_return(previous_order)
 
     strategy = DoubleCrossoverStrategy(
@@ -132,6 +161,51 @@ def test_not_enough_balance_logs_warning():
         2
     )
     flexmock(logging).should_receive('warning').once()
+    strategy.run([market])
+
+
+CLOSED_ORDER_INFO = OrderMarketInfo(
+    order=DUMMY_OPEN_ORDER,
+    is_open=False,
+    closed_at=datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
+    quantity_remaining=Decimal(0)
+)
+
+STILL_OPEN_ORDER_INFO = OrderMarketInfo(
+    order=DUMMY_OPEN_ORDER,
+    is_open=True,
+    closed_at=None,
+    quantity_remaining=Decimal(1)
+)
+
+
+@pytest.mark.parametrize(['expected_save_order_called', 'markets_order_info'],
+    [
+        (1, CLOSED_ORDER_INFO),
+        (0, STILL_OPEN_ORDER_INFO),
+    ]
+)
+def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int, markets_order_info: OrderMarketInfo):
+    candle_storage = flexmock()
+    candle_storage.should_receive('mean').and_return(8000).and_return(7900)
+
+    order_storage = flexmock()
+    order_storage.should_receive('get_open_orders').and_return([DUMMY_OPEN_ORDER])
+    order_storage.should_receive('save_order').times(expected_save_order_called)
+
+    market = flexmock()
+    market.should_receive('name').and_return('dummy_market_name')
+    market.should_receive('get_order_status').and_return(markets_order_info).once()
+
+    strategy = DoubleCrossoverStrategy(
+        BTC_USD_PAIR,
+        candle_storage,
+        order_storage,
+        datetime.timedelta(hours=1),
+        datetime.timedelta(minutes=15),
+        0,
+        1
+    )
     strategy.run([market])
 
 

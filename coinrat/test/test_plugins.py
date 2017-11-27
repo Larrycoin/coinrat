@@ -5,7 +5,8 @@ from coinrat.market_plugins import MarketPlugins, MarketNotProvidedByAnyPluginEx
 from coinrat.candle_storage_plugins import CandleStoragePlugins, CandleStorageNotProvidedByAnyPluginException
 from coinrat.strategy_plugins import StrategyPlugins, StrategyNotProvidedByAnyPluginException
 from coinrat.synchronizer_plugins import SynchronizerPlugins, SynchronizerNotProvidedByAnyPluginException
-from coinrat.domain import CandleStorage, Strategy, Market, MarketStateSynchronizer
+from coinrat.domain import CandleStorage, OrderStorage, Strategy, Market, MarketStateSynchronizer
+from coinrat.order_storage_plugins import OrderStoragePlugins, OrderStorageNotProvidedByAnyPluginException
 
 
 def test_synchronizer_plugins():
@@ -35,6 +36,15 @@ def test_candle_storage_plugins():
     assert isinstance(plugins.get_candle_storage('influx_db'), CandleStorage)
     with pytest.raises(CandleStorageNotProvidedByAnyPluginException):
         plugins.get_candle_storage('gandalf')
+
+
+def test_order_storage_plugins():
+    plugins = OrderStoragePlugins()
+    assert 'influx_db' in plugins.get_available_order_storages()
+
+    assert isinstance(plugins.get_order_storage('influx_db'), OrderStorage)
+    with pytest.raises(OrderStorageNotProvidedByAnyPluginException):
+        plugins.get_order_storage('gandalf')
 
 
 def test_strategy_plugins():

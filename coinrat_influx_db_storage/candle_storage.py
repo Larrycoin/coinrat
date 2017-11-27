@@ -1,7 +1,7 @@
 import datetime
 import logging
-from typing import List, Tuple, Union, Generator
-
+from typing import List, Tuple, Union, Generator, Dict
+import dateutil.parser
 from decimal import Decimal
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
@@ -13,6 +13,9 @@ from .utils import create_pair_identifier
 
 CANDLE_STORAGE_NAME = 'influx_db'
 MEASUREMENT_CANDLES_NAME = 'candles'
+
+CANDLE_STORAGE_FIELD_MARKET = 'market'
+CANDLE_STORAGE_FIELD_PAIR = 'pair'
 
 
 class CandleInnoDbStorage(CandleStorage):
@@ -27,6 +30,17 @@ class CandleInnoDbStorage(CandleStorage):
             return
         self._client.write_points([self._transform_into_raw_data(candle) for candle in candles])
         logging.debug('Into market "{}", {} candles inserted'.format(candles[0].market_name, len(candles)))
+
+    def get_current_candle(self, market_name: str, pair: Pair) -> MinuteCandle:
+        sql = '''
+            SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' ORDER BY "time" DESC LIMIT 1
+        '''.format(MEASUREMENT_CANDLES_NAME, create_pair_identifier(pair), market_name)
+
+        result: ResultSet = self._client.query(sql)
+        result = list(result.get_points())
+        self._validate_result_has_some_data(market_name, result)
+
+        return self._create_candle_from_serialized(result[0])
 
     def mean(
         self,
@@ -54,13 +68,16 @@ class CandleInnoDbStorage(CandleStorage):
             field
         )
         result: ResultSet = self._client.query(sql)
+        self._validate_result_has_some_data(market_name, result)
+        mean = list(result.items()[0][1])[0]['field_mean']
+        return Decimal(mean)
+
+    @staticmethod
+    def _validate_result_has_some_data(market_name: str, result: ResultSet) -> None:
         if len(result) == 0:
             raise NoCandlesForMarketInStorageException(
                 'For market "{}" no candles in storage "{}".'.format(market_name, CANDLE_STORAGE_NAME)
             )
-
-        mean = list(result.items()[0][1])[0]['field_mean']
-        return Decimal(mean)
 
     @staticmethod
     def _transform_into_raw_data(candle: MinuteCandle):
@@ -79,3 +96,17 @@ class CandleInnoDbStorage(CandleStorage):
                 CANDLE_STORAGE_FIELD_HIGH: float(candle.high),
             }
         }
+
+    @staticmethod
+    def _create_candle_from_serialized(row: Dict) -> MinuteCandle:
+        pair_data = row[CANDLE_STORAGE_FIELD_PAIR].split('_')
+
+        return MinuteCandle(
+            row[CANDLE_STORAGE_FIELD_MARKET],
+            Pair(pair_data[0], pair_data[1]),
+            dateutil.parser.parse(row['time']).replace(tzinfo=datetime.timezone.utc),
+            Decimal(row[CANDLE_STORAGE_FIELD_OPEN]),
+            Decimal(row[CANDLE_STORAGE_FIELD_HIGH]),
+            Decimal(row[CANDLE_STORAGE_FIELD_LOW]),
+            Decimal(row[CANDLE_STORAGE_FIELD_CLOSE])
+        )

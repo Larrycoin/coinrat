@@ -33,5 +33,5 @@ class CandleStorage:
     ) -> Decimal:
         raise NotImplementedError()
 
-    def get_current_candle(self) -> MinuteCandle:
+    def get_current_candle(self, market_name: str, pair: Pair) -> MinuteCandle:
         raise NotImplementedError()
