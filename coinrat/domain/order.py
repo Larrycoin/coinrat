@@ -116,7 +116,7 @@ class Order:
     @property
     def is_closed(self) -> bool:
         """Closed means, this deal is done. Money transferred. It's SUCCESSFULLY done."""
-        return not self._status == ORDER_STATUS_CLOSED
+        return self._status == ORDER_STATUS_CLOSED
 
     @property
     def closed_at(self) -> Union[datetime.datetime, None]:
