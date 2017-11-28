@@ -3,7 +3,7 @@ from uuid import UUID
 
 from decimal import Decimal
 
-from coinrat.domain import Order, Pair, ORDER_TYPE_LIMIT, OrderMarketInfo, DIRECTION_BUY
+from coinrat.domain import Order, Pair, ORDER_TYPE_LIMIT, OrderMarketInfo, DIRECTION_BUY, ORDER_STATUS_CLOSED
 
 DUMMY_ORDER = order = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
@@ -15,16 +15,16 @@ DUMMY_ORDER = order = Order(
     Decimal(2),
     Decimal(9000),
     'bbb-id-from-market',
-    False,
+    ORDER_STATUS_CLOSED,
     datetime.datetime(2017, 6, 7, 8, 9, 10, tzinfo=datetime.timezone.utc)
 )
 
 
 def test_order():
-    expected = 'Id: "16fd2706-8baf-433b-82eb-8c7fada847db", ' \
+    expected = 'BUY-CLOSED, ' \
+               + 'Id: "16fd2706-8baf-433b-82eb-8c7fada847db", ' \
                + 'Market: "lorem_ipsum", ' \
                + 'Created: "2017-01-02T03:04:05+00:00", ' \
-               + 'CLOSED, ' \
                + 'Closed: "2017-06-07T08:09:10+00:00", ' \
                + 'ID on market: "bbb-id-from-market", ' \
                + 'Pair: [USD-BTC], ' \

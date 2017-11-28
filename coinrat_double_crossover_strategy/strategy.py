@@ -81,10 +81,9 @@ class DoubleCrossoverStrategy(Strategy):
 
         does_worth_it = absolute_possible_percentage_gain(last_order.rate, current_price) > market.transaction_fee
         if not does_worth_it:
-            logging.info(
-                'Skipping trade at current price: "{0:.8}" (last order at: "{1:.8}")' \
-                    .format(current_price, last_order.rate)
-            )
+            logging.info('Skipping trade at current price: "{0:.8f}" (last order at: "{1:.8f}")'.format(
+                current_price, last_order.rate
+            ))
 
         return does_worth_it
 
@@ -93,7 +92,7 @@ class DoubleCrossoverStrategy(Strategy):
         current_sign = self._calculate_sign_of_change(long_average, short_average)
 
         logging.info(
-            '[{0}] Previous_sign: {1}, Current-sign: {2}, Long-now: {3:.8}, Short-now: {4:.8}'.format(
+            '[{0}] Previous_sign: {1}, Current-sign: {2:.8f}, Long-now: {3:.8f}, Short-now: {4:.8f}'.format(
                 self._strategy_ticker,
                 self._previous_sign,
                 current_sign,
@@ -177,5 +176,5 @@ class DoubleCrossoverStrategy(Strategy):
         )
         for order in orders:
             market.cancel_order(order.id_on_market)
-            order.cancel()
+            order.cancel(datetime.datetime.now().astimezone(datetime.timezone.utc))
             self._order_storage.save_order(order)

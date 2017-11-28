@@ -4,7 +4,7 @@ import pytest, datetime
 from decimal import Decimal
 from influxdb import InfluxDBClient
 
-from coinrat.domain import Order, ORDER_TYPE_LIMIT, Pair, DIRECTION_BUY
+from coinrat.domain import Order, ORDER_TYPE_LIMIT, Pair, DIRECTION_BUY, ORDER_STATUS_OPEN, ORDER_STATUS_CLOSED
 from coinrat_influx_db_storage.order_storage import OrderInnoDbStorage, MEASUREMENT_ORDERS_NAME
 from coinrat_influx_db_storage.test.utils import get_all_from_influx_db
 
@@ -42,19 +42,20 @@ def test_save_oder(influx_database: InfluxDBClient):
     assert len(data) == 1
     expected_data = "{" \
                     + "'time': '2017-11-26T10:11:12Z', " \
+                    + "'direction': 'buy', " \
                     + "'id_on_market': 'aaa-id-from-market', " \
-                    + "'is_open': True, " \
                     + "'market': 'dummy_market', " \
                     + "'order_id': '16fd2706-8baf-433b-82eb-8c7fada847da', " \
                     + "'pair': 'USD_BTC', " \
                     + "'quantity': 1, " \
                     + "'rate': 8000, " \
+                    + "'status': 'open', " \
                     + "'type': 'limit'" \
                     + "}"
     assert str(data[0]) == expected_data
 
 
-def test_get_open_orders(influx_database: InfluxDBClient):
+def test_find_by(influx_database: InfluxDBClient):
     storage = OrderInnoDbStorage(influx_database)
 
     orders = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR)
@@ -62,20 +63,20 @@ def test_get_open_orders(influx_database: InfluxDBClient):
 
     create_dummy_data(influx_database)
 
-    orders = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR, is_open=True)
+    orders = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR, status=ORDER_STATUS_OPEN)
     assert len(orders) == 1
     assert orders[0].is_open is True
     assert str(orders[0].order_id) == '16fd2706-8baf-433b-82eb-8c7fada847da'
 
-    orders = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR, is_open=False)
+    orders = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR, status=ORDER_STATUS_CLOSED)
     assert len(orders) == 1
     assert orders[0].is_open is False
     assert str(orders[0].order_id) == '16fd2706-8baf-433b-82eb-8c7fada847db'
 
-    orders = storage.find_by(market_name='yolo', pair=BTC_USD_PAIR, is_open=False)
+    orders = storage.find_by(market_name='yolo', pair=BTC_USD_PAIR)
     assert orders == []
 
-    orders = storage.find_by(market_name=DUMMY_MARKET, pair=Pair('FOO', 'BAR'), is_open=False)
+    orders = storage.find_by(market_name=DUMMY_MARKET, pair=Pair('FOO', 'BAR'))
     assert orders == []
 
 
@@ -119,7 +120,7 @@ def create_dummy_data(influx_database: InfluxDBClient):
         Decimal(1),
         Decimal(8000),
         'aaa-id-from-market',
-        is_open=True
+        ORDER_STATUS_OPEN
     ))
     storage.save_order(Order(
         UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
@@ -131,5 +132,5 @@ def create_dummy_data(influx_database: InfluxDBClient):
         Decimal(2),
         Decimal(9000),
         'bbb-id-from-market',
-        is_open=False
+        ORDER_STATUS_CLOSED
     ))

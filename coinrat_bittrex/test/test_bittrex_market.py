@@ -2,19 +2,19 @@ import copy
 import datetime
 import pytest
 import uuid
-from decimal import Decimal, getcontext
+from decimal import Decimal
 from typing import Dict, Union
 from uuid import UUID
 
 from flexmock import flexmock
 
-from coinrat.domain import Pair, Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, DIRECTION_BUY, \
+from coinrat.domain import Pair, Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, DIRECTION_BUY, DIRECTION_SELL, \
     NotEnoughBalanceToPerformOrderException
 from coinrat_bittrex.market import BittrexMarket, BittrexMarketRequestException
 from coinrat_bittrex.test.fixtures import MARKET_USDT_BTC_DATA, DUMMY_ORDER_ID_ON_MARKET, OPEN_ORDER, CLOSED_ORDER
 
 BTC_USD_PAIR = Pair('USD', 'BTC')
-DUMMY_LIMIT_ORDER = Order(
+DUMMY_LIMIT_BUY_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
     'bittrex',
     DIRECTION_BUY,
@@ -24,7 +24,7 @@ DUMMY_LIMIT_ORDER = Order(
     Decimal(1),
     Decimal(8000)
 )
-DUMMY_MARKET_ORDER = Order(
+DUMMY_MARKET_BUY_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
     'bittrex',
     DIRECTION_BUY,
@@ -59,7 +59,10 @@ def test_create_sell_order():
         .once()
     market = BittrexMarket(client_v1, mock_client_v2())
 
-    order = market.place_sell_order(DUMMY_LIMIT_ORDER)
+    order = copy.deepcopy(DUMMY_LIMIT_BUY_ORDER)
+    order._direction = DIRECTION_SELL
+
+    order = market.place_sell_order(order)
 
     assert '16fd2706-8baf-433b-82eb-8c7fada847da' == str(order.order_id)
     assert 'abcd' == order.id_on_market
@@ -74,7 +77,7 @@ def test_create_buy_order():
         .once()
     market = BittrexMarket(client_v1, mock_client_v2())
 
-    order = market.place_buy_order(DUMMY_LIMIT_ORDER)
+    order = market.place_buy_order(DUMMY_LIMIT_BUY_ORDER)
 
     assert '16fd2706-8baf-433b-82eb-8c7fada847da' == str(order.order_id)
     assert 'abcd' == order.id_on_market
@@ -82,31 +85,40 @@ def test_create_buy_order():
 
 def test_market_order_not_implemented():
     market = BittrexMarket(flexmock(), mock_client_v2())
+
     with pytest.raises(NotImplementedError):
-        market.place_buy_order(DUMMY_MARKET_ORDER)
+        market.place_buy_order(DUMMY_MARKET_BUY_ORDER)
+
     with pytest.raises(NotImplementedError):
-        market.place_sell_order(DUMMY_MARKET_ORDER)
+        order = copy.deepcopy(DUMMY_MARKET_BUY_ORDER)
+        order._direction = DIRECTION_SELL
+        market.place_sell_order(order)
 
 
 def test_invalid_order():
-    order = copy.deepcopy(DUMMY_LIMIT_ORDER)
+    market = BittrexMarket(flexmock(), mock_client_v2())
+
+    order = copy.deepcopy(DUMMY_LIMIT_BUY_ORDER)
     order._type = 'gandalf'
 
-    market = BittrexMarket(flexmock(), mock_client_v2())
     with pytest.raises(ValueError):
         market.place_buy_order(order)
+
     with pytest.raises(ValueError):
+        order._direction = DIRECTION_SELL
         market.place_sell_order(order)
 
 
 def test_not_enough_balance():
-    order = copy.deepcopy(DUMMY_LIMIT_ORDER)
+    order = copy.deepcopy(DUMMY_LIMIT_BUY_ORDER)
     order._quantity = Decimal(0.00001)
 
     market = BittrexMarket(flexmock(), mock_client_v2())
     with pytest.raises(NotEnoughBalanceToPerformOrderException):
         market.place_buy_order(order)
+
     with pytest.raises(NotEnoughBalanceToPerformOrderException):
+        order._direction = DIRECTION_SELL
         market.place_sell_order(order)
 
 

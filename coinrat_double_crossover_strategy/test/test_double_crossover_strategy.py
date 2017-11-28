@@ -8,7 +8,7 @@ from decimal import Decimal
 from flexmock import flexmock, Mock
 
 from coinrat.domain import Pair, Market, ORDER_TYPE_LIMIT, Order, OrderMarketInfo, DIRECTION_BUY, \
-    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
+    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException, ORDER_STATUS_CLOSED
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 
 DUMMY_MARKET = 'dummy_market'
@@ -23,7 +23,7 @@ DUMMY_CLOSED_ORDER = Order(
     Decimal(1),
     Decimal(8000),
     'aaa-id-from-market',
-    False,
+    ORDER_STATUS_CLOSED,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc)
 )
 DUMMY_OPEN_ORDER = Order(
@@ -35,9 +35,7 @@ DUMMY_OPEN_ORDER = Order(
     ORDER_TYPE_LIMIT,
     Decimal(1),
     Decimal(8000),
-    'aaa-id-from-market',
-    is_open=True,
-    closed_at=None
+    'aaa-id-from-market'
 )
 
 
@@ -126,7 +124,7 @@ def test_sending_signal(
     market.should_receive('sell_max_available').times(expected_sell).and_return(DUMMY_CLOSED_ORDER)
 
     order_storage = flexmock()
-    order_storage.should_receive('get_open_orders').and_return([])
+    order_storage.should_receive('find_by').and_return([])
     order_storage.should_receive('save_order').times(expected_buy + expected_sell)
 
     previous_order = None
@@ -193,7 +191,7 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
     candle_storage.should_receive('mean').and_return(8000).and_return(7900)
 
     order_storage = flexmock()
-    order_storage.should_receive('get_open_orders').and_return([DUMMY_OPEN_ORDER])
+    order_storage.should_receive('find_by').and_return([DUMMY_OPEN_ORDER])
     order_storage.should_receive('save_order').times(expected_save_order_called)
 
     market = flexmock()
@@ -214,7 +212,7 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
 
 def mock_order_storage():
     mock = flexmock()
-    mock.should_receive('get_open_orders').and_return([])
+    mock.should_receive('find_by').and_return([])
     mock.should_receive('find_last_order').and_return(None)
 
     return mock

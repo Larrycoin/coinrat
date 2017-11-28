@@ -13,6 +13,11 @@ ORDER_TYPE_MARKET = 'market'
 DIRECTION_SELL = 'sell'
 DIRECTION_BUY = 'buy'
 
+ORDER_STATUS_OPEN = 'open'
+ORDER_STATUS_CLOSED = 'closed'
+ORDER_STATUS_CANCELED = 'canceled'
+POSSIBLE_ORDER_STATUSES = [ORDER_STATUS_OPEN, ORDER_STATUS_CLOSED, ORDER_STATUS_CANCELED]
+
 
 class NotEnoughBalanceToPerformOrderException(ForEndUserException):
     pass
@@ -30,9 +35,8 @@ class Order:
         quantity: Decimal,
         rate: Union[Decimal, None] = None,
         market_id: Union[str, None] = None,
-        is_open: bool = True,
+        status: str = ORDER_STATUS_OPEN,
         closed_at: Union[datetime.datetime, None] = None,
-        is_canceled: bool = False,
         canceled_at: Union[datetime.datetime, None] = None
     ) -> None:
         assert '+00:00' in created_at.isoformat()[-6:], \
@@ -46,8 +50,10 @@ class Order:
         if order_type == ORDER_TYPE_MARKET:
             assert rate is None, 'For market orders, rate must be None (does not make sense).'
 
-        assert (is_open and closed_at is None) or (not is_open and closed_at is not None)
-        assert (is_canceled and canceled_at is not None) or (not is_canceled and closed_at is None)
+        assert status in POSSIBLE_ORDER_STATUSES
+
+        assert status == ORDER_STATUS_CLOSED and closed_at is not None or closed_at is None
+        assert status == ORDER_STATUS_CANCELED and canceled_at is not None or canceled_at is None
 
         assert direction in [DIRECTION_SELL, DIRECTION_BUY]
 
@@ -60,9 +66,8 @@ class Order:
         self._quantity = quantity
         self._rate = rate
         self._id_on_market = market_id
-        self._is_open = is_open
+        self._status = status
         self._closed_at = closed_at
-        self._is_canceled = is_canceled
         self._canceled_at = canceled_at
 
     def is_sell(self) -> bool:
@@ -106,12 +111,12 @@ class Order:
     @property
     def is_open(self) -> bool:
         """Open means, it's placed on the marked, ready to be processed if condition (price, ...) met."""
-        return self._is_open
+        return self._status == ORDER_STATUS_OPEN
 
     @property
     def is_closed(self) -> bool:
         """Closed means, this deal is done. Money transferred. It's SUCCESSFULLY done."""
-        return self._is_open
+        return not self._status == ORDER_STATUS_CLOSED
 
     @property
     def closed_at(self) -> Union[datetime.datetime, None]:
@@ -120,7 +125,7 @@ class Order:
     @property
     def is_canceled(self) -> bool:
         """Order was cancelled before it proceeds."""
-        return self._is_canceled
+        return self._status == ORDER_STATUS_CANCELED
 
     @property
     def canceled_at(self) -> Union[datetime.datetime, None]:
@@ -130,27 +135,19 @@ class Order:
         self._id_on_market = id_on_market
 
     def close(self, closed_at: datetime.datetime) -> None:
-        self._is_open = False
+        self._status = ORDER_STATUS_CLOSED
         self._closed_at = closed_at
 
     def cancel(self, canceled_at: datetime.datetime):
-        self._is_canceled = True
+        self._status = ORDER_STATUS_CANCELED
         self._canceled_at = canceled_at
-
-    def _status(self):
-        """Internal use only!!! You date to IF it!!!"""
-        if self.is_canceled:
-            return 'CANCELED'
-
-        return 'OPEN' if self.is_open else 'CLOSED'
 
     def __repr__(self) -> str:
         return (
-            'Id: "{}", '
+            '{}-{}, '
+            + 'Id: "{}", '
             + 'Market: "{}", '
-            + '{}, '
             + 'Created: "{}", '
-            + '{}, '
             + 'Closed: "{}", '
             + 'ID on market: "{}", '
             + 'Pair: [{}], '
@@ -158,11 +155,11 @@ class Order:
             + 'Rate: "{}", '
             + 'Quantity: "{}"'
         ).format(
+            self._direction.upper(),
+            self._status.upper(),
             self._order_id,
             self._market_name,
-            self._direction,
             self._created_at.isoformat(),
-            self._status,
             self._closed_at.isoformat() if self._closed_at is not None else 'None',
             self._id_on_market,
             self._pair,

@@ -8,20 +8,20 @@ import dateutil.parser
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
-from coinrat.domain import OrderStorage, Order, Pair
+from coinrat.domain import OrderStorage, Order, Pair, POSSIBLE_ORDER_STATUSES
 from .utils import create_pair_identifier
 
 ORDER_STORAGE_NAME = 'influx_db'
 
 ORDER_STORAGE_FIELD_MARKET = 'market'
 ORDER_STORAGE_FIELD_DIRECTION = 'direction'
+ORDER_STORAGE_FIELD_STATUS = 'status'
 ORDER_STORAGE_FIELD_PAIR = 'pair'
 ORDER_STORAGE_FIELD_ORDER_ID = 'order_id'
 ORDER_STORAGE_FIELD_ID_ON_MARKET = 'id_on_market'
 ORDER_STORAGE_FIELD_QUANTITY = 'quantity'
 ORDER_STORAGE_FIELD_RATE = 'rate'
 ORDER_STORAGE_FIELD_TYPE = 'type'
-ORDER_STORAGE_FIELD_IS_OPEN = 'is_open'
 
 MEASUREMENT_ORDERS_NAME = 'orders'
 
@@ -33,23 +33,25 @@ class OrderInnoDbStorage(OrderStorage):
     def save_order(self, order: Order) -> None:
         self._client.write_points([self._get_serialized_order(order)])
 
-    def find_by(self, market_name: str, pair: Pair, is_open: bool = None, direction: str = None) -> List[Order]:
+    def find_by(self, market_name: str, pair: Pair, status: str = None, direction: str = None) -> List[Order]:
+        assert status in POSSIBLE_ORDER_STATUSES or status is None, 'Invalid status: "{}"'.format(status)
+
         parameters = {
-            ORDER_STORAGE_FIELD_MARKET: market_name,
-            ORDER_STORAGE_FIELD_PAIR: create_pair_identifier(pair),
+            ORDER_STORAGE_FIELD_MARKET: "'{}'".format(market_name),
+            ORDER_STORAGE_FIELD_PAIR: "'{}'".format(create_pair_identifier(pair)),
         }
-        if is_open is not None:
-            parameters[ORDER_STORAGE_FIELD_IS_OPEN] = is_open
+        if status is not None:
+            parameters[ORDER_STORAGE_FIELD_STATUS] = "'{}'".format(status)
         if direction is not None:
-            parameters[ORDER_STORAGE_FIELD_DIRECTION] = direction
+            parameters[ORDER_STORAGE_FIELD_DIRECTION] = "'{}'".format(direction)
 
-        sql = '''SELECT * FROM "{}" WHERE '''.format(MEASUREMENT_ORDERS_NAME)
-        where = '1'
+        sql = 'SELECT * FROM "{}" WHERE '.format(MEASUREMENT_ORDERS_NAME)
+        where = []
         for key, value in parameters.items():
-            where += ' "{}" = :{}'.format(key, key)
-
-        result: ResultSet = self._client.query(sql + where, parameters)
-        data = result.get_points()
+            where.append('"{}" = {}'.format(key, value))
+        sql += ' AND '.join(where)
+        result: ResultSet = self._client.query(sql)
+        data = list(result.get_points())
 
         return [self._create_order_from_serialized(row) for row in data]
 
@@ -76,9 +78,10 @@ class OrderInnoDbStorage(OrderStorage):
             'time': order.created_at.isoformat(),
             'fields': {
                 ORDER_STORAGE_FIELD_ORDER_ID: str(order.order_id),
+                ORDER_STORAGE_FIELD_DIRECTION: order._direction,
                 ORDER_STORAGE_FIELD_ID_ON_MARKET: order.id_on_market,
                 ORDER_STORAGE_FIELD_TYPE: order.type,
-                ORDER_STORAGE_FIELD_IS_OPEN: order.is_open,
+                ORDER_STORAGE_FIELD_STATUS: order._status,
 
                 # Todo: figure out how to store decimals in influx (maybe int -> *100000)
                 ORDER_STORAGE_FIELD_QUANTITY: float(order.quantity),
@@ -100,5 +103,5 @@ class OrderInnoDbStorage(OrderStorage):
             Decimal(row[ORDER_STORAGE_FIELD_QUANTITY]),
             Decimal(row[ORDER_STORAGE_FIELD_RATE]) if row[ORDER_STORAGE_FIELD_RATE] is not None else None,
             row[ORDER_STORAGE_FIELD_ID_ON_MARKET],
-            row[ORDER_STORAGE_FIELD_IS_OPEN],
+            row[ORDER_STORAGE_FIELD_STATUS],
         )
