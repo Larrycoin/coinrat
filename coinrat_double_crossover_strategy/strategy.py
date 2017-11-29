@@ -65,6 +65,7 @@ class DoubleCrossoverStrategy(Strategy):
             if status.is_open is False:
                 order.close(status.closed_at)
                 self._order_storage.save_order(order)
+                logging.info('Order "{}" has been successfully CLOSED.'.format(order.order_id))
 
     def _check_for_signal_and_trade(self, market: Market):
         signal = self._check_for_signal(market)
@@ -179,3 +180,4 @@ class DoubleCrossoverStrategy(Strategy):
             market.cancel_order(order.id_on_market)
             order.cancel(datetime.datetime.now().astimezone(datetime.timezone.utc))
             self._order_storage.save_order(order)
+            logging.info('Order "{}" has been CANCELED!'.format(order.order_id))
