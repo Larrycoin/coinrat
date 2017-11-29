@@ -153,7 +153,7 @@ class DoubleCrossoverStrategy(Strategy):
 
     def _trade_on_signal(self, market: Market) -> Union[Order, None]:
         order = None
-        logging.debug('Checking trade on signal: "{}".'.format(self._last_signal))
+        logging.info('Checking trade on signal: "{}".'.format(self._last_signal))
         try:
             if self._last_signal.is_buy():
                 self._cancel_open_order(market, DIRECTION_SELL)
