@@ -1,3 +1,5 @@
+.env
+nohup.out
 .cache
 __venv__
 backend/.env
