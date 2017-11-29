@@ -30,8 +30,8 @@ def test_open_order():
                + 'ID on market: "bbb-id-from-market", ' \
                + 'Pair: [USD-BTC], ' \
                + 'Type: "limit", ' \
-               + 'Rate: "9000", ' \
-               + 'Quantity: "2"'
+               + 'Rate: "9000.00000000", ' \
+               + 'Quantity: "2.00000000"'
 
     assert expected == str(order)
     assert order.is_open is True

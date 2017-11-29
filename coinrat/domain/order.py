@@ -144,16 +144,16 @@ class Order:
 
     def __repr__(self) -> str:
         return (
-            '{}-{}, '
-            + 'Id: "{}", '
-            + 'Market: "{}", '
-            + 'Created: "{}", '
-            + 'Closed: "{}", '
-            + 'ID on market: "{}", '
-            + 'Pair: [{}], '
-            + 'Type: "{}", '
-            + 'Rate: "{}", '
-            + 'Quantity: "{}"'
+            '{0}-{1}, '
+            + 'Id: "{2}", '
+            + 'Market: "{3}", '
+            + 'Created: "{4}", '
+            + 'Closed: "{5}", '
+            + 'ID on market: "{6}", '
+            + 'Pair: [{7}], '
+            + 'Type: "{8}", '
+            + 'Rate: "{9}", '
+            + 'Quantity: "{10:.8f}"'
         ).format(
             self._direction.upper(),
             self._status.upper(),
@@ -164,7 +164,7 @@ class Order:
             self._id_on_market,
             self._pair,
             self._type,
-            self._rate,
+            '{0:.8f}'.format(self._rate) if self._rate is not None else 'None',
             self._quantity
         )
 
