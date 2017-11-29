@@ -10,6 +10,7 @@ from coinrat.domain import Strategy, CandleStorage, Order, OrderStorage, Pair, C
     StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from coinrat_double_crossover_strategy.utils import absolute_possible_percentage_gain
+from market import BittrexMarketRequestException
 
 STRATEGY_NAME = 'double_crossover'
 
@@ -177,7 +178,12 @@ class DoubleCrossoverStrategy(Strategy):
             direction=direction
         )
         for order in orders:
-            market.cancel_order(order.id_on_market)
+            try:
+                market.cancel_order(order.id_on_market)
+            except BittrexMarketRequestException as e:
+                logging.error('Order "{}" cancelling failed: Error: "{}"!'.format(order.order_id, e))
+                return
+
             order.cancel(datetime.datetime.now().astimezone(datetime.timezone.utc))
             self._order_storage.save_order(order)
             logging.info('Order "{}" has been CANCELED!'.format(order.order_id))
