@@ -6,7 +6,7 @@ from decimal import Decimal
 import math
 
 from coinrat.domain import Strategy, CandleStorage, Order, OrderStorage, Pair, CANDLE_STORAGE_FIELD_CLOSE, Market, \
-    DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, \
+    DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, MarketOrderException, \
     StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from coinrat_double_crossover_strategy.utils import absolute_possible_percentage_gain
@@ -40,6 +40,7 @@ class DoubleCrossoverStrategy(Strategy):
         self._number_of_runs = number_of_runs
         self._previous_sign = None
         self._strategy_ticker = 0
+        self._last_signal: Union[Signal, None] = None
 
     def run(self, markets: List[Market]) -> None:
         if len(markets) != 1:
@@ -70,7 +71,10 @@ class DoubleCrossoverStrategy(Strategy):
     def _check_for_signal_and_trade(self, market: Market):
         signal = self._check_for_signal(market)
         if signal is not None:
-            order = self._trade_on_signal(market, signal)
+            self._last_signal = signal
+
+        if self._last_signal is not None:
+            order = self._trade_on_signal(market)
             if order is not None:
                 self._order_storage.save_order(order)
 
@@ -147,20 +151,23 @@ class DoubleCrossoverStrategy(Strategy):
 
         return long_average, short_average
 
-    def _trade_on_signal(self, market: Market, signal: Signal) -> Union[Order, None]:
+    def _trade_on_signal(self, market: Market) -> Union[Order, None]:
         order = None
+        logging.debug('Checking trade on signal: "{}".'.format(self._last_signal))
         try:
-            if signal.is_buy():
+            if self._last_signal.is_buy():
                 self._cancel_open_order(market, DIRECTION_SELL)
                 if self._does_trade_worth_it(market):
                     order = market.buy_max_available(self._pair)
+                    self._last_signal = None
 
-            elif signal.is_sell():
+            elif self._last_signal.is_sell():
                 self._cancel_open_order(market, DIRECTION_BUY)
                 if self._does_trade_worth_it(market):
                     order = market.sell_max_available(self._pair)
+                    self._last_signal = None
             else:
-                raise ValueError('Unknown signal: "{}"'.format(signal))  # pragma: no cover
+                raise ValueError('Unknown signal: "{}"'.format(self._last_signal))  # pragma: no cover
 
         except NotEnoughBalanceToPerformOrderException as e:
             # Intentionally, this strategy does not need state of order,
@@ -179,7 +186,7 @@ class DoubleCrossoverStrategy(Strategy):
         for order in orders:
             try:
                 market.cancel_order(order.id_on_market)
-            except BittrexMarketRequestException as e:
+            except MarketOrderException as e:
                 logging.error('Order "{}" cancelling failed: Error: "{}"!'.format(order.order_id, e))
                 return
 
