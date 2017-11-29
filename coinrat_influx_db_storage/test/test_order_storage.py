@@ -4,7 +4,8 @@ import pytest, datetime
 from decimal import Decimal
 from influxdb import InfluxDBClient
 
-from coinrat.domain import Order, ORDER_TYPE_LIMIT, Pair, DIRECTION_BUY, ORDER_STATUS_OPEN, ORDER_STATUS_CLOSED
+from coinrat.domain import Order, ORDER_TYPE_LIMIT, Pair, DIRECTION_BUY, DIRECTION_SELL, \
+    ORDER_STATUS_OPEN, ORDER_STATUS_CLOSED
 from coinrat_influx_db_storage.order_storage import OrderInnoDbStorage, MEASUREMENT_ORDERS_NAME
 from coinrat_influx_db_storage.test.utils import get_all_from_influx_db
 
@@ -79,6 +80,18 @@ def test_find_by(influx_database: InfluxDBClient):
     orders = storage.find_by(market_name=DUMMY_MARKET, pair=Pair('FOO', 'BAR'))
     assert orders == []
 
+    orders = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR, direction=DIRECTION_BUY)
+    assert len(orders) == 1
+    assert orders[0].is_buy() is True
+    assert orders[0].is_sell() is False
+    assert str(orders[0].order_id) == '16fd2706-8baf-433b-82eb-8c7fada847da'
+
+    orders = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR, direction=DIRECTION_SELL)
+    assert len(orders) == 1
+    assert orders[0].is_buy() is False
+    assert orders[0].is_sell() is True
+    assert str(orders[0].order_id) == '16fd2706-8baf-433b-82eb-8c7fada847db'
+
 
 def test_find_last_order(influx_database: InfluxDBClient):
     storage = OrderInnoDbStorage(influx_database)
@@ -125,7 +138,7 @@ def create_dummy_data(influx_database: InfluxDBClient):
     storage.save_order(Order(
         UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
         DUMMY_MARKET,
-        DIRECTION_BUY,
+        DIRECTION_SELL,
         datetime.datetime(2017, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc),
         BTC_USD_PAIR,
         ORDER_TYPE_LIMIT,

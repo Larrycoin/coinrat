@@ -73,42 +73,44 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
     [
         'expected_buy',
         'expected_sell',
+        'canceled_orders_count',
         'mean_evolution',
         'previous_order_rate',
         'current_candle_average_price',
     ],
     [
-        (0, 0, [(8000, 7800), (8000, 7900)], None, 7950),  # Short rise, but is still beneath long average
-        (0, 0, [(8000, 7800), (8000, 7800)], None, 7750),  # Short lowers beneath long average
-        (0, 0, [(8000, 8200), (8000, 8100)], None, 8050),  # Short lowers, but still uppers long average
-        (0, 0, [(8000, 8100), (8000, 8200)], None, 8250),  # Short rise, uppers long
+        (0, 0, 0, [(8000, 7800), (8000, 7900)], None, 7950),  # Short rise, but is still beneath long average
+        (0, 0, 0, [(8000, 7800), (8000, 7800)], None, 7750),  # Short lowers beneath long average
+        (0, 0, 0, [(8000, 8200), (8000, 8100)], None, 8050),  # Short lowers, but still uppers long average
+        (0, 0, 0, [(8000, 8100), (8000, 8200)], None, 8250),  # Short rise, uppers long
 
-        (1, 0, [(8000, 7900), (8000, 8100)], None, 8150),  # Short rise, crossing long average
-        (0, 1, [(8000, 8100), (8000, 7900)], None, 7850),  # Short lowers, crossing long average
+        (1, 0, 1, [(8000, 7900), (8000, 8100)], None, 8150),  # Short rise, crossing long average
+        (0, 1, 1, [(8000, 8100), (8000, 7900)], None, 7850),  # Short lowers, crossing long average
 
-        (0, 0, [(8000, 7999), (8000, 8001)], 7998, 8002),  # Short rise, crossing long average, but NOT WORTH IT
-        (0, 0, [(8000, 8001), (8000, 7999)], 8002, 7998),  # Short lowers, crossing long average, but NOT WORTH IT
+        (0, 0, 1, [(8000, 7999), (8000, 8001)], 7998, 8002),  # Short rise, crossing long average, but NOT WORTH IT
+        (0, 0, 1, [(8000, 8001), (8000, 7999)], 8002, 7998),  # Short lowers, crossing long average, but NOT WORTH IT
 
-        (1, 0, [(8000, 7999), (8000, 8001)], 7998, 8050),  # Short rise, crossing long average, and WORTH IT
-        (0, 1, [(8000, 8001), (8000, 7999)], 8002, 7950),  # Short lowers, crossing long average, and  WORTH IT
+        (1, 0, 1, [(8000, 7999), (8000, 8001)], 7998, 8050),  # Short rise, crossing long average, and WORTH IT
+        (0, 1, 1, [(8000, 8001), (8000, 7999)], 8002, 7950),  # Short lowers, crossing long average, and  WORTH IT
 
-        (0, 0, [(8000, 8000), (8000, 8000)], None, 8000),  # Limit situations
-        (0, 0, [(8000, 8000), (8000, 8001)], None, 8001),  #
-        (0, 0, [(8000, 8001), (8000, 8000)], None, 8000),  #
+        (0, 0, 0, [(8000, 8000), (8000, 8000)], None, 8000),  # Limit situations
+        (0, 0, 0, [(8000, 8000), (8000, 8001)], None, 8001),  #
+        (0, 0, 0, [(8000, 8001), (8000, 8000)], None, 8000),  #
 
-        (0, 0, [(8000, 7999), (8000, 8000), (8000, 7999)], None, 7999),  # just touching the crossing
-        (0, 0, [(8000, 8001), (8000, 8000), (8000, 8001)], None, 8001),  # just touching the crossing
+        (0, 0, 0, [(8000, 7999), (8000, 8000), (8000, 7999)], None, 7999),  # just touching the crossing
+        (0, 0, 0, [(8000, 8001), (8000, 8000), (8000, 8001)], None, 8001),  # just touching the crossing
 
-        (1, 0, [(8000, 7999), (8000, 8000), (8000, 8001)], None, 8001),  # very smooth crossing in more steps
-        (0, 1, [(8000, 8001), (8000, 8000), (8000, 7999)], None, 7999),  # very smooth crossing in more steps
+        (1, 0, 1, [(8000, 7999), (8000, 8000), (8000, 8001)], None, 8001),  # very smooth crossing in more steps
+        (0, 1, 1, [(8000, 8001), (8000, 8000), (8000, 7999)], None, 7999),  # very smooth crossing in more steps
     ]
 )
 def test_sending_signal(
     expected_buy: int,
     expected_sell: int,
+    canceled_orders_count: int,
     mean_evolution: List[Tuple[int, int]],
     previous_order_rate: Union[int, None],
-    current_candle_average_price: int
+    current_candle_average_price: int,
 ):
     candle_storage = flexmock()
     expectation = candle_storage.should_receive('mean')
@@ -119,9 +121,9 @@ def test_sending_signal(
     )
 
     market = flexmock(transaction_fee=Decimal(0.0025), name=DUMMY_MARKET_NAME)
-    market.should_receive('buy_max_available').and_return(DUMMY_CLOSED_ORDER)
-
-    market.should_receive('sell_max_available').and_return(DUMMY_CLOSED_ORDER)
+    market.should_receive('buy_max_available').and_return(DUMMY_CLOSED_ORDER).times(expected_buy)
+    market.should_receive('sell_max_available').and_return(DUMMY_CLOSED_ORDER).times(expected_sell)
+    market.should_receive('cancel_order').with_args(DUMMY_OPEN_ORDER.id_on_market).times(canceled_orders_count)
 
     order_storage = flexmock()
     order_storage.should_receive('find_by').with_args(
@@ -129,7 +131,19 @@ def test_sending_signal(
         pair=BTC_USD_PAIR,
         status=ORDER_STATUS_OPEN
     ).and_return([])
-    order_storage.should_receive('save_order')#.times(expected_buy + expected_sell)
+    order_storage.should_receive('find_by').with_args(
+        market_name=DUMMY_MARKET_NAME,
+        pair=BTC_USD_PAIR,
+        status=ORDER_STATUS_OPEN,
+        direction=DIRECTION_BUY
+    ).and_return([DUMMY_OPEN_ORDER])
+    order_storage.should_receive('find_by').with_args(
+        market_name=DUMMY_MARKET_NAME,
+        pair=BTC_USD_PAIR,
+        status=ORDER_STATUS_OPEN,
+        direction=DIRECTION_SELL
+    ).and_return([DUMMY_OPEN_ORDER])
+    order_storage.should_receive('save_order').times(expected_buy + expected_sell + canceled_orders_count)
 
     previous_order = None
     if previous_order_rate is not None:
