@@ -9,12 +9,7 @@ from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, TICKINTERVAL_ONEMIN
 from decimal import Decimal
 from coinrat.domain import Market, Balance, Pair, MinuteCandle, Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, \
     PairMarketInfo, MarketPairDoesNotExistsException, NotEnoughBalanceToPerformOrderException, OrderMarketInfo, \
-    DIRECTION_BUY, DIRECTION_SELL
-
-
-class BittrexMarketRequestException(Exception):
-    pass
-
+    DIRECTION_BUY, DIRECTION_SELL, MarketOrderException
 
 MARKET_NAME = 'bittrex'
 
@@ -188,7 +183,7 @@ class BittrexMarket(Market):
     @staticmethod
     def _validate_result(result: Dict):
         if not result['success']:
-            raise BittrexMarketRequestException(result['message'])
+            raise MarketOrderException(result['message'])
 
     @staticmethod
     def _fix_currency(currency):

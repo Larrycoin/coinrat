@@ -10,7 +10,6 @@ from coinrat.domain import Strategy, CandleStorage, Order, OrderStorage, Pair, C
     StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from coinrat_double_crossover_strategy.utils import absolute_possible_percentage_gain
-from market import BittrexMarketRequestException
 
 STRATEGY_NAME = 'double_crossover'
 

@@ -9,8 +9,8 @@ from uuid import UUID
 from flexmock import flexmock
 
 from coinrat.domain import Pair, Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, DIRECTION_BUY, DIRECTION_SELL, \
-    NotEnoughBalanceToPerformOrderException
-from coinrat_bittrex.market import BittrexMarket, BittrexMarketRequestException
+    NotEnoughBalanceToPerformOrderException, MarketOrderException
+from coinrat_bittrex.market import BittrexMarket
 from coinrat_bittrex.test.fixtures import MARKET_USDT_BTC_DATA, DUMMY_ORDER_ID_ON_MARKET, OPEN_ORDER, CLOSED_ORDER
 
 BTC_USD_PAIR = Pair('USD', 'BTC')
@@ -186,7 +186,7 @@ def test_get_oder_status(
 def test_result_validation():
     BittrexMarket._validate_result({'success': True})
 
-    with pytest.raises(BittrexMarketRequestException):
+    with pytest.raises(MarketOrderException):
         BittrexMarket._validate_result({'success': False, 'message': 'You shall not pass!'})
 
 

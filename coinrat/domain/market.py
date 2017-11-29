@@ -5,6 +5,10 @@ from .order import Order, OrderMarketInfo
 from .pair import Pair
 
 
+class MarketOrderException(Exception):
+    pass
+
+
 class PairMarketInfo:
     def __init__(self, pair: Pair, minimal_order_size: Union[Decimal, None]) -> None:
         self._pair = pair
