@@ -6,7 +6,8 @@ from decimal import Decimal
 import math
 
 from coinrat.domain import Strategy, CandleStorage, Order, OrderStorage, Pair, CANDLE_STORAGE_FIELD_CLOSE, Market, \
-    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException, DIRECTION_SELL, DIRECTION_BUY
+    DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, \
+    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from coinrat_double_crossover_strategy.utils import absolute_possible_percentage_gain
 
@@ -58,7 +59,7 @@ class DoubleCrossoverStrategy(Strategy):
             time.sleep(self._delay)
 
     def _check_and_process_open_orders(self, market: Market):
-        orders = self._order_storage.find_by(market_name=market.name, pair=self._pair, is_open=True)
+        orders = self._order_storage.find_by(market_name=market.name, pair=self._pair, status=ORDER_STATUS_OPEN)
         for order in orders:
             status = market.get_order_status(order)
             if status.is_open is False:
@@ -171,7 +172,7 @@ class DoubleCrossoverStrategy(Strategy):
         orders = self._order_storage.find_by(
             market_name=market.name,
             pair=self._pair,
-            is_open=True,
+            status=ORDER_STATUS_OPEN,
             direction=direction
         )
         for order in orders:

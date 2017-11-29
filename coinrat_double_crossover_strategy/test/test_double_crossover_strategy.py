@@ -7,15 +7,15 @@ import pytest
 from decimal import Decimal
 from flexmock import flexmock, Mock
 
-from coinrat.domain import Pair, Market, ORDER_TYPE_LIMIT, Order, OrderMarketInfo, DIRECTION_BUY, \
-    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException, ORDER_STATUS_CLOSED
+from coinrat.domain import Pair, Market, ORDER_TYPE_LIMIT, Order, OrderMarketInfo, DIRECTION_BUY, DIRECTION_SELL, \
+    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException, ORDER_STATUS_CLOSED, ORDER_STATUS_OPEN
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 
-DUMMY_MARKET = 'dummy_market'
+DUMMY_MARKET_NAME = 'dummy_market'
 BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_CLOSED_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
-    DUMMY_MARKET,
+    DUMMY_MARKET_NAME,
     DIRECTION_BUY,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
@@ -28,7 +28,7 @@ DUMMY_CLOSED_ORDER = Order(
 )
 DUMMY_OPEN_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
-    DUMMY_MARKET,
+    DUMMY_MARKET_NAME,
     DIRECTION_BUY,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
@@ -51,7 +51,7 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
     candle_storage = flexmock().should_receive('mean').and_return(0).mock()
 
     if len(markets) == 1:  # Todo: Flexmock is not working properly with @pytest.mark.parametrize (MethodSignatureError)
-        markets = [markets[0].should_receive('name').and_return('dummy_market_name').mock()]
+        markets = [markets[0].should_receive('name').and_return(DUMMY_MARKET_NAME).mock()]
 
     strategy = DoubleCrossoverStrategy(
         BTC_USD_PAIR,
@@ -118,14 +118,18 @@ def test_sending_signal(
         flexmock(average_price=Decimal(current_candle_average_price))
     )
 
-    market = flexmock(transaction_fee=Decimal(0.0025))
-    market.should_receive('name').and_return('dummy_market_name')
-    market.should_receive('buy_max_available').times(expected_buy).and_return(DUMMY_CLOSED_ORDER)
-    market.should_receive('sell_max_available').times(expected_sell).and_return(DUMMY_CLOSED_ORDER)
+    market = flexmock(transaction_fee=Decimal(0.0025), name=DUMMY_MARKET_NAME)
+    market.should_receive('buy_max_available').and_return(DUMMY_CLOSED_ORDER)
+
+    market.should_receive('sell_max_available').and_return(DUMMY_CLOSED_ORDER)
 
     order_storage = flexmock()
-    order_storage.should_receive('find_by').and_return([])
-    order_storage.should_receive('save_order').times(expected_buy + expected_sell)
+    order_storage.should_receive('find_by').with_args(
+        market_name=DUMMY_MARKET_NAME,
+        pair=BTC_USD_PAIR,
+        status=ORDER_STATUS_OPEN
+    ).and_return([])
+    order_storage.should_receive('save_order')#.times(expected_buy + expected_sell)
 
     previous_order = None
     if previous_order_rate is not None:
@@ -149,7 +153,7 @@ def test_not_enough_balance_logs_warning():
     candle_storage.should_receive('mean').and_return(8000).and_return(7900).and_return(8000).and_return(8100)
 
     market = flexmock()
-    market.should_receive('name').and_return('dummy_market_name')
+    market.should_receive('name').and_return(DUMMY_MARKET_NAME)
     market.should_receive('buy_max_available').and_raise(NotEnoughBalanceToPerformOrderException)
 
     strategy = DoubleCrossoverStrategy(
@@ -195,7 +199,7 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
     order_storage.should_receive('save_order').times(expected_save_order_called)
 
     market = flexmock()
-    market.should_receive('name').and_return('dummy_market_name')
+    market.should_receive('name').and_return(DUMMY_MARKET_NAME)
     market.should_receive('get_order_status').and_return(markets_order_info).once()
 
     strategy = DoubleCrossoverStrategy(
