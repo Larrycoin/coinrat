@@ -65,11 +65,11 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
             time.sleep(30)
 
         if response.status_code != 200:
-            raise CryptocompareRequestException(response.text())
+            raise CryptocompareRequestException(response.text)
 
         json_data = response.json()
         if json_data['Response'] != 'Success':
-            raise CryptocompareRequestException(response.text())
+            raise CryptocompareRequestException(response.text)
 
         return json_data
 
