@@ -210,6 +210,7 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
 
     order_storage = flexmock()
     order_storage.should_receive('find_by').and_return([DUMMY_OPEN_ORDER])
+    order_storage.should_receive('delete')
     order_storage.should_receive('save_order').times(expected_save_order_called)
 
     market = flexmock()

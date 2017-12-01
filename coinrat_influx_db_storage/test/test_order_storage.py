@@ -93,6 +93,21 @@ def test_find_by(influx_database: InfluxDBClient):
     assert str(orders[0].order_id) == '16fd2706-8baf-433b-82eb-8c7fada847db'
 
 
+def test_delete_order(influx_database: InfluxDBClient):
+    storage = OrderInnoDbStorage(influx_database)
+    create_dummy_data(influx_database)
+
+    orders = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR)
+    assert len(orders) == 2
+
+    order_id_to_delete = '16fd2706-8baf-433b-82eb-8c7fada847da'
+    storage.delete(order_id_to_delete)
+
+    orders = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR)
+    assert len(orders) == 1
+    assert orders[0].order_id != order_id_to_delete
+
+
 def test_find_last_order(influx_database: InfluxDBClient):
     storage = OrderInnoDbStorage(influx_database)
 

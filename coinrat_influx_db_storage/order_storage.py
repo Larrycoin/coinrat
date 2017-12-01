@@ -67,6 +67,12 @@ class OrderInnoDbStorage(OrderStorage):
 
         return self._create_order_from_serialized(result[0])
 
+    def delete(self, order_id) -> None:
+        sql = '''
+            DELETE FROM "{}" WHERE "order_id" = '{}'
+        '''.format(MEASUREMENT_ORDERS_NAME, order_id)
+        self._client.query(sql)
+
     @staticmethod
     def _get_serialized_order(order: Order) -> Dict:
         return {
@@ -74,10 +80,10 @@ class OrderInnoDbStorage(OrderStorage):
             'tags': {
                 ORDER_STORAGE_FIELD_MARKET: order.market_name,
                 ORDER_STORAGE_FIELD_PAIR: create_pair_identifier(order.pair),
+                ORDER_STORAGE_FIELD_ORDER_ID: str(order.order_id),
             },
             'time': order.created_at.isoformat(),
             'fields': {
-                ORDER_STORAGE_FIELD_ORDER_ID: str(order.order_id),
                 ORDER_STORAGE_FIELD_DIRECTION: order._direction,
                 ORDER_STORAGE_FIELD_ID_ON_MARKET: order.id_on_market,
                 ORDER_STORAGE_FIELD_TYPE: order.type,

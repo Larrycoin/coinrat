@@ -65,6 +65,7 @@ class DoubleCrossoverStrategy(Strategy):
             status = market.get_order_status(order)
             if status.is_open is False:
                 order.close(status.closed_at)
+                self._order_storage.delete(order.order_id)  # todo: update
                 self._order_storage.save_order(order)
                 logging.info('Order "{}" has been successfully CLOSED.'.format(order.order_id))
 

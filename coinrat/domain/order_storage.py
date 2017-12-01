@@ -12,3 +12,6 @@ class OrderStorage:
 
     def find_last_order(self, market_name: str, pair: Pair) -> Union[Order, None]:
         raise NotImplementedError()
+
+    def delete(self, order_id) -> None:
+        raise NotImplementedError()
