@@ -29,13 +29,17 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
         storage: CandleStorage,
         session: Session,
         delay: int = 30,
-        number_of_runs: Union[int, None] = None
+        number_of_runs: Union[int, None] = None,
+        time_to_sleep_after_error: int = 10,
+        max_number_of_retries: Union[int, None] = None
     ) -> None:
-        self._delay = delay
-        self._number_of_runs = number_of_runs
         self._market_name = market_name
         self._storage = storage
         self._session = session
+        self._delay = delay
+        self._number_of_runs = number_of_runs
+        self._time_to_sleep_after_error = time_to_sleep_after_error
+        self._max_number_of_retries = max_number_of_retries
 
     def synchronize(self, pair: Pair) -> None:
         while self._number_of_runs is None or self._number_of_runs > 0:
@@ -56,22 +60,23 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
         while True:
             try:
                 response = self._session.get(url)
-                break
+                if response.status_code != 200:
+                    raise CryptocompareRequestException(response.text)
+
+                json_data = response.json()
+                if json_data['Response'] != 'Success':
+                    raise CryptocompareRequestException(response.text)
+
+                return json_data
             except TooManyRedirects as e:
                 raise e
-            except RequestException as e:
-                logging.error('Error in connection to "{url}", error: {}', e)
+            except (RequestException, CryptocompareRequestException) as e:
+                if not self._should_suppress_connection_exception_and_retry():
+                    raise e
 
-            time.sleep(30)
-
-        if response.status_code != 200:
-            raise CryptocompareRequestException(response.text)
-
-        json_data = response.json()
-        if json_data['Response'] != 'Success':
-            raise CryptocompareRequestException(response.text)
-
-        return json_data
+                logging.error('Error in connection to "{}", error: "{}".'.format(url, str(e)))
+                time.sleep(self._time_to_sleep_after_error)
+                self._count_connection_error_retry()
 
     def _create_candle_from_raw(self, pair: Pair, candles_data: Dict) -> MinuteCandle:
         return MinuteCandle(
@@ -83,3 +88,10 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
             Decimal(candles_data['low']),
             Decimal(candles_data['close'])
         )
+
+    def _count_connection_error_retry(self):
+        if self._max_number_of_retries is not None:
+            self._max_number_of_retries -= 1
+
+    def _should_suppress_connection_exception_and_retry(self) -> bool:
+        return self._max_number_of_retries is None or self._max_number_of_retries > 0

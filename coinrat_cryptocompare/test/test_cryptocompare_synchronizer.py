@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 from flexmock import flexmock
 
@@ -42,7 +44,7 @@ def mock_session(response):
 def test_synchronize_invalid_response_code():
     response = flexmock(status_code=400)
     response.should_receive('text').and_return('')
-    synchronizer = CryptocompareSynchronizer('bittrex', mock_storage(0), mock_session(response), 0, 1)
+    synchronizer = CryptocompareSynchronizer('bittrex', mock_storage(0), mock_session(response), 0, 1, 0, 0)
 
     with pytest.raises(CryptocompareRequestException):
         synchronizer.synchronize(BTC_USD_PAIR)
@@ -52,7 +54,7 @@ def test_synchronize_response_field_indicates_error():
     response = flexmock(status_code=200)
     response.should_receive('json').and_return({'Response': 'Error', 'Data': []})
     response.should_receive('text').and_return('')
-    synchronizer = CryptocompareSynchronizer('bittrex', mock_storage(0), mock_session(response), 0, 1)
+    synchronizer = CryptocompareSynchronizer('bittrex', mock_storage(0), mock_session(response), 0, 1, 0, 0)
 
     with pytest.raises(CryptocompareRequestException):
         synchronizer.synchronize(BTC_USD_PAIR)
