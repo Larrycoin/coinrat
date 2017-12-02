@@ -46,8 +46,9 @@ def test_candle_ticks_are_stored(
     start: datetime.datetime,
     end: datetime.datetime
 ):
+    expectation = flexmock(uuid).should_receive('uuid4')
     for uuid_item in uuid_mock_list:
-        flexmock(uuid).should_receive('uuid4').and_return(uuid_item)
+        expectation.and_return(uuid_item)
 
     dataset_path = os.path.dirname(__file__) + '/' + dataset
 
@@ -88,10 +89,10 @@ def _data_to_order(order: Order) -> Dict:
         "time": order.created_at.isoformat(),
         "direction": order._direction,
         "market": order.market_name,
-        "order_id": order.order_id,
+        "order_id": str(order.order_id),
         "pair": str(order.pair),
-        "quantity": order.quantity,
-        "rate": order.rate,
+        "quantity": str(order.quantity),
+        "rate": str(order.rate),
         "status": order._status,
         "type": order.type
     }

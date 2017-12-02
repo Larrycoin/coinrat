@@ -2,13 +2,17 @@ import uuid
 from decimal import Decimal
 
 from coinrat.domain import Market, Balance, Pair, Order, PairMarketInfo, \
-    ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY, DateTimeFactory
+    ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY, DateTimeFactory, OrderMarketInfo
 
 MARKET_NAME = 'dummy_print'
 DUMMY_STATIC_BALANCE = Decimal(0.5)
+DUMMY_QUANTITY = Decimal(1)
 
 
 class PrintDummyMarket(Market):
+    def get_order_status(self, order: Order) -> OrderMarketInfo:
+        return OrderMarketInfo(order, True, None, DUMMY_QUANTITY)
+
     def __init__(self, datetime_factory: DateTimeFactory, name: str = MARKET_NAME) -> None:
         self._name = name
         self._datetime_factory = datetime_factory
@@ -55,6 +59,6 @@ class PrintDummyMarket(Market):
             self._datetime_factory.now(),
             pair,
             ORDER_TYPE_LIMIT,
-            Decimal(1),
+            DUMMY_QUANTITY,
             Decimal(8000)
         )
