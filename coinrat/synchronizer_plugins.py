@@ -2,7 +2,8 @@ import pluggy
 from typing import List, Set
 
 from .plugins import PluginSpecification, plugins_loader
-from .domain import MarketStateSynchronizer, CandleStorage
+from .domain import MarketStateSynchronizer
+from .domain.candle import CandleStorage
 
 get_name_spec = pluggy.HookspecMarker('coinrat_plugins')
 

@@ -1,13 +1,11 @@
 import time, logging
 from datetime import datetime, timezone
 from typing import Dict, List, Union
-
 from decimal import Decimal
 
-import requests
 from requests import Session, RequestException, TooManyRedirects
-
-from coinrat.domain import MarketStateSynchronizer, CandleStorage, Pair, MinuteCandle
+from coinrat.domain.candle import MinuteCandle, CandleStorage
+from coinrat.domain import MarketStateSynchronizer, Pair
 
 MINUTE_CANDLE_URL = 'https://min-api.cryptocompare.com/data/histominute?fsym={}&tsym={}&limit=1&aggregate=1&e={}'
 MARKET_MAP = {

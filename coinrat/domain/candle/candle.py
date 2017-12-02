@@ -1,8 +1,6 @@
 import datetime
-
 from decimal import Decimal
-
-from .pair import Pair
+from coinrat.domain.pair import Pair
 
 
 class MinuteCandle:

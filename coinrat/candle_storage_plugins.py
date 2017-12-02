@@ -2,7 +2,7 @@ import pluggy
 from typing import List, Set
 
 from .plugins import PluginSpecification, plugins_loader
-from .domain import CandleStorage
+from .domain.candle import CandleStorage
 
 get_available_candle_storages_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_candle_storage_spec = pluggy.HookspecMarker('coinrat_plugins')

@@ -1,8 +1,11 @@
 import logging
-from logging.handlers import RotatingFileHandler
 
+import datetime
+import dateutil.parser
 import click
 import sys
+
+from logging.handlers import RotatingFileHandler
 from typing import Tuple
 from os.path import join, dirname
 
@@ -55,6 +58,20 @@ def synchronizers() -> None:
     click.echo('Available synchronizers:')
     for synchronizer_name in synchronizer_plugins.get_available_synchronizers():
         click.echo('  - {}'.format(synchronizer_name))
+
+
+@cli.command()
+@click.argument('market_name', nargs=1)
+@click.argument('pair', nargs=2)
+@click.argument('interval', nargs=2)  # todo: document that in utc
+@click.pass_context
+def export_candles(ctx: Context, market_names, pair: Tuple[str, str], interval: Tuple[str, str]) -> None:
+    storage = ctx.obj['influxdb_candle_storage']
+    pair = Pair(pair[0], pair[1])
+    left = dateutil.parser.parse(interval[0]).replace(tzinfo=datetime.timezone.utc)
+    right = dateutil.parser.parse(interval[1]).replace(tzinfo=datetime.timezone.utc)
+
+
 
 
 @cli.command()

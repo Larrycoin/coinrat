@@ -4,7 +4,8 @@ from decimal import Decimal
 from flexmock import flexmock
 
 from coinrat_bittrex.synchronizer import BittrexSynchronizer
-from coinrat.domain import Pair, MinuteCandle
+from coinrat.domain import Pair
+from coinrat.domain.candle import MinuteCandle
 
 BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_CANDLE = MinuteCandle(

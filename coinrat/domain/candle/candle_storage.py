@@ -1,11 +1,11 @@
 import datetime
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from decimal import Decimal
 
-from .coinrat import ForEndUserException
+from coinrat.domain.coinrat import ForEndUserException
+from coinrat.domain.pair import Pair
 from .candle import MinuteCandle
-from .pair import Pair
 
 CANDLE_STORAGE_FIELD_OPEN = 'open'
 CANDLE_STORAGE_FIELD_CLOSE = 'close'
@@ -22,6 +22,15 @@ class CandleStorage:
         raise NotImplementedError()
 
     def write_candles(self, candles: List[MinuteCandle]) -> None:
+        raise NotImplementedError()
+
+    def find_by(
+        self,
+        market_name: str,
+        pair: Pair,
+        since: Union[datetime.datetime, None] = None,
+        till: Union[datetime.datetime, None] = None
+    ) -> List[MinuteCandle]:
         raise NotImplementedError()
 
     def mean(

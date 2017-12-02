@@ -5,7 +5,8 @@ from decimal import Decimal
 
 import math
 
-from coinrat.domain import Strategy, CandleStorage, Order, OrderStorage, Pair, CANDLE_STORAGE_FIELD_CLOSE, Market, \
+from coinrat.domain.candle import CandleStorage, CANDLE_STORAGE_FIELD_CLOSE
+from coinrat.domain import Strategy, Order, OrderStorage, Pair, Market, \
     DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, MarketOrderException, \
     StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL

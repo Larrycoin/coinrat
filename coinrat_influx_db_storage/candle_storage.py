@@ -6,8 +6,9 @@ from decimal import Decimal
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
-from coinrat.domain import MinuteCandle, CandleStorage, Pair, CANDLE_STORAGE_FIELD_HIGH, \
-    CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
+from coinrat.domain import Pair
+from coinrat.domain.candle import MinuteCandle, CandleStorage, \
+    CANDLE_STORAGE_FIELD_HIGH, CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
     NoCandlesForMarketInStorageException
 from .utils import create_pair_identifier
 
@@ -30,6 +31,34 @@ class CandleInnoDbStorage(CandleStorage):
             return
         self._client.write_points([self._transform_into_raw_data(candle) for candle in candles])
         logging.debug('Into market "{}", {} candles inserted'.format(candles[0].market_name, len(candles)))
+
+    def find_by(
+        self,
+        market_name: str,
+        pair: Pair,
+        since: Union[datetime.datetime, None] = None,
+        till: Union[datetime.datetime, None] = None
+    ) -> List[MinuteCandle]:
+        assert since is None or till is None or since < till  # todo: introduce interval value object
+
+        parameters = {
+            CANDLE_STORAGE_FIELD_MARKET: "= '{}'".format(market_name),
+            CANDLE_STORAGE_FIELD_PAIR: "= '{}'".format(create_pair_identifier(pair)),
+        }
+        if since is not None:
+            parameters['time'] = "> '{}'".format(since.isoformat())
+        if till is not None:
+            parameters['time'] = "< '{}'".format(since.isoformat())
+
+        sql = 'SELECT * FROM "{}" WHERE '.format(MEASUREMENT_CANDLES_NAME)
+        where = []
+        for key, value in parameters.items():
+            where.append('"{}" {}'.format(key, value))
+        sql += ' AND '.join(where)
+        result: ResultSet = self._client.query(sql)
+        data = list(result.get_points())
+
+        return [self._create_candle_from_serialized(row) for row in data]
 
     def get_current_candle(self, market_name: str, pair: Pair) -> MinuteCandle:
         sql = '''

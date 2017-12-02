@@ -5,7 +5,8 @@ from flexmock import flexmock
 from decimal import Decimal
 from influxdb import InfluxDBClient
 
-from coinrat.domain import MinuteCandle, Pair, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
+from coinrat.domain import Pair
+from coinrat.domain.candle import MinuteCandle, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
 from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage, MEASUREMENT_CANDLES_NAME
 from coinrat_influx_db_storage.test.utils import get_all_from_influx_db
 
