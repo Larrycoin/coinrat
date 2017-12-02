@@ -25,8 +25,7 @@ def test_candle_export_import():
     storage.should_receive('find_by').and_return([candle]).once()
     storage.should_receive('write_candles').once()
     exporter = CandleExporter(storage)
-
-    file_name = os.path.realpath(__file__) + '_orders.json'
+    file_name = os.path.dirname(__file__) + '_orders.json'
 
     exporter.export_to_file(file_name, 'dummy_market', pair)
 

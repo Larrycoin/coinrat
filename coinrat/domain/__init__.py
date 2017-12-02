@@ -8,6 +8,7 @@ from .pair import Pair, MarketPairDoesNotExistsException
 from .order_storage import OrderStorage
 from .strategy import Strategy, StrategyConfigurationException
 from .synchronizer import MarketStateSynchronizer
+from .datetime_factory import DateTimeFactory, CurrentUtcDateTimeFactory, FrozenDateTimeFactory
 
 __all__ = [
     'Balance',
@@ -25,5 +26,7 @@ __all__ = [
 
     'Strategy', 'StrategyException', 'StrategyConfigurationException',
 
-    'MarketStateSynchronizer'
+    'MarketStateSynchronizer',
+
+    'DateTimeFactory', 'CurrentUtcDateTimeFactory', 'FrozenDateTimeFactory'
 ]

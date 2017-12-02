@@ -8,7 +8,8 @@ from decimal import Decimal
 from flexmock import flexmock, Mock
 
 from coinrat.domain import Pair, Market, ORDER_TYPE_LIMIT, Order, OrderMarketInfo, DIRECTION_BUY, DIRECTION_SELL, \
-    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException, ORDER_STATUS_CLOSED, ORDER_STATUS_OPEN
+    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException, ORDER_STATUS_CLOSED, ORDER_STATUS_OPEN, \
+    CurrentUtcDateTimeFactory
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 
 DUMMY_MARKET_NAME = 'dummy_market'
@@ -57,6 +58,7 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
         BTC_USD_PAIR,
         candle_storage,
         mock_order_storage(),
+        CurrentUtcDateTimeFactory(),
         datetime.timedelta(hours=1),
         datetime.timedelta(minutes=15),
         0,
@@ -154,6 +156,7 @@ def test_sending_signal(
         BTC_USD_PAIR,
         candle_storage,
         order_storage,
+        CurrentUtcDateTimeFactory(),
         datetime.timedelta(hours=1),
         datetime.timedelta(minutes=15),
         0,
@@ -174,6 +177,7 @@ def test_not_enough_balance_logs_warning():
         BTC_USD_PAIR,
         candle_storage,
         mock_order_storage(),
+        CurrentUtcDateTimeFactory(),
         datetime.timedelta(hours=1),
         datetime.timedelta(minutes=15),
         0,
@@ -221,6 +225,7 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
         BTC_USD_PAIR,
         candle_storage,
         order_storage,
+        CurrentUtcDateTimeFactory(),
         datetime.timedelta(hours=1),
         datetime.timedelta(minutes=15),
         0,

@@ -18,6 +18,7 @@ from .candle_storage_plugins import CandleStoragePlugins
 from .synchronizer_plugins import SynchronizerPlugins
 from .strategy_plugins import StrategyPlugins
 from .domain import Pair, ForEndUserException
+from .domain.candle import CandleExporter
 
 dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
@@ -64,14 +65,21 @@ def synchronizers() -> None:
 @click.argument('market_name', nargs=1)
 @click.argument('pair', nargs=2)
 @click.argument('interval', nargs=2)  # todo: document that in utc
+@click.argument('output_file', nargs=1)
 @click.pass_context
-def export_candles(ctx: Context, market_names, pair: Tuple[str, str], interval: Tuple[str, str]) -> None:
+def export_candles(
+    ctx: Context,
+    market_name,
+    pair: Tuple[str, str],
+    interval: Tuple[str, str],
+    output_file: str
+) -> None:
     storage = ctx.obj['influxdb_candle_storage']
     pair = Pair(pair[0], pair[1])
-    left = dateutil.parser.parse(interval[0]).replace(tzinfo=datetime.timezone.utc)
-    right = dateutil.parser.parse(interval[1]).replace(tzinfo=datetime.timezone.utc)
-
-
+    since = dateutil.parser.parse(interval[0]).replace(tzinfo=datetime.timezone.utc)
+    till = dateutil.parser.parse(interval[1]).replace(tzinfo=datetime.timezone.utc)
+    exporter = CandleExporter(storage)
+    exporter.export_to_file(output_file, market_name, pair, since, till)
 
 
 @cli.command()

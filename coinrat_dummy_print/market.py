@@ -1,20 +1,24 @@
 import uuid
 from decimal import Decimal
 
-import datetime
-
-from coinrat.domain import Market, Balance, Pair, Order, PairMarketInfo, ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY
+from coinrat.domain import Market, Balance, Pair, Order, PairMarketInfo, \
+    ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY, DateTimeFactory
 
 MARKET_NAME = 'dummy_print'
 DUMMY_STATIC_BALANCE = Decimal(0.5)
 
 
 class PrintDummyMarket(Market):
+    def __init__(self, datetime_factory: DateTimeFactory, name: str = MARKET_NAME) -> None:
+        self._name = name
+        self._datetime_factory = datetime_factory
+
     def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:
         return PairMarketInfo(pair, Decimal(0.004))
 
+    @property
     def name(self) -> str:
-        return MARKET_NAME
+        return self._name
 
     @property
     def transaction_fee(self) -> Decimal:
@@ -43,13 +47,12 @@ class PrintDummyMarket(Market):
         print('SELLING max available for: {}'.format(pair))
         return self._create_fake_order(pair, DIRECTION_SELL)
 
-    @staticmethod
-    def _create_fake_order(pair: Pair, direction: str) -> Order:
+    def _create_fake_order(self, pair: Pair, direction: str) -> Order:
         return Order(
             uuid.uuid4(),
-            MARKET_NAME,
+            self._name,
             direction,
-            datetime.datetime.now().astimezone(datetime.timezone.utc),
+            self._datetime_factory.now(),
             pair,
             ORDER_TYPE_LIMIT,
             Decimal(1),

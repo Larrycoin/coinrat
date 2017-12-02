@@ -1,4 +1,6 @@
 import pluggy
+from flexmock import flexmock
+
 from coinrat.market_plugins import MarketPluginSpecification
 
 from .market import MARKET_NAME, PrintDummyMarket
@@ -12,7 +14,7 @@ PLUGIN_NAME = 'coinrat_dummy_print'
 get_available_synchronizers_spec = pluggy.HookimplMarker('synchronizer_plugins')
 get_synchronizer_impl = pluggy.HookimplMarker('synchronizer_plugins')
 
-print_dummy_market = PrintDummyMarket()
+print_dummy_market = PrintDummyMarket(flexmock())
 
 
 class MarketPlugin(MarketPluginSpecification):

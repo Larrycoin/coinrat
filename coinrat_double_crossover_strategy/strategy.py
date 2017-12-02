@@ -8,7 +8,8 @@ import math
 from coinrat.domain.candle import CandleStorage, CANDLE_STORAGE_FIELD_CLOSE
 from coinrat.domain import Strategy, Order, OrderStorage, Pair, Market, \
     DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, MarketOrderException, \
-    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException
+    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException, \
+    DateTimeFactory
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from coinrat_double_crossover_strategy.utils import absolute_possible_percentage_gain
 
@@ -25,6 +26,7 @@ class DoubleCrossoverStrategy(Strategy):
         pair: Pair,
         candle_storage: CandleStorage,
         order_storage: OrderStorage,
+        datetime_factory: DateTimeFactory,
         long_average_interval: datetime.timedelta,
         short_average_interval: datetime.timedelta,
         delay: int = 30,
@@ -35,6 +37,7 @@ class DoubleCrossoverStrategy(Strategy):
         self._pair = pair
         self._candle_storage = candle_storage
         self._order_storage = order_storage
+        self._datetime_factory = datetime_factory
         self._long_average_interval = long_average_interval
         self._short_average_interval = short_average_interval
         self._delay = delay
@@ -50,15 +53,23 @@ class DoubleCrossoverStrategy(Strategy):
 
         market = markets[0]
 
-        while self._number_of_runs is None or self._number_of_runs > 0:
-            self._check_and_process_open_orders(market)
-            self._check_for_signal_and_trade(market)
+        while self._should_run():
+            self.tick(market)
 
-            if self._number_of_runs is not None:  # pragma: no cover
-                self._number_of_runs -= 1
+    def _should_run(self) -> bool:
+        return self._number_of_runs is None or self._number_of_runs > 0
 
-            self._strategy_ticker += 1
-            time.sleep(self._delay)
+    def tick(self, market: Market) -> None:
+        self._check_and_process_open_orders(market)
+        self._check_for_signal_and_trade(market)
+
+        self._increment_tick_counter()
+        time.sleep(self._delay)
+
+    def _increment_tick_counter(self):
+        if self._number_of_runs is not None:  # pragma: no cover
+            self._number_of_runs -= 1
+        self._strategy_ticker += 1
 
     def _check_and_process_open_orders(self, market: Market):
         orders = self._order_storage.find_by(market_name=market.name, pair=self._pair, status=ORDER_STATUS_OPEN)
@@ -135,7 +146,7 @@ class DoubleCrossoverStrategy(Strategy):
         return int(math.copysign(1, diff))
 
     def _get_averages(self, market: Market) -> Tuple[Decimal, Decimal]:
-        now = datetime.datetime.now().astimezone(datetime.timezone.utc)  # Todo: DateTimeFactory
+        now = self._datetime_factory.now()
         long_interval = (now - self._long_average_interval, now)
         long_average = self._candle_storage.mean(
             market.name,
@@ -192,6 +203,6 @@ class DoubleCrossoverStrategy(Strategy):
                 logging.error('Order "{}" cancelling failed: Error: "{}"!'.format(order.order_id, e))
                 return
 
-            order.cancel(datetime.datetime.now().astimezone(datetime.timezone.utc))
+            order.cancel(self._datetime_factory.now())
             self._order_storage.save_order(order)
             logging.info('Order "{}" has been CANCELED!'.format(order.order_id))

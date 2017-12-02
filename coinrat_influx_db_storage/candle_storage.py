@@ -46,14 +46,19 @@ class CandleInnoDbStorage(CandleStorage):
             CANDLE_STORAGE_FIELD_PAIR: "= '{}'".format(create_pair_identifier(pair)),
         }
         if since is not None:
-            parameters['time'] = "> '{}'".format(since.isoformat())
+            assert '+00:00' in since.isoformat()[-6:], \
+                ('Time must be in UTC and aware of its timezone ({})'.format(since.isoformat()))
+            parameters['"time" >'] = "'{}'".format(since.isoformat())
+
         if till is not None:
-            parameters['time'] = "< '{}'".format(since.isoformat())
+            assert '+00:00' in till.isoformat()[-6:], \
+                ('Time must be in UTC and aware of its timezone ({})'.format(till.isoformat()))
+            parameters['"time" <'] = "'{}'".format(till.isoformat())
 
         sql = 'SELECT * FROM "{}" WHERE '.format(MEASUREMENT_CANDLES_NAME)
         where = []
         for key, value in parameters.items():
-            where.append('"{}" {}'.format(key, value))
+            where.append('{} {}'.format(key, value))
         sql += ' AND '.join(where)
         result: ResultSet = self._client.query(sql)
         data = list(result.get_points())

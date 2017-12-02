@@ -108,6 +108,6 @@ class OrderInnoDbStorage(OrderStorage):
             row[ORDER_STORAGE_FIELD_TYPE],
             Decimal(row[ORDER_STORAGE_FIELD_QUANTITY]),
             Decimal(row[ORDER_STORAGE_FIELD_RATE]) if row[ORDER_STORAGE_FIELD_RATE] is not None else None,
-            row[ORDER_STORAGE_FIELD_ID_ON_MARKET],
+            row[ORDER_STORAGE_FIELD_ID_ON_MARKET] if row[ORDER_STORAGE_FIELD_ID_ON_MARKET] is not None else None,
             row[ORDER_STORAGE_FIELD_STATUS],
         )

@@ -2,7 +2,7 @@ import datetime
 import pluggy
 
 from coinrat.strategy_plugins import StrategyPluginSpecification
-from coinrat.domain import Pair
+from coinrat.domain import Pair, CurrentUtcDateTimeFactory
 
 from .strategy import DoubleCrossoverStrategy, STRATEGY_NAME
 
@@ -29,6 +29,7 @@ class StrategyPlugin(StrategyPluginSpecification):
                 Pair('USD', 'BTC'),  # Todo: make this parameter for end user
                 candle_storage,
                 order_storage,
+                CurrentUtcDateTimeFactory(),
                 datetime.timedelta(hours=1),
                 datetime.timedelta(minutes=15)
             )
