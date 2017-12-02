@@ -1,7 +1,7 @@
 import datetime
 import logging
-from typing import List, Tuple, Union, Generator, Dict
 import dateutil.parser
+from typing import List, Tuple, Union, Generator, Dict
 from decimal import Decimal
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet

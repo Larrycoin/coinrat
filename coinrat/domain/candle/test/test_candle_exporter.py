@@ -9,7 +9,7 @@ from coinrat.domain.candle import CandleExporter, MinuteCandle
 from coinrat.domain import Pair
 
 
-def test_candle_export():
+def test_candle_export_import():
     pair = Pair('USD', 'BTC')
     candle = MinuteCandle(
         'dummy_market',
@@ -22,24 +22,27 @@ def test_candle_export():
     )
 
     storage = flexmock()
-    storage.should_receive('find_by').and_return([candle])
+    storage.should_receive('find_by').and_return([candle]).once()
+    storage.should_receive('write_candles').once()
     exporter = CandleExporter(storage)
 
-    filepath = os.path.realpath(__file__) + '_orders.json'
+    file_name = os.path.realpath(__file__) + '_orders.json'
 
-    exporter.export_to_file(filepath, 'dummy_market', pair)
+    exporter.export_to_file(file_name, 'dummy_market', pair)
 
     expected = [{
         'market': 'dummy_market',
         'pair': 'USD_BTC',
         'time': '2017-01-01T00:00:00+00:00',
-        'open': 1000.0,
-        'close': 4000.0,
-        'low': 3000.0,
-        'high': 2000.0
+        'open': "1000",
+        'high': "2000",
+        'low': "3000",
+        'close': "4000",
     }]
 
-    with open(filepath) as json_file:
+    with open(file_name) as json_file:
         assert json.load(json_file) == expected
 
-    os.remove(filepath)
+    exporter.import_from_file(file_name)
+
+    os.remove(file_name)

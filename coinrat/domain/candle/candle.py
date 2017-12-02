@@ -74,5 +74,5 @@ class MinuteCandle:
         return (self._low + self._high) / 2
 
     def __repr__(self):
-        return '{0} O:{1:.8f} C:{2:.8f} L:{3:.8f} H:{2:.8f}' \
-            .format(self._time.isoformat(), self._open, self._close, self._low, self._high)
+        return '{0} O:{1:.8f} H:{2:.8f} L:{3:.8f} C:{4:.8f}' \
+            .format(self._time.isoformat(), self._open, self._high, self._low, self._close)
