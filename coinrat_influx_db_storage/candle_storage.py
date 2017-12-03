@@ -1,7 +1,7 @@
 import datetime
 import logging
 import dateutil.parser
-from typing import List, Tuple, Union, Generator, Dict
+from typing import List, Tuple, Union, Dict
 from decimal import Decimal
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
@@ -9,14 +9,11 @@ from influxdb.resultset import ResultSet
 from coinrat.domain import Pair
 from coinrat.domain.candle import MinuteCandle, CandleStorage, \
     CANDLE_STORAGE_FIELD_HIGH, CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
-    NoCandlesForMarketInStorageException
+    NoCandlesForMarketInStorageException, CANDLE_STORAGE_FIELD_MARKET, CANDLE_STORAGE_FIELD_PAIR
 from .utils import create_pair_identifier
 
 CANDLE_STORAGE_NAME = 'influx_db'
 MEASUREMENT_CANDLES_NAME = 'candles'
-
-CANDLE_STORAGE_FIELD_MARKET = 'market'
-CANDLE_STORAGE_FIELD_PAIR = 'pair'
 
 
 class CandleInnoDbStorage(CandleStorage):
@@ -26,7 +23,7 @@ class CandleInnoDbStorage(CandleStorage):
     def write_candle(self, candle: MinuteCandle) -> None:
         self.write_candles([candle])
 
-    def write_candles(self, candles: Union[Generator[MinuteCandle, None, None], List[MinuteCandle]]) -> None:
+    def write_candles(self, candles: List[MinuteCandle]) -> None:
         if len(candles) == 0:
             return
         self._client.write_points([self._transform_into_raw_data(candle) for candle in candles])
@@ -83,10 +80,12 @@ class CandleInnoDbStorage(CandleStorage):
         field: str,
         interval: Tuple[datetime.datetime, datetime.datetime]
     ) -> Decimal:
-        assert '+00:00' in interval[0].isoformat()[-6:], \
-            ('Time must be in UTC and aware of its timezone ({})'.format(interval[0].isoformat()))
-        assert '+00:00' in interval[0].isoformat()[-6:], \
-            ('Time must be in UTC and aware of its timezone ({})'.format(interval[1].isoformat()))
+        since, till = interval
+        assert since < till
+        assert '+00:00' in since.isoformat()[-6:], \
+            ('Time must be in UTC and aware of its timezone ({})'.format(since.isoformat()))
+        assert '+00:00' in till.isoformat()[-6:], \
+            ('Time must be in UTC and aware of its timezone ({})'.format(till.isoformat()))
 
         sql = '''
             SELECT MEAN("{}") AS "field_mean" 
@@ -95,8 +94,8 @@ class CandleInnoDbStorage(CandleStorage):
         '''.format(
             field,
             MEASUREMENT_CANDLES_NAME,
-            interval[0].isoformat(),
-            interval[1].isoformat(),
+            since.isoformat(),
+            till.isoformat(),
             create_pair_identifier(pair),
             market_name,
             field

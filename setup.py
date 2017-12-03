@@ -30,9 +30,11 @@ setup(
         ],
         'coinrat_candle_storage_plugins': [
             'coinrat_influx_db_storage = coinrat_influx_db_storage:candle_storage_plugin',
+            'coinrat_memory_storage = coinrat_memory_storage:candle_storage_plugin',
         ],
         'coinrat_order_storage_plugins': [
             'coinrat_influx_db_storage = coinrat_influx_db_storage:order_storage_plugin',
+            'coinrat_memory_storage = coinrat_memory_storage:order_storage_plugin',
         ],
         'coinrat_synchronizer_plugins': [
             'coinrat_bittrex = coinrat_bittrex:synchronizer_plugin',

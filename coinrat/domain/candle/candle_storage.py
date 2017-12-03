@@ -11,7 +11,8 @@ CANDLE_STORAGE_FIELD_OPEN = 'open'
 CANDLE_STORAGE_FIELD_CLOSE = 'close'
 CANDLE_STORAGE_FIELD_LOW = 'low'
 CANDLE_STORAGE_FIELD_HIGH = 'high'
-
+CANDLE_STORAGE_FIELD_MARKET = 'market'
+CANDLE_STORAGE_FIELD_PAIR = 'pair'
 
 class NoCandlesForMarketInStorageException(ForEndUserException):
     pass

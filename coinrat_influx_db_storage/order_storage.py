@@ -13,7 +13,7 @@ from .utils import create_pair_identifier
 
 ORDER_STORAGE_NAME = 'influx_db'
 
-ORDER_STORAGE_FIELD_MARKET = 'market'
+ORDER_STORAGE_FIELD_MARKET = 'market'  # todo: move to domain
 ORDER_STORAGE_FIELD_DIRECTION = 'direction'
 ORDER_STORAGE_FIELD_STATUS = 'status'
 ORDER_STORAGE_FIELD_PAIR = 'pair'
