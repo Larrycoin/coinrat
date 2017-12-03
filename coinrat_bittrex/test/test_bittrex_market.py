@@ -38,7 +38,6 @@ DUMMY_MARKET_BUY_ORDER = Order(
 MY_BTC_BALANCE = 100
 MY_USD_BALANCE = 1000000
 
-# Todo: rewrite do proper DI to be able mockID for each test separately
 flexmock(uuid).should_receive('uuid4').and_return(UUID('16fd2706-8baf-433b-82eb-8c7fada847da'))
 
 

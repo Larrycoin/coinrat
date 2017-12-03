@@ -50,11 +50,7 @@ class SynchronizerPlugin(SynchronizerPluginSpecification):
     @get_synchronizer_impl
     def get_synchronizer(self, name, storage):
         if name == SYNCHRONIZER_NAME:
-            return BittrexSynchronizer(
-                bittrex_market,
-                storage
-                # Todo: make possible to parametrize synchronizer
-            )
+            return BittrexSynchronizer(bittrex_market, storage)
 
         raise ValueError('Synchronizer "{}" not supported by this plugin.'.format(name))
 

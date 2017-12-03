@@ -51,11 +51,10 @@ DUMMY_OPEN_ORDER = Order(
 def test_number_of_markets_validation(error: bool, markets: List[Union[Market, Mock]]):
     candle_storage = flexmock().should_receive('mean').and_return(0).mock()
 
-    if len(markets) == 1:  # Todo: Flexmock is not working properly with @pytest.mark.parametrize (MethodSignatureError)
+    if len(markets) == 1:  # Flexmock is not working properly with @pytest.mark.parametrize (MethodSignatureError)
         markets = [markets[0].should_receive('name').and_return(DUMMY_MARKET_NAME).mock()]
 
     strategy = DoubleCrossoverStrategy(
-        BTC_USD_PAIR,
         candle_storage,
         mock_order_storage(),
         CurrentUtcDateTimeFactory(),
@@ -66,9 +65,9 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
     )
     if error:
         with pytest.raises(StrategyConfigurationException):
-            strategy.run(markets)
+            strategy.run(markets, BTC_USD_PAIR)
     else:
-        strategy.run(markets)
+        strategy.run(markets, BTC_USD_PAIR)
 
 
 @pytest.mark.parametrize(
@@ -153,7 +152,6 @@ def test_sending_signal(
     order_storage.should_receive('find_last_order').and_return(previous_order)
 
     strategy = DoubleCrossoverStrategy(
-        BTC_USD_PAIR,
         candle_storage,
         order_storage,
         CurrentUtcDateTimeFactory(),
@@ -162,7 +160,7 @@ def test_sending_signal(
         0,
         len(mean_evolution)
     )
-    strategy.run([market])
+    strategy.run([market], BTC_USD_PAIR)
 
 
 def test_not_enough_balance_logs_warning():
@@ -174,7 +172,6 @@ def test_not_enough_balance_logs_warning():
     market.should_receive('buy_max_available').and_raise(NotEnoughBalanceToPerformOrderException)
 
     strategy = DoubleCrossoverStrategy(
-        BTC_USD_PAIR,
         candle_storage,
         mock_order_storage(),
         CurrentUtcDateTimeFactory(),
@@ -184,7 +181,7 @@ def test_not_enough_balance_logs_warning():
         2
     )
     flexmock(logging).should_receive('warning').once()
-    strategy.run([market])
+    strategy.run([market], BTC_USD_PAIR)
 
 
 CLOSED_ORDER_INFO = OrderMarketInfo(
@@ -222,7 +219,6 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
     market.should_receive('get_order_status').and_return(markets_order_info).once()
 
     strategy = DoubleCrossoverStrategy(
-        BTC_USD_PAIR,
         candle_storage,
         order_storage,
         CurrentUtcDateTimeFactory(),
@@ -231,7 +227,7 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
         0,
         1
     )
-    strategy.run([market])
+    strategy.run([market], BTC_USD_PAIR)
 
 
 def mock_order_storage():

@@ -23,7 +23,6 @@ class DoubleCrossoverStrategy(Strategy):
 
     def __init__(
         self,
-        pair: Pair,
         candle_storage: CandleStorage,
         order_storage: OrderStorage,
         datetime_factory: DateTimeFactory,
@@ -34,7 +33,6 @@ class DoubleCrossoverStrategy(Strategy):
     ) -> None:
         assert short_average_interval < long_average_interval
 
-        self._pair = pair
         self._candle_storage = candle_storage
         self._order_storage = order_storage
         self._datetime_factory = datetime_factory
@@ -46,22 +44,15 @@ class DoubleCrossoverStrategy(Strategy):
         self._strategy_ticker = 0
         self._last_signal: Union[Signal, None] = None
 
-    def run(self, markets: List[Market]) -> None:
-        if len(markets) != 1:
-            message = 'This strategy works only with one market, {} given.'.format(len(markets))
-            raise StrategyConfigurationException(message)
-
-        market = markets[0]
-
+    def run(self, markets: List[Market], pair: Pair) -> None:
         while self._should_run():
-            self.tick(market)
+            self.tick(markets, pair)
 
-    def _should_run(self) -> bool:
-        return self._number_of_runs is None or self._number_of_runs > 0
+    def tick(self, markets: List[Market], pair: Pair) -> None:
+        market = self._get_one_market(markets)
 
-    def tick(self, market: Market) -> None:
-        self._check_and_process_open_orders(market)
-        self._check_for_signal_and_trade(market)
+        self._check_and_process_open_orders(market, pair)
+        self._check_for_signal_and_trade(market, pair)
 
         self._increment_tick_counter()
         time.sleep(self._delay)
@@ -71,8 +62,8 @@ class DoubleCrossoverStrategy(Strategy):
             self._number_of_runs -= 1
         self._strategy_ticker += 1
 
-    def _check_and_process_open_orders(self, market: Market):
-        orders = self._order_storage.find_by(market_name=market.name, pair=self._pair, status=ORDER_STATUS_OPEN)
+    def _check_and_process_open_orders(self, market: Market, pair: Pair):
+        orders = self._order_storage.find_by(market_name=market.name, pair=pair, status=ORDER_STATUS_OPEN)
         for order in orders:
             status = market.get_order_status(order)
             if status.is_open is False:
@@ -81,22 +72,22 @@ class DoubleCrossoverStrategy(Strategy):
                 self._order_storage.save_order(order)
                 logging.info('Order "{}" has been successfully CLOSED.'.format(order.order_id))
 
-    def _check_for_signal_and_trade(self, market: Market):
-        signal = self._check_for_signal(market)
+    def _check_for_signal_and_trade(self, market: Market, pair: Pair):
+        signal = self._check_for_signal(market, pair)
         if signal is not None:
             self._last_signal = signal
 
         if self._last_signal is not None:
-            order = self._trade_on_signal(market)
+            order = self._trade_on_signal(market, pair)
             if order is not None:
                 self._order_storage.save_order(order)
 
-    def _does_trade_worth_it(self, market: Market) -> bool:
-        last_order = self._order_storage.find_last_order(market.name, self._pair)
+    def _does_trade_worth_it(self, market: Market, pair: Pair) -> bool:
+        last_order = self._order_storage.find_last_order(market.name, pair)
         if last_order is None:
             return True
 
-        current_price = self._candle_storage.get_current_candle(market.name, self._pair).average_price
+        current_price = self._candle_storage.get_current_candle(market.name, pair).average_price
 
         does_worth_it = absolute_possible_percentage_gain(last_order.rate, current_price) > market.transaction_fee
         if not does_worth_it:
@@ -106,8 +97,8 @@ class DoubleCrossoverStrategy(Strategy):
 
         return does_worth_it
 
-    def _check_for_signal(self, market: Market) -> Union[Signal, None]:
-        long_average, short_average = self._get_averages(market)
+    def _check_for_signal(self, market: Market, pair: Pair) -> Union[Signal, None]:
+        long_average, short_average = self._get_averages(market, pair)
         current_sign = self._calculate_sign_of_change(long_average, short_average)
 
         logging.info(
@@ -145,39 +136,39 @@ class DoubleCrossoverStrategy(Strategy):
 
         return int(math.copysign(1, diff))
 
-    def _get_averages(self, market: Market) -> Tuple[Decimal, Decimal]:
+    def _get_averages(self, market: Market, pair: Pair) -> Tuple[Decimal, Decimal]:
         now = self._datetime_factory.now()
 
         long_average = self._candle_storage.mean(
             market.name,
-            self._pair,
+            pair,
             CANDLE_STORAGE_FIELD_CLOSE,
             DateTimeInterval(now - self._long_average_interval, now)
         )
 
         short_average = self._candle_storage.mean(
             market.name,
-            self._pair,
+            pair,
             CANDLE_STORAGE_FIELD_CLOSE,
             DateTimeInterval(now - self._short_average_interval, now)
         )
 
         return long_average, short_average
 
-    def _trade_on_signal(self, market: Market) -> Union[Order, None]:
+    def _trade_on_signal(self, market: Market, pair: Pair) -> Union[Order, None]:
         order = None
         logging.info('Checking trade on signal: "{}".'.format(self._last_signal))
         try:
             if self._last_signal.is_buy():
-                self._cancel_open_order(market, DIRECTION_SELL)
-                if self._does_trade_worth_it(market):
-                    order = market.buy_max_available(self._pair)
+                self._cancel_open_order(market, pair, DIRECTION_SELL)
+                if self._does_trade_worth_it(market, pair):
+                    order = market.buy_max_available(pair)
                     self._last_signal = None
 
             elif self._last_signal.is_sell():
-                self._cancel_open_order(market, DIRECTION_BUY)
-                if self._does_trade_worth_it(market):
-                    order = market.sell_max_available(self._pair)
+                self._cancel_open_order(market, pair, DIRECTION_BUY)
+                if self._does_trade_worth_it(market, pair):
+                    order = market.sell_max_available(pair)
                     self._last_signal = None
             else:
                 raise ValueError('Unknown signal: "{}"'.format(self._last_signal))  # pragma: no cover
@@ -189,10 +180,10 @@ class DoubleCrossoverStrategy(Strategy):
 
         return order
 
-    def _cancel_open_order(self, market: Market, direction: str):
+    def _cancel_open_order(self, market: Market, pair: Pair, direction: str):
         orders = self._order_storage.find_by(
             market_name=market.name,
-            pair=self._pair,
+            pair=pair,
             status=ORDER_STATUS_OPEN,
             direction=direction
         )
@@ -206,3 +197,13 @@ class DoubleCrossoverStrategy(Strategy):
             order.cancel(self._datetime_factory.now())
             self._order_storage.save_order(order)
             logging.info('Order "{}" has been CANCELED!'.format(order.order_id))
+
+    @staticmethod
+    def _get_one_market(markets: List[Market]) -> Market:
+        if len(markets) != 1:
+            message = 'This strategy works only with one market, {} given.'.format(len(markets))
+            raise StrategyConfigurationException(message)
+        return markets[0]
+
+    def _should_run(self) -> bool:
+        return self._number_of_runs is None or self._number_of_runs > 0

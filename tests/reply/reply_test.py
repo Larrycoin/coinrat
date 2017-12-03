@@ -51,7 +51,6 @@ def test_candle_ticks_are_stored(
     datetime_factory = FrozenDateTimeFactory(start)
 
     strategy = DoubleCrossoverStrategy(
-        BTC_USD_PAIR,
         candle_storage,
         order_storage,
         datetime_factory,
@@ -63,7 +62,7 @@ def test_candle_ticks_are_stored(
     market = PrintDummyMarket(datetime_factory, name='bittrex')
 
     while datetime_factory.now() < end:
-        strategy.tick(market)
+        strategy.tick([market], BTC_USD_PAIR)
         datetime_factory.move(datetime.timedelta(seconds=10))
 
     orders = order_storage.find_by(market_name='bittrex', pair=BTC_USD_PAIR)

@@ -2,6 +2,7 @@ from typing import List
 
 from .coinrat import ForEndUserException
 from .market import Market
+from .pair import Pair
 
 
 class StrategyConfigurationException(ForEndUserException):
@@ -9,5 +10,8 @@ class StrategyConfigurationException(ForEndUserException):
 
 
 class Strategy:
-    def run(self, markets: List[Market]) -> None:
+    def run(self, markets: List[Market], pair: Pair) -> None:
+        raise NotImplementedError()
+
+    def tick(self, markets: List[Market], pair: Pair) -> None:
         raise NotImplementedError()

@@ -10,7 +10,6 @@ get_available_strategies_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_strategy_spec = pluggy.HookspecMarker('coinrat_plugins')
 
 
-# Todo: solve, adding type-hints raises error:
 #   "ValueError: Function has keyword-only parameters or annotations, use getfullargspec() API which can support them"
 class StrategyPluginSpecification(PluginSpecification):
     @get_available_strategies_spec
