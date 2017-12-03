@@ -11,8 +11,8 @@ from influxdb.resultset import ResultSet
 from coinrat.domain import Pair, DateTimeInterval
 from coinrat.domain.order import OrderStorage, Order, POSSIBLE_ORDER_STATUSES
 from coinrat.domain.order import ORDER_FIELD_MARKET, ORDER_FIELD_PAIR, ORDER_FIELD_STATUS, \
-    ORDER_FIELD_DIRECTION, ORDER_FIELD_ORDER_ID, ORDER_FIELD_QUANTITY, \
-    ORDER_FIELD_RATE, ORDER_FIELD_ID_ON_MARKET, ORDER_FIELD_TYPE
+    ORDER_FIELD_DIRECTION, ORDER_FIELD_ORDER_ID, ORDER_FIELD_QUANTITY, ORDER_FIELD_CANCELED_AT, \
+    ORDER_FIELD_RATE, ORDER_FIELD_ID_ON_MARKET, ORDER_FIELD_TYPE, ORDER_FIELD_CLOSED_AT
 from .utils import create_pair_identifier
 
 ORDER_STORAGE_NAME = 'influx_db'
@@ -38,8 +38,8 @@ class OrderInnoDbStorage(OrderStorage):
         assert status in POSSIBLE_ORDER_STATUSES or status is None, 'Invalid status: "{}"'.format(status)
 
         parameters = {
-            ORDER_FIELD_MARKET: "'{}'".format(market_name),
-            ORDER_FIELD_PAIR: "'{}'".format(create_pair_identifier(pair)),
+            ORDER_FIELD_MARKET: "= '{}'".format(market_name),
+            ORDER_FIELD_PAIR: "= '{}'".format(create_pair_identifier(pair)),
         }
 
         if status is not None:
@@ -98,12 +98,23 @@ class OrderInnoDbStorage(OrderStorage):
                 # Todo: figure out how to store decimals in influx (maybe int -> *100000)
                 ORDER_FIELD_QUANTITY: float(order.quantity),
                 ORDER_FIELD_RATE: float(order.rate),
+
+                ORDER_FIELD_CLOSED_AT: order.closed_at.isoformat() if order.closed_at is not None else None,
+                ORDER_FIELD_CANCELED_AT: order.canceled_at.isoformat() if order.canceled_at is not None else None,
             }
         }
 
     @staticmethod
     def _create_order_from_serialized(row: Dict[str, Union[str, int, float, bool]]) -> Order:
         pair_data = row[ORDER_FIELD_PAIR].split('_')
+
+        closed_at = None
+        if ORDER_FIELD_CLOSED_AT in row and row[ORDER_FIELD_CLOSED_AT] is not None:
+            closed_at = dateutil.parser.parse(row[ORDER_FIELD_CLOSED_AT]).replace(tzinfo=datetime.timezone.utc)
+
+        canceled_at = None
+        if ORDER_FIELD_CANCELED_AT in row and row[ORDER_FIELD_CANCELED_AT] is not None:
+            canceled_at = dateutil.parser.parse(row[ORDER_FIELD_CANCELED_AT]).replace(tzinfo=datetime.timezone.utc)
 
         return Order(
             UUID(row[ORDER_FIELD_ORDER_ID]),
@@ -116,6 +127,6 @@ class OrderInnoDbStorage(OrderStorage):
             Decimal(row[ORDER_FIELD_RATE]) if ORDER_FIELD_RATE in row is not None else None,
             row[ORDER_FIELD_ID_ON_MARKET] if ORDER_FIELD_ID_ON_MARKET in row is not None else None,
             row[ORDER_FIELD_STATUS],
-            row[ORDER_FIELD_CLOSED_AT],
-            row[ORDER_FIELD_CANCELED_AT]
+            closed_at,
+            canceled_at
         )

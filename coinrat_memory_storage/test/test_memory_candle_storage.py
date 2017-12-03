@@ -3,7 +3,7 @@ from typing import Tuple
 import pytest, datetime
 from decimal import Decimal
 
-from coinrat.domain import Pair
+from coinrat.domain import Pair, DateTimeInterval
 from coinrat.domain.candle import MinuteCandle, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
 from coinrat_memory_storage.candle_storage import CandleMemoryStorage
 
@@ -39,7 +39,7 @@ def test_write_zero_candles():
 def test_mean(expected_mean: int, minute_interval: Tuple[int, int]):
     storage = CandleMemoryStorage()
     storage.write_candles([_create_dummy_candle(10, 8000), _create_dummy_candle(20, 8300)])
-    interval = (
+    interval = DateTimeInterval(
         datetime.datetime(2017, 7, 2, 0, minute_interval[0], 0, tzinfo=datetime.timezone.utc),
         datetime.datetime(2017, 7, 2, 0, minute_interval[1], 0, tzinfo=datetime.timezone.utc)
     )
@@ -51,7 +51,7 @@ def test_mean(expected_mean: int, minute_interval: Tuple[int, int]):
 def test_mean_no_data_raise_exception():
     """We want to raise exception to prevent invalid signal by dropping some price to 0."""
     storage = CandleMemoryStorage()
-    interval = (
+    interval = DateTimeInterval(
         datetime.datetime(2017, 7, 2, 0, 0, 0, tzinfo=datetime.timezone.utc),
         datetime.datetime(2017, 7, 2, 0, 30, 0, tzinfo=datetime.timezone.utc)
     )
