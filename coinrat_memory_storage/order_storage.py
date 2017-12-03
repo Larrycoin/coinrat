@@ -1,6 +1,7 @@
 from typing import Dict, List, Union
 
-from coinrat.domain import OrderStorage, Order, Pair, POSSIBLE_ORDER_STATUSES
+from coinrat.domain import Pair
+from coinrat.domain.order import OrderStorage, Order, POSSIBLE_ORDER_STATUSES
 
 ORDER_STORAGE_NAME = 'memory'
 

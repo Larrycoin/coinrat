@@ -8,8 +8,9 @@ from uuid import UUID
 
 from flexmock import flexmock
 
-from coinrat.domain import Pair, Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, DIRECTION_BUY, DIRECTION_SELL, \
-    NotEnoughBalanceToPerformOrderException, MarketOrderException
+from coinrat.domain import Pair, MarketOrderException
+from coinrat.domain.order import Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, DIRECTION_BUY, DIRECTION_SELL, \
+    NotEnoughBalanceToPerformOrderException
 from coinrat_bittrex.market import BittrexMarket
 from coinrat_bittrex.test.fixtures import MARKET_USDT_BTC_DATA, DUMMY_ORDER_ID_ON_MARKET, OPEN_ORDER, CLOSED_ORDER
 

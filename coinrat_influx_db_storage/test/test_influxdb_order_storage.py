@@ -4,8 +4,9 @@ import pytest, datetime
 from decimal import Decimal
 from influxdb import InfluxDBClient
 
-from coinrat.domain import Order, ORDER_TYPE_LIMIT, Pair, DIRECTION_BUY, DIRECTION_SELL, \
-    ORDER_STATUS_OPEN, ORDER_STATUS_CLOSED
+from coinrat.domain import Pair
+from coinrat.domain.order import Order, ORDER_TYPE_LIMIT, DIRECTION_BUY, DIRECTION_SELL, ORDER_STATUS_OPEN, \
+    ORDER_STATUS_CLOSED
 from coinrat_influx_db_storage.order_storage import OrderInnoDbStorage
 
 DUMMY_MARKET = 'dummy_market'

@@ -2,8 +2,9 @@ import pluggy
 from typing import List, Set
 
 from .plugins import PluginSpecification, plugins_loader
-from .domain import Strategy, OrderStorage
+from .domain import Strategy
 from .domain.candle import CandleStorage
+from coinrat.domain.order import OrderStorage
 
 get_available_strategies_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_strategy_spec = pluggy.HookspecMarker('coinrat_plugins')

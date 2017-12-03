@@ -3,8 +3,9 @@ from uuid import UUID
 import datetime
 from decimal import Decimal
 
-from coinrat.domain import Order, ORDER_TYPE_LIMIT, Pair, DIRECTION_BUY, DIRECTION_SELL, \
-    ORDER_STATUS_OPEN, ORDER_STATUS_CLOSED
+from coinrat.domain import Pair
+from coinrat.domain.order import Order, ORDER_TYPE_LIMIT, DIRECTION_BUY, DIRECTION_SELL, ORDER_STATUS_OPEN, \
+    ORDER_STATUS_CLOSED
 from coinrat_memory_storage.order_storage import OrderMemoryStorage
 
 DUMMY_MARKET = 'dummy_market'

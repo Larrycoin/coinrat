@@ -6,10 +6,9 @@ from decimal import Decimal
 import math
 
 from coinrat.domain.candle import CandleStorage, CANDLE_STORAGE_FIELD_CLOSE
-from coinrat.domain import Strategy, Order, OrderStorage, Pair, Market, \
-    DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, MarketOrderException, \
-    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException, \
-    DateTimeFactory
+from coinrat.domain import Strategy, Pair, Market, MarketOrderException, StrategyConfigurationException, DateTimeFactory
+from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, \
+    NotEnoughBalanceToPerformOrderException
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from coinrat_double_crossover_strategy.utils import absolute_possible_percentage_gain
 

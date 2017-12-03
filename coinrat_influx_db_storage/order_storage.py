@@ -8,7 +8,8 @@ import dateutil.parser
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
-from coinrat.domain import OrderStorage, Order, Pair, POSSIBLE_ORDER_STATUSES
+from coinrat.domain import Pair
+from coinrat.domain.order import OrderStorage, Order, POSSIBLE_ORDER_STATUSES
 from .utils import create_pair_identifier
 
 ORDER_STORAGE_NAME = 'influx_db'

@@ -7,9 +7,9 @@ import pytest
 from decimal import Decimal
 from flexmock import flexmock, Mock
 
-from coinrat.domain import Pair, Market, ORDER_TYPE_LIMIT, Order, OrderMarketInfo, DIRECTION_BUY, DIRECTION_SELL, \
-    StrategyConfigurationException, NotEnoughBalanceToPerformOrderException, ORDER_STATUS_CLOSED, ORDER_STATUS_OPEN, \
-    CurrentUtcDateTimeFactory
+from coinrat.domain import Pair, Market, StrategyConfigurationException, CurrentUtcDateTimeFactory
+from coinrat.domain.order import ORDER_TYPE_LIMIT, Order, OrderMarketInfo, DIRECTION_BUY, DIRECTION_SELL, \
+    NotEnoughBalanceToPerformOrderException, ORDER_STATUS_CLOSED, ORDER_STATUS_OPEN
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 
 DUMMY_MARKET_NAME = 'dummy_market'

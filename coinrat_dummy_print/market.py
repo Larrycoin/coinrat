@@ -1,8 +1,8 @@
 import uuid
 from decimal import Decimal
 
-from coinrat.domain import Market, Balance, Pair, Order, PairMarketInfo, \
-    ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY, DateTimeFactory, OrderMarketInfo
+from coinrat.domain import Market, Balance, Pair, PairMarketInfo, DateTimeFactory
+from coinrat.domain.order import ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY, Order, OrderMarketInfo
 
 MARKET_NAME = 'dummy_print'
 DUMMY_STATIC_BALANCE = Decimal(0.5)

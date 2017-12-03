@@ -4,8 +4,8 @@ from uuid import UUID
 
 import datetime
 
-from .coinrat import ForEndUserException
-from .pair import Pair
+from coinrat.domain.coinrat import ForEndUserException
+from coinrat.domain.pair import Pair
 
 ORDER_TYPE_LIMIT = 'limit'
 ORDER_TYPE_MARKET = 'market'

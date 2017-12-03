@@ -2,7 +2,8 @@ import datetime
 from decimal import Decimal
 from uuid import UUID
 
-from coinrat.domain import Pair, Order, ORDER_TYPE_LIMIT, DIRECTION_BUY, CurrentUtcDateTimeFactory
+from coinrat.domain import Pair, CurrentUtcDateTimeFactory
+from coinrat.domain.order import Order, ORDER_TYPE_LIMIT, DIRECTION_BUY
 from coinrat_dummy_print.market import PrintDummyMarket
 
 BTC_USD_PAIR = Pair('USD', 'BTC')

@@ -8,9 +8,9 @@ from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, TICKINTERVAL_ONEMIN
 
 from decimal import Decimal
 from coinrat.domain.candle import MinuteCandle
-from coinrat.domain import Market, Balance, Pair, Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, \
-    PairMarketInfo, MarketPairDoesNotExistsException, NotEnoughBalanceToPerformOrderException, OrderMarketInfo, \
-    DIRECTION_BUY, DIRECTION_SELL, MarketOrderException
+from coinrat.domain import Market, Balance, Pair, PairMarketInfo, MarketPairDoesNotExistsException, MarketOrderException
+from coinrat.domain.order import Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, \
+    NotEnoughBalanceToPerformOrderException, OrderMarketInfo, DIRECTION_BUY, DIRECTION_SELL
 
 MARKET_NAME = 'bittrex'
 

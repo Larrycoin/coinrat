@@ -2,7 +2,7 @@ import pluggy
 from typing import List, Set
 
 from .plugins import PluginSpecification, plugins_loader
-from .domain import OrderStorage
+from coinrat.domain.order import OrderStorage
 
 get_available_order_storages_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_order_storage_spec = pluggy.HookspecMarker('coinrat_plugins')

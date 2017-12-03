@@ -8,8 +8,9 @@ from uuid import UUID
 import pytest
 from flexmock import flexmock
 
-from coinrat.domain import Pair, FrozenDateTimeFactory, Order
+from coinrat.domain import Pair, FrozenDateTimeFactory
 from coinrat.domain.candle import CandleExporter
+from coinrat.domain.order import Order
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 from coinrat_dummy_print.market import PrintDummyMarket
 from coinrat_memory_storage.candle_storage import CandleMemoryStorage
