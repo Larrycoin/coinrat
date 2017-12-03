@@ -3,7 +3,7 @@ import datetime
 
 class DateTimeFactory:
     def now(self) -> datetime.datetime:
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class CurrentUtcDateTimeFactory(DateTimeFactory):
@@ -17,9 +17,6 @@ class FrozenDateTimeFactory(DateTimeFactory):
 
     def now(self) -> datetime.datetime:
         return self._freezed_at
-
-    def refreeze(self, freezed_at: datetime.datetime) -> None:
-        self._freezed_at = freezed_at
 
     def move(self, delta: datetime.timedelta):
         self._freezed_at = self._freezed_at + delta

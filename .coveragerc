@@ -4,6 +4,7 @@ omit =
     __venv__/*
     tests/*
     */test*.py
+    setup.py
 
 [report]
 exclude_lines =
