@@ -177,6 +177,7 @@ class DoubleCrossoverStrategy(Strategy):
             # Intentionally, this strategy does not need state of order,
             # just ignores buy/sell and waits for next signal.
             logging.warning(e)
+            self._last_signal = None
 
         return order
 
