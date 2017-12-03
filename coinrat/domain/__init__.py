@@ -5,6 +5,7 @@ from .pair import Pair, MarketPairDoesNotExistsException
 from .strategy import Strategy, StrategyConfigurationException
 from .synchronizer import MarketStateSynchronizer
 from .datetime_factory import DateTimeFactory, CurrentUtcDateTimeFactory, FrozenDateTimeFactory
+from .datetime_interval import DateTimeInterval
 
 __all__ = [
     'Balance',
@@ -21,5 +22,7 @@ __all__ = [
 
     'MarketStateSynchronizer',
 
-    'DateTimeFactory', 'CurrentUtcDateTimeFactory', 'FrozenDateTimeFactory'
+    'DateTimeFactory', 'CurrentUtcDateTimeFactory', 'FrozenDateTimeFactory',
+
+    'DateTimeInterval'
 ]

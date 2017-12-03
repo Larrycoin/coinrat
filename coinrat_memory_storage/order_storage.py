@@ -1,6 +1,6 @@
 from typing import Dict, List, Union
 
-from coinrat.domain import Pair
+from coinrat.domain import Pair, DateTimeInterval
 from coinrat.domain.order import OrderStorage, Order, POSSIBLE_ORDER_STATUSES
 
 ORDER_STORAGE_NAME = 'memory'
@@ -17,7 +17,14 @@ class OrderMemoryStorage(OrderStorage):
         if self._last_order is None or self._last_order.created_at <= order.created_at:
             self._last_order = order
 
-    def find_by(self, market_name: str, pair: Pair, status: str = None, direction: str = None) -> List[Order]:
+    def find_by(
+        self,
+        market_name: str,
+        pair: Pair,
+        status: str = None,
+        direction: str = None,
+        interval: DateTimeInterval = DateTimeInterval(None, None)
+    ) -> List[Order]:
         assert status in POSSIBLE_ORDER_STATUSES or status is None, 'Invalid status: "{}"'.format(status)
 
         result = []
@@ -29,6 +36,12 @@ class OrderMemoryStorage(OrderStorage):
                 continue
 
             if direction is not None and order._direction != direction:
+                continue
+
+            if interval.since is not None and order.created_at <= interval.since:
+                continue
+
+            if interval.till is not None and order.created_at >= interval.till:
                 continue
 
             result.append(order)

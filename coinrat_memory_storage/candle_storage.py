@@ -2,7 +2,7 @@ import datetime
 from typing import List, Tuple, Union, Dict
 from decimal import Decimal
 
-from coinrat.domain import Pair
+from coinrat.domain import Pair, DateTimeInterval
 from coinrat.domain.candle import MinuteCandle, CandleStorage, NoCandlesForMarketInStorageException
 
 CANDLE_STORAGE_NAME = 'memory'
@@ -26,11 +26,8 @@ class CandleMemoryStorage(CandleStorage):
         self,
         market_name: str,
         pair: Pair,
-        since: Union[datetime.datetime, None] = None,
-        till: Union[datetime.datetime, None] = None
+        interval: DateTimeInterval = DateTimeInterval(None, None)
     ) -> List[MinuteCandle]:
-        assert since is None or till is None or since < till  # todo: introduce interval value object
-
         result = []
         for candle in self._candles.values():
             if candle.market_name != market_name:
@@ -39,10 +36,10 @@ class CandleMemoryStorage(CandleStorage):
             if str(candle.pair) != str(pair):
                 continue
 
-            if since is not None and candle.time > since:
+            if interval.since is not None and candle.time > interval.since:
                 continue
 
-            if till is not None and candle.time < till:
+            if interval.till is not None and candle.time < interval.till:
                 continue
 
             result.append(candle)
@@ -57,25 +54,18 @@ class CandleMemoryStorage(CandleStorage):
         market_name: str,
         pair: Pair,
         field: str,
-        interval: Tuple[datetime.datetime, datetime.datetime]
+        interval: DateTimeInterval = DateTimeInterval(None, None)
     ) -> Decimal:
-        since, till = interval
-        assert since < till
-        assert '+00:00' in since.isoformat()[-6:], \
-            ('Time must be in UTC and aware of its timezone ({})'.format(since.isoformat()))
-        assert '+00:00' in till.isoformat()[-6:], \
-            ('Time must be in UTC and aware of its timezone ({})'.format(till.isoformat()))
-
         count = 0
         result = Decimal(0)
         for candle in self._candles.values():
             if candle.market_name != market_name or str(candle.pair) != str(pair):
                 continue
 
-            if since is not None and candle.time <= since:
+            if interval.since is not None and candle.time <= interval.since:
                 continue
 
-            if till is not None and candle.time >= till:
+            if interval.till is not None and candle.time >= interval.till:
                 continue
 
             result += getattr(candle, field)

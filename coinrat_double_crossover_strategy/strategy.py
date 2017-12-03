@@ -5,8 +5,9 @@ from decimal import Decimal
 
 import math
 
+from coinrat.domain import Strategy, Pair, Market, MarketOrderException, StrategyConfigurationException, \
+    DateTimeFactory, DateTimeInterval
 from coinrat.domain.candle import CandleStorage, CANDLE_STORAGE_FIELD_CLOSE
-from coinrat.domain import Strategy, Pair, Market, MarketOrderException, StrategyConfigurationException, DateTimeFactory
 from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, \
     NotEnoughBalanceToPerformOrderException
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
@@ -146,19 +147,19 @@ class DoubleCrossoverStrategy(Strategy):
 
     def _get_averages(self, market: Market) -> Tuple[Decimal, Decimal]:
         now = self._datetime_factory.now()
-        long_interval = (now - self._long_average_interval, now)
+
         long_average = self._candle_storage.mean(
             market.name,
             self._pair,
             CANDLE_STORAGE_FIELD_CLOSE,
-            long_interval
+            DateTimeInterval(now - self._long_average_interval, now)
         )
-        short_interval = (now - self._short_average_interval, now)
+
         short_average = self._candle_storage.mean(
             market.name,
             self._pair,
             CANDLE_STORAGE_FIELD_CLOSE,
-            short_interval
+            DateTimeInterval(now - self._short_average_interval, now)
         )
 
         return long_average, short_average

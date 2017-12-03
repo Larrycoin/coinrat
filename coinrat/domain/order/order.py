@@ -18,6 +18,19 @@ ORDER_STATUS_CLOSED = 'closed'
 ORDER_STATUS_CANCELED = 'canceled'
 POSSIBLE_ORDER_STATUSES = [ORDER_STATUS_OPEN, ORDER_STATUS_CLOSED, ORDER_STATUS_CANCELED]
 
+ORDER_FIELD_ORDER_ID = 'order_id'
+ORDER_FIELD_MARKET = 'market'
+ORDER_FIELD_DIRECTION = 'direction'
+ORDER_FIELD_CREATED_AT = 'created_at'
+ORDER_FIELD_PAIR = 'pair'
+ORDER_FIELD_TYPE = 'type'
+ORDER_FIELD_QUANTITY = 'quantity'
+ORDER_FIELD_RATE = 'rate'
+ORDER_FIELD_ID_ON_MARKET = 'id_on_market'
+ORDER_FIELD_STATUS = 'status'
+ORDER_FIELD_CLOSED_AT = 'closed_at'
+ORDER_FIELD_CANCELED_AT = 'canceled_at'
+
 
 class NotEnoughBalanceToPerformOrderException(ForEndUserException):
     pass

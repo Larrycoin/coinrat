@@ -5,7 +5,7 @@ from typing import Dict
 
 from decimal import Decimal
 
-from coinrat.domain.pair import Pair
+from coinrat.domain import Pair, DateTimeInterval
 from .candle import MinuteCandle
 
 from .candle_storage import CandleStorage, \
@@ -21,12 +21,9 @@ class CandleExporter:
         filename: str,
         market_name: str,
         pair: Pair,
-        since: datetime = None,
-        till: datetime = None
+        interval: DateTimeInterval = DateTimeInterval(None, None)
     ):
-        assert since is None or till is None or since < till  # todo: introduce interval value object
-
-        candles = self._candle_storage.find_by(market_name=market_name, pair=pair, since=since, till=till)
+        candles = self._candle_storage.find_by(market_name=market_name, pair=pair, interval=interval)
         data = list(map(self._serialize_candle_to_json_serializable, candles))
 
         with open(filename, 'w') as outfile:

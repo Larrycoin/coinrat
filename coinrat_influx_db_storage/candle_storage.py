@@ -1,12 +1,12 @@
 import datetime
 import logging
 import dateutil.parser
-from typing import List, Tuple, Union, Dict
+from typing import List, Dict
 from decimal import Decimal
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
-from coinrat.domain import Pair
+from coinrat.domain import Pair, DateTimeInterval
 from coinrat.domain.candle import MinuteCandle, CandleStorage, \
     CANDLE_STORAGE_FIELD_HIGH, CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
     NoCandlesForMarketInStorageException, CANDLE_STORAGE_FIELD_MARKET, CANDLE_STORAGE_FIELD_PAIR
@@ -33,24 +33,17 @@ class CandleInnoDbStorage(CandleStorage):
         self,
         market_name: str,
         pair: Pair,
-        since: Union[datetime.datetime, None] = None,
-        till: Union[datetime.datetime, None] = None
+        interval: DateTimeInterval = DateTimeInterval(None, None)
     ) -> List[MinuteCandle]:
-        assert since is None or till is None or since < till  # todo: introduce interval value object
-
         parameters = {
             CANDLE_STORAGE_FIELD_MARKET: "= '{}'".format(market_name),
             CANDLE_STORAGE_FIELD_PAIR: "= '{}'".format(create_pair_identifier(pair)),
         }
-        if since is not None:
-            assert '+00:00' in since.isoformat()[-6:], \
-                ('Time must be in UTC and aware of its timezone ({})'.format(since.isoformat()))
-            parameters['"time" >'] = "'{}'".format(since.isoformat())
+        if interval.since is not None:
+            parameters['"time" >'] = "'{}'".format(interval.since.isoformat())
 
-        if till is not None:
-            assert '+00:00' in till.isoformat()[-6:], \
-                ('Time must be in UTC and aware of its timezone ({})'.format(till.isoformat()))
-            parameters['"time" <'] = "'{}'".format(till.isoformat())
+        if interval.till is not None:
+            parameters['"time" <'] = "'{}'".format(interval.till.isoformat())
 
         sql = 'SELECT * FROM "{}" WHERE '.format(MEASUREMENT_CANDLES_NAME)
         where = []
@@ -78,15 +71,8 @@ class CandleInnoDbStorage(CandleStorage):
         market_name: str,
         pair: Pair,
         field: str,
-        interval: Tuple[datetime.datetime, datetime.datetime]
+        interval: DateTimeInterval = DateTimeInterval(None, None)
     ) -> Decimal:
-        since, till = interval
-        assert since < till
-        assert '+00:00' in since.isoformat()[-6:], \
-            ('Time must be in UTC and aware of its timezone ({})'.format(since.isoformat()))
-        assert '+00:00' in till.isoformat()[-6:], \
-            ('Time must be in UTC and aware of its timezone ({})'.format(till.isoformat()))
-
         sql = '''
             SELECT MEAN("{}") AS "field_mean" 
             FROM "{}" WHERE "time" > '{}' AND "time" < '{}' AND "pair"='{}' AND "market"='{}' 
@@ -94,8 +80,8 @@ class CandleInnoDbStorage(CandleStorage):
         '''.format(
             field,
             MEASUREMENT_CANDLES_NAME,
-            since.isoformat(),
-            till.isoformat(),
+            interval.since.isoformat(),
+            interval.till.isoformat(),
             create_pair_identifier(pair),
             market_name,
             field

@@ -1,10 +1,10 @@
-import datetime
-from typing import List, Tuple, Union
+from typing import List
 
 from decimal import Decimal
 
 from coinrat.domain.coinrat import ForEndUserException
 from coinrat.domain.pair import Pair
+from coinrat.domain import DateTimeInterval
 from .candle import MinuteCandle
 
 CANDLE_STORAGE_FIELD_OPEN = 'open'
@@ -13,6 +13,7 @@ CANDLE_STORAGE_FIELD_LOW = 'low'
 CANDLE_STORAGE_FIELD_HIGH = 'high'
 CANDLE_STORAGE_FIELD_MARKET = 'market'
 CANDLE_STORAGE_FIELD_PAIR = 'pair'
+
 
 class NoCandlesForMarketInStorageException(ForEndUserException):
     pass
@@ -29,8 +30,7 @@ class CandleStorage:
         self,
         market_name: str,
         pair: Pair,
-        since: Union[datetime.datetime, None] = None,
-        till: Union[datetime.datetime, None] = None
+        interval: DateTimeInterval = DateTimeInterval(None, None)
     ) -> List[MinuteCandle]:
         raise NotImplementedError()
 
@@ -39,7 +39,7 @@ class CandleStorage:
         market: str,
         pair: Pair,
         field: str,
-        interval: Tuple[datetime.datetime, datetime.datetime]
+        interval: DateTimeInterval = DateTimeInterval(None, None)
     ) -> Decimal:
         raise NotImplementedError()
 
