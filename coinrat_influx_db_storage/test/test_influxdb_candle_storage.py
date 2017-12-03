@@ -7,8 +7,7 @@ from influxdb import InfluxDBClient
 
 from coinrat.domain import Pair
 from coinrat.domain.candle import MinuteCandle, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
-from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage, MEASUREMENT_CANDLES_NAME
-from coinrat_influx_db_storage.test.utils import get_all_from_influx_db
+from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage
 
 DUMMY_MARKET = 'dummy_market'
 BTC_USD_PAIR = Pair('USD', 'BTC')
@@ -28,18 +27,9 @@ def test_write_candle(influx_database: InfluxDBClient):
 
     storage.write_candle(_create_dummy_candle())
 
-    data = get_all_from_influx_db(influx_database, MEASUREMENT_CANDLES_NAME)
-    assert 1 == len(data)
-    expected_data = "{" \
-                    + "'time': '2017-07-02T00:00:00Z', " \
-                    + "'close': 8300, " \
-                    + "'high': 8100, " \
-                    + "'low': 8200, " \
-                    + "'market': 'dummy_market', " \
-                    + "'open': 8000, " \
-                    + "'pair': 'USD_BTC'" \
-                    + "}"
-    assert expected_data == str(data[0])
+    data = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR)
+    assert len(data) == 1
+    assert str(data[0]) == '2017-07-02T00:00:00+00:00 O:8000.00000000 H:8100.00000000 L:8200.00000000 C:8300.00000000'
 
 
 def test_write_candles(influx_database: InfluxDBClient):
@@ -47,10 +37,10 @@ def test_write_candles(influx_database: InfluxDBClient):
 
     storage.write_candles([_create_dummy_candle(1), _create_dummy_candle(2)])
 
-    data = get_all_from_influx_db(influx_database, MEASUREMENT_CANDLES_NAME)
-    assert 2 == len(data)
-    assert '2017-07-02T00:01:00Z' == data[0]['time']
-    assert '2017-07-02T00:02:00Z' == data[1]['time']
+    data = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR)
+    assert len(data) == 2
+    assert data[0].time.isoformat() == '2017-07-02T00:01:00+00:00'
+    assert data[1].time.isoformat() == '2017-07-02T00:02:00+00:00'
 
 
 def test_write_zero_candles():

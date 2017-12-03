@@ -6,8 +6,7 @@ from influxdb import InfluxDBClient
 
 from coinrat.domain import Order, ORDER_TYPE_LIMIT, Pair, DIRECTION_BUY, DIRECTION_SELL, \
     ORDER_STATUS_OPEN, ORDER_STATUS_CLOSED
-from coinrat_influx_db_storage.order_storage import OrderInnoDbStorage, MEASUREMENT_ORDERS_NAME
-from coinrat_influx_db_storage.test.utils import get_all_from_influx_db
+from coinrat_influx_db_storage.order_storage import OrderInnoDbStorage
 
 DUMMY_MARKET = 'dummy_market'
 BTC_USD_PAIR = Pair('USD', 'BTC')
@@ -39,21 +38,19 @@ def test_save_oder(influx_database: InfluxDBClient):
 
     storage.save_order(DUMMY_ORDER)
 
-    data = get_all_from_influx_db(influx_database, MEASUREMENT_ORDERS_NAME)
+    data = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR)
     assert len(data) == 1
-    expected_data = "{" \
-                    + "'time': '2017-11-26T10:11:12Z', " \
-                    + "'direction': 'buy', " \
-                    + "'id_on_market': 'aaa-id-from-market', " \
-                    + "'market': 'dummy_market', " \
-                    + "'order_id': '16fd2706-8baf-433b-82eb-8c7fada847da', " \
-                    + "'pair': 'USD_BTC', " \
-                    + "'quantity': 1, " \
-                    + "'rate': 8000, " \
-                    + "'status': 'open', " \
-                    + "'type': 'limit'" \
-                    + "}"
-    assert str(data[0]) == expected_data
+    expected = 'BUY-OPEN, ' \
+               + 'Id: "16fd2706-8baf-433b-82eb-8c7fada847da", ' \
+               + 'Market: "dummy_market", ' \
+               + 'Created: "2017-11-26T10:11:12+00:00", ' \
+               + 'Closed: "None", ' \
+               + 'ID on market: "aaa-id-from-market", ' \
+               + 'Pair: [USD-BTC], ' \
+               + 'Type: "limit", ' \
+               + 'Rate: "8000.00000000", ' \
+               + 'Quantity: "1.00000000"'
+    assert str(data[0]) == expected
 
 
 def test_find_by(influx_database: InfluxDBClient):
