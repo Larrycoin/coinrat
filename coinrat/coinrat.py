@@ -4,7 +4,10 @@ import datetime
 import dateutil.parser
 import click
 import sys
+import eventlet.wsgi
+import socketio
 
+from flask import Flask
 from logging.handlers import RotatingFileHandler
 from typing import Tuple
 from os.path import join, dirname
@@ -12,6 +15,8 @@ from os.path import join, dirname
 from click import Context
 from dotenv import load_dotenv
 
+from .domain import CurrentUtcDateTimeFactory
+from .server import create_socket_io
 from .order_storage_plugins import OrderStoragePlugins
 from .market_plugins import MarketPlugins
 from .candle_storage_plugins import CandleStoragePlugins
@@ -25,10 +30,10 @@ dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
 
 # Todo: solve proper logging configuration
-logs_file = join(dirname(__file__), '../logs/log.log')
-logger = logging.getLogger()
-logger.addHandler(RotatingFileHandler(logs_file, maxBytes=200000, backupCount=5))
-logger.setLevel(logging.INFO)
+# logs_file = join(dirname(__file__), '../logs/log.log')
+# logger = logging.getLogger()
+# logger.addHandler(RotatingFileHandler(logs_file, maxBytes=200000, backupCount=5))
+# logger.setLevel(logging.INFO)
 
 candle_storage_plugins = CandleStoragePlugins()
 order_storage_plugins = OrderStoragePlugins()
@@ -163,6 +168,13 @@ def testing(ctx: Context) -> None:  # Todo: Used only for testing during develop
     pair = Pair('USD', 'BTC')
     market = market_plugins.get_market('bittrex')
     print(market.get_pair_market_info(pair))
+
+
+@cli.command(help="Starts an socket server for communication with frontend.")
+def start_server():
+    socket_io = create_socket_io(CurrentUtcDateTimeFactory())
+    app = socketio.Middleware(socket_io, Flask(__name__))
+    eventlet.wsgi.server(eventlet.listen(('localhost', 8000)), app)
 
 
 def main():

@@ -1,28 +1,25 @@
 import socketio
-import eventlet.wsgi
-from flask import Flask
 
-sio = socketio.Server()
-app = Flask(__name__)
+from coinrat.domain import DateTimeFactory
 
-
-@sio.on('connect', namespace='/')
-def connect(sid, environ):
-    print("connect ", sid)
-    sio.emit('event', room=sid)
+PING_REQUEST = 'ping_request'
+PING_RESPONSE = 'ping_response'
 
 
-@sio.on('event', namespace='/')
-def message(sid, data):
-    print("event ", data)
-    sio.emit('event', room=sid)
+def create_socket_io(datetime_factory: DateTimeFactory):
+    sio = socketio.Server()
 
+    @sio.on('connect')
+    def connect(sid, environ):
+        print("connect ", sid)
 
-@sio.on('disconnect', namespace='/chat')
-def disconnect(sid):
-    print('disconnect ', sid)
+    @sio.on(PING_REQUEST)
+    def ping_request(sid, data):
+        data['response_timestamp'] = datetime_factory.now().timestamp()
+        sio.emit(PING_RESPONSE, data)
 
+    @sio.on('disconnect')
+    def disconnect(sid):
+        print('disconnect ', sid)
 
-if __name__ == '__main__':
-    app = socketio.Middleware(sio, app)
-    eventlet.wsgi.server(eventlet.listen(('localhost', 8000)), app)
+    return sio
