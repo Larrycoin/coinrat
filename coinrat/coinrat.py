@@ -5,6 +5,7 @@ import dateutil.parser
 import click
 import sys
 import eventlet.wsgi
+import os
 import socketio
 
 from flask import Flask
@@ -15,8 +16,8 @@ from os.path import join, dirname
 from click import Context
 from dotenv import load_dotenv
 
+from .server.server_factory import create_socket_io
 from .domain import CurrentUtcDateTimeFactory
-from .server import create_socket_io
 from .order_storage_plugins import OrderStoragePlugins
 from .market_plugins import MarketPlugins
 from .candle_storage_plugins import CandleStoragePlugins
@@ -171,10 +172,16 @@ def testing(ctx: Context) -> None:  # Todo: Used only for testing during develop
 
 
 @cli.command(help="Starts an socket server for communication with frontend.")
-def start_server():
-    socket_io = create_socket_io(CurrentUtcDateTimeFactory())
+@click.pass_context
+def start_server(ctx: Context):
+    storage = ctx.obj['influxdb_candle_storage']
+
+    socket_io = create_socket_io(CurrentUtcDateTimeFactory(), storage)
     app = socketio.Middleware(socket_io, Flask(__name__))
-    eventlet.wsgi.server(eventlet.listen(('localhost', 8000)), app)
+    eventlet.wsgi.server(eventlet.listen((
+        os.environ.get('SOCKET_SERVER_HOST'),
+        int(os.environ.get('SOCKET_SERVER_PORT')),
+    )), app)
 
 
 def main():
