@@ -6,6 +6,7 @@ from decimal import Decimal
 from requests import Session, RequestException, TooManyRedirects
 from coinrat.domain.candle import MinuteCandle, CandleStorage
 from coinrat.domain import MarketStateSynchronizer, Pair
+from coinrat.event_emitter import EventEmitter
 
 MINUTE_CANDLE_URL = 'https://min-api.cryptocompare.com/data/histominute?fsym={}&tsym={}&limit=1&aggregate=1&e={}'
 MARKET_MAP = {
@@ -25,6 +26,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
         self,
         market_name: str,
         storage: CandleStorage,
+        event_emitter: EventEmitter,
         session: Session,
         delay: int = 30,
         number_of_runs: Union[int, None] = None,
@@ -33,6 +35,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
     ) -> None:
         self._market_name = market_name
         self._storage = storage
+        self._event_emitter = event_emitter
         self._session = session
         self._delay = delay
         self._number_of_runs = number_of_runs
@@ -48,6 +51,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
             candles_data: List[Dict] = data['Data']
             candles = [self._create_candle_from_raw(pair, candle) for candle in candles_data]
             self._storage.write_candles(candles)
+            self._event_emitter.emit_new_candles(candles)
 
             if self._number_of_runs is not None:  # pragma: no cover
                 self._number_of_runs -= 1

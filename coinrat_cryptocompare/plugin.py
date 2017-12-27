@@ -21,11 +21,12 @@ class SynchronizerPlugin(SynchronizerPluginSpecification):
         return [SYNCHRONIZER_NAME]
 
     @get_synchronizer_impl
-    def get_synchronizer(self, name, storage):
+    def get_synchronizer(self, name, storage, event_emitter):
         if name == SYNCHRONIZER_NAME:
             return CryptocompareSynchronizer(
                 'bittrex',  # Todo: make this parameter as well as times and delays
                 storage,
+                event_emitter,
                 requests.session()
             )
 

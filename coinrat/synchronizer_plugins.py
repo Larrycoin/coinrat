@@ -1,6 +1,7 @@
 import pluggy
 from typing import List, Set
 
+from .event_emitter import EventEmitter
 from .plugins import PluginSpecification, plugins_loader
 from .domain import MarketStateSynchronizer
 from .domain.candle import CandleStorage
@@ -21,7 +22,7 @@ class SynchronizerPluginSpecification(PluginSpecification):
         pass
 
     @get_synchronizer_spec
-    def get_synchronizer(self, name, storage):
+    def get_synchronizer(self, name, storage, event_emitter):
         pass
 
 
@@ -41,9 +42,9 @@ class SynchronizerPlugins:
             synchronize_name for plugin in self._plugins for synchronize_name in plugin.get_available_synchronizers()
         ]
 
-    def get_synchronizer(self, name: str, storage: CandleStorage) -> MarketStateSynchronizer:
+    def get_synchronizer(self, name: str, storage: CandleStorage, event_emitter: EventEmitter) -> MarketStateSynchronizer:
         for plugin in self._plugins:
             if name in plugin.get_available_synchronizers():
-                return plugin.get_synchronizer(name, storage)
+                return plugin.get_synchronizer(name, storage, event_emitter)
 
         raise SynchronizerNotProvidedByAnyPluginException('Synchronizer "{}" not found.'.format(name))

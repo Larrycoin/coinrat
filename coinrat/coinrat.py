@@ -1,22 +1,18 @@
-import logging
-
 import datetime
 import dateutil.parser
 import click
 import sys
-import eventlet.wsgi
-import os
-import socketio
-
-from flask import Flask
-from logging.handlers import RotatingFileHandler
 from typing import Tuple
 from os.path import join, dirname
 
+import os
+import pika
 from click import Context
 from dotenv import load_dotenv
 
-from .server.server_factory import create_socket_io
+from .event_emitter import EventEmitter
+from .server.rabbit_consumer import RabbitConsumer
+from .server.socket_server import SocketServer
 from .domain import CurrentUtcDateTimeFactory
 from .order_storage_plugins import OrderStoragePlugins
 from .market_plugins import MarketPlugins
@@ -50,6 +46,10 @@ strategy_plugins = StrategyPlugins()
 def cli(ctx: Context) -> None:
     ctx.obj['influxdb_candle_storage'] = candle_storage_plugins.get_candle_storage('influx_db')
     ctx.obj['influxdb_order_storage'] = order_storage_plugins.get_order_storage('influx_db')
+    ctx.obj['rabbit_connection'] = pika.BlockingConnection(
+        pika.ConnectionParameters(os.environ.get('RABBITMQ_SERVER_HOST'))
+    )
+    ctx.obj['event_emitter'] = EventEmitter(ctx.obj['rabbit_connection'])
 
 
 @cli.command(help='Shows available markets.')
@@ -132,7 +132,11 @@ Example:
 def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str]) -> None:
     pair = Pair(pair[0], pair[1])
 
-    synchronizer = synchronizer_plugins.get_synchronizer(synchronizer_name, ctx.obj['influxdb_candle_storage'])
+    synchronizer = synchronizer_plugins.get_synchronizer(
+        synchronizer_name,
+        ctx.obj['influxdb_candle_storage'],
+        ctx.obj['event_emitter']
+    )
     synchronizer.synchronize(pair)
 
 
@@ -174,14 +178,11 @@ def testing(ctx: Context) -> None:  # Todo: Used only for testing during develop
 @cli.command(help="Starts an socket server for communication with frontend.")
 @click.pass_context
 def start_server(ctx: Context):
-    storage = ctx.obj['influxdb_candle_storage']
+    socket_server = SocketServer(CurrentUtcDateTimeFactory(), ctx.obj['influxdb_candle_storage'])
+    rabbit_consumer = RabbitConsumer(ctx.obj['rabbit_connection'], socket_server)
 
-    socket_io = create_socket_io(CurrentUtcDateTimeFactory(), storage)
-    app = socketio.Middleware(socket_io, Flask(__name__))
-    eventlet.wsgi.server(eventlet.listen((
-        os.environ.get('SOCKET_SERVER_HOST'),
-        int(os.environ.get('SOCKET_SERVER_PORT')),
-    )), app)
+    socket_server.start()
+    rabbit_consumer.start()
 
 
 def main():
