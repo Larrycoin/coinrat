@@ -3,10 +3,9 @@ from typing import List
 
 import pika
 
-from .server.candle import serialize_candle
-from .domain.candle import MinuteCandle
-
-EVENT_NEW_CANDLE = 'new_candle'
+from coinrat.server.candle import serialize_candle
+from coinrat.domain.candle import MinuteCandle
+from .event_types import EVENT_NEW_CANDLE
 
 
 class EventEmitter:

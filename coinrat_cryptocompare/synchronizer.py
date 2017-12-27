@@ -6,7 +6,7 @@ from decimal import Decimal
 from requests import Session, RequestException, TooManyRedirects
 from coinrat.domain.candle import MinuteCandle, CandleStorage
 from coinrat.domain import MarketStateSynchronizer, Pair
-from coinrat.event_emitter import EventEmitter
+from coinrat.event.event_emitter import EventEmitter
 
 MINUTE_CANDLE_URL = 'https://min-api.cryptocompare.com/data/histominute?fsym={}&tsym={}&limit=1&aggregate=1&e={}'
 MARKET_MAP = {

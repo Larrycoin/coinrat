@@ -1,7 +1,7 @@
 import pluggy
 from typing import List, Set
 
-from .event_emitter import EventEmitter
+from coinrat.event.event_emitter import EventEmitter
 from .plugins import PluginSpecification, plugins_loader
 from .domain import MarketStateSynchronizer
 from .domain.candle import CandleStorage

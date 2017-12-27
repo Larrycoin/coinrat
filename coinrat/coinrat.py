@@ -1,4 +1,6 @@
 import datetime
+import logging
+
 import dateutil.parser
 import click
 import sys
@@ -10,7 +12,7 @@ import pika
 from click import Context
 from dotenv import load_dotenv
 
-from .event_emitter import EventEmitter
+from .event.event_emitter import EventEmitter
 from .server.rabbit_consumer import RabbitConsumer
 from .server.socket_server import SocketServer
 from .domain import CurrentUtcDateTimeFactory
@@ -25,6 +27,9 @@ from .domain.order import OrderExporter
 
 dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
+
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
 
 # Todo: solve proper logging configuration
 # logs_file = join(dirname(__file__), '../logs/log.log')

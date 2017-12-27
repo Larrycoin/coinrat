@@ -3,7 +3,7 @@ from typing import Union
 
 from coinrat.domain.candle import CandleStorage
 from coinrat.domain import MarketStateSynchronizer, Pair
-from coinrat.event_emitter import EventEmitter
+from coinrat.event.event_emitter import EventEmitter
 from .market import BittrexMarket
 
 
