@@ -183,7 +183,11 @@ def testing(ctx: Context) -> None:  # Todo: Used only for testing during develop
 @cli.command(help="Starts an socket server for communication with frontend.")
 @click.pass_context
 def start_server(ctx: Context):
-    socket_server = SocketServer(CurrentUtcDateTimeFactory(), ctx.obj['influxdb_candle_storage'])
+    socket_server = SocketServer(
+        CurrentUtcDateTimeFactory(),
+        ctx.obj['influxdb_candle_storage'],
+        ctx.obj['influxdb_order_storage'],
+    )
     rabbit_consumer = RabbitConsumer(ctx.obj['rabbit_connection'], socket_server)
 
     socket_server.start()
