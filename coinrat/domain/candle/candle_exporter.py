@@ -24,7 +24,7 @@ class CandleExporter:
         interval: DateTimeInterval = DateTimeInterval(None, None)
     ):
         candles = self._candle_storage.find_by(market_name=market_name, pair=pair, interval=interval)
-        data = list(map(self._serialize_candle_to_json_serializable, candles))
+        data = list(map(self.serialize_candle_to_json_serializable, candles))
 
         with open(filename, 'w') as outfile:
             json.dump(data, outfile)
@@ -32,11 +32,11 @@ class CandleExporter:
     def import_from_file(self, filename: str):
         with open(filename) as json_file:
             data = json.load(json_file)
-            candles = list(map(self._create_candle_from_data, data))
+            candles = list(map(self.create_candle_from_data, data))
             self._candle_storage.write_candles(candles)
 
     @staticmethod
-    def _serialize_candle_to_json_serializable(candle: MinuteCandle):
+    def serialize_candle_to_json_serializable(candle: MinuteCandle):
         return {
             'market': candle.market_name,
             'pair': CandleExporter._create_pair_identifier(candle.pair),
@@ -48,7 +48,7 @@ class CandleExporter:
         }
 
     @staticmethod
-    def _create_candle_from_data(row: Dict) -> MinuteCandle:
+    def create_candle_from_data(row: Dict) -> MinuteCandle:
         return MinuteCandle(
             row['market'],
             CandleExporter._create_pair_from_identifier(row['pair']),

@@ -25,3 +25,8 @@ class Pair:
 
     def __repr__(self):
         return '{}-{}'.format(self._base_currency, self._market_currency)
+
+    @staticmethod
+    def from_string(raw_pair: str):
+        pair_data = raw_pair.split('_')
+        return Pair(pair_data[0], pair_data[1])

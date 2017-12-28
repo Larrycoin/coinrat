@@ -33,5 +33,6 @@ __all__ = [
     'ORDER_FIELD_CLOSED_AT',
     'ORDER_FIELD_CANCELED_AT',
 
+    'OrderStorage',
     'OrderExporter',
 ]

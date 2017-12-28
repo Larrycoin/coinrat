@@ -9,20 +9,11 @@ from .datetime_interval import DateTimeInterval
 
 __all__ = [
     'Balance',
-
-    'MinuteCandle',
-
     'ForEndUserException',
-
     'Market', 'PairMarketInfo', 'MarketOrderException',
-
     'Pair',
-
-    'Strategy', 'StrategyException', 'StrategyConfigurationException',
-
+    'Strategy', 'StrategyConfigurationException',
     'MarketStateSynchronizer',
-
     'DateTimeFactory', 'CurrentUtcDateTimeFactory', 'FrozenDateTimeFactory',
-
     'DateTimeInterval'
 ]

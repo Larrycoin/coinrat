@@ -24,7 +24,7 @@ class OrderExporter:
         interval: DateTimeInterval = DateTimeInterval(None, None)
     ):
         orders = self._order_storage.find_by(market_name=market_name, pair=pair, interval=interval)
-        data = list(map(self._serialize_order_to_json_serializable, orders))
+        data = list(map(self.serialize_order_to_json_serializable, orders))
 
         with open(filename, 'w') as outfile:
             json.dump(data, outfile)
@@ -32,12 +32,12 @@ class OrderExporter:
     def import_from_file(self, filename: str):
         with open(filename) as json_file:
             data = json.load(json_file)
-            orders = list(map(self._create_order_from_data, data))
+            orders = list(map(self.create_order_from_data, data))
             for order in orders:
                 self._order_storage.save_order(order)
 
     @staticmethod
-    def _serialize_order_to_json_serializable(order: Order):
+    def serialize_order_to_json_serializable(order: Order):
         return {
             ORDER_FIELD_ORDER_ID: str(order.order_id),
             ORDER_FIELD_MARKET: order.market_name,
@@ -54,7 +54,7 @@ class OrderExporter:
         }
 
     @staticmethod
-    def _create_order_from_data(row: Dict) -> Order:
+    def create_order_from_data(row: Dict) -> Order:
         closed_at = row[ORDER_FIELD_CLOSED_AT]
         if closed_at is not None:
             closed_at = dateutil.parser.parse(closed_at).replace(tzinfo=datetime.timezone.utc)

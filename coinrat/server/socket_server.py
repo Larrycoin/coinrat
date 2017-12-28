@@ -6,19 +6,25 @@ from flask import Flask
 
 from coinrat.domain import DateTimeFactory
 from coinrat.domain.candle import CandleStorage
-from .pair import parse_pair
+from coinrat.domain import Pair
+from coinrat.domain.order import OrderStorage
+from .order import serialize_orders
 from .interval import parse_interval
 from .candle import serialize_candles, MinuteCandle, serialize_candle
 
 EVENT_PING_REQUEST = 'ping_request'
 EVENT_PING_RESPONSE = 'ping_response'
+
 EVENT_GET_CANDLES = 'get_candles'
 EVENT_NEW_CANDLES = 'new_candles'
+
+EVENT_GET_ORDERS = 'get_orders'
+EVENT_NEW_ORDERS = 'new_orders'
 
 
 class SocketServer(threading.Thread):
 
-    def __init__(self, datetime_factory: DateTimeFactory, candle_storage: CandleStorage):
+    def __init__(self, datetime_factory: DateTimeFactory, candle_storage: CandleStorage, orders_storage: OrderStorage):
         super().__init__()
         socket = socketio.Server(async_mode='threading')
 
@@ -35,11 +41,21 @@ class SocketServer(threading.Thread):
         def candles(sid, data):
             result_candles = candle_storage.find_by(
                 data['market_name'],
-                parse_pair(data['pair']),
+                Pair.from_string(data['pair']),
                 parse_interval(data['interval'])
             )
 
             return 'OK', serialize_candles(result_candles)
+
+        @socket.on(EVENT_GET_ORDERS)
+        def orders(sid, data):
+            result_orders = orders_storage.find_by(
+                data['market_name'],
+                Pair.from_string(data['pair']),
+                interval=parse_interval(data['interval'])
+            )
+
+            return 'OK', serialize_orders(result_orders)
 
         @socket.on('disconnect')
         def disconnect(sid):
