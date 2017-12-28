@@ -1,6 +1,5 @@
+import logging
 import threading
-
-import eventlet.wsgi
 import os
 import socketio
 from flask import Flask
@@ -9,7 +8,7 @@ from coinrat.domain import DateTimeFactory
 from coinrat.domain.candle import CandleStorage
 from .pair import parse_pair
 from .interval import parse_interval
-from .candle import serialize_candles, MinuteCandle
+from .candle import serialize_candles, MinuteCandle, serialize_candle
 
 EVENT_PING_REQUEST = 'ping_request'
 EVENT_PING_RESPONSE = 'ping_response'
@@ -21,19 +20,18 @@ class SocketServer(threading.Thread):
 
     def __init__(self, datetime_factory: DateTimeFactory, candle_storage: CandleStorage):
         super().__init__()
+        socket = socketio.Server(async_mode='threading')
 
-        self.sio = socketio.Server()
-
-        @self.sio.on('connect')
+        @socket.on('connect')
         def connect(sid, environ):
             print("connect ", sid)
 
-        @self.sio.on(EVENT_PING_REQUEST)
+        @socket.on(EVENT_PING_REQUEST)
         def ping_request(sid, data):
             data['response_timestamp'] = datetime_factory.now().timestamp()
-            self.sio.emit(EVENT_PING_RESPONSE, data)
+            socket.emit(EVENT_PING_RESPONSE, data)
 
-        @self.sio.on(EVENT_GET_CANDLES)
+        @socket.on(EVENT_GET_CANDLES)
         def candles(sid, data):
             result_candles = candle_storage.find_by(
                 data['market_name'],
@@ -43,16 +41,22 @@ class SocketServer(threading.Thread):
 
             return 'OK', serialize_candles(result_candles)
 
-        @self.sio.on('disconnect')
+        @socket.on('disconnect')
         def disconnect(sid):
             print('disconnect ', sid)
 
+        self._socket = socket
+
     def emit_new_candle(self, candle: MinuteCandle):
-        self.sio.emit(EVENT_NEW_CANDLES, serialize_candles([candle]))
+        data = serialize_candle(candle)
+        logging.info('EMITTING: {}, {}'.format(EVENT_NEW_CANDLES, data))
+        self._socket.emit(EVENT_NEW_CANDLES, data)
 
     def run(self):
-        app = socketio.Middleware(self.sio, Flask(__name__))
-        eventlet.wsgi.server(eventlet.listen((
-            os.environ.get('SOCKET_SERVER_HOST'),
-            int(os.environ.get('SOCKET_SERVER_PORT')),
-        )), app)
+        app = Flask(__name__)
+        app.wsgi_app = socketio.Middleware(self._socket, app.wsgi_app)
+        app.run(
+            threaded=True,
+            host=os.environ.get('SOCKET_SERVER_HOST'),
+            port=int(os.environ.get('SOCKET_SERVER_PORT'))
+        )
