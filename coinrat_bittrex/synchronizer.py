@@ -29,7 +29,7 @@ class BittrexSynchronizer(MarketStateSynchronizer):
 
             candle = self._market.get_last_candle(pair)
             self._storage.write_candle(candle)
-            self._event_emitter.emit_new_candles([candle])
+            self._event_emitter.emit_new_candles(self._storage.name, [candle])
 
             if self._number_of_runs is not None:  # pragma: no cover
                 self._number_of_runs -= 1

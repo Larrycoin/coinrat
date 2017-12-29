@@ -45,3 +45,7 @@ class CandleStorage:
 
     def get_current_candle(self, market_name: str, pair: Pair) -> MinuteCandle:
         raise NotImplementedError()
+
+    @property
+    def name(self) -> str:
+        raise NotImplementedError()

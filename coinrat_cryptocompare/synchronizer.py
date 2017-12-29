@@ -51,7 +51,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
             candles_data: List[Dict] = data['Data']
             candles = [self._create_candle_from_raw(pair, candle) for candle in candles_data]
             self._storage.write_candles(candles)
-            self._event_emitter.emit_new_candles(candles)
+            self._event_emitter.emit_new_candles(self._storage.name, candles)
 
             if self._number_of_runs is not None:  # pragma: no cover
                 self._number_of_runs -= 1

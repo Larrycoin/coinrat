@@ -14,9 +14,10 @@ class EventEmitter:
         self.channel = rabbit_connection.channel()
         self.channel.queue_declare(queue='events')
 
-    def emit_new_candles(self, candles: List[MinuteCandle]) -> None:
+    def emit_new_candles(self, candle_storage: str, candles: List[MinuteCandle]) -> None:
         for candle in candles:
             self.channel.basic_publish(exchange='', routing_key='events', body=json.dumps({
                 'event': EVENT_NEW_CANDLE,
-                'data': serialize_candle(candle)
+                'candle': serialize_candle(candle),
+                'candle_storage': candle_storage
             }))

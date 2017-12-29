@@ -20,6 +20,10 @@ class CandleInnoDbStorage(CandleStorage):
     def __init__(self, influx_db_client: InfluxDBClient):
         self._client = influx_db_client
 
+    @property
+    def name(self) -> str:
+        return CANDLE_STORAGE_NAME
+
     def write_candle(self, candle: MinuteCandle) -> None:
         self.write_candles([candle])
 

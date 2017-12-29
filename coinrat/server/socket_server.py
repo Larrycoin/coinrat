@@ -21,6 +21,9 @@ EVENT_NEW_CANDLES = 'new_candles'
 EVENT_GET_ORDERS = 'get_orders'
 EVENT_NEW_ORDERS = 'new_orders'
 
+EVENT_SUBSCRIBE = 'subscribe'
+EVENT_UNSUBSCRIBE = 'unsubscribe'
+
 
 class SocketServer(threading.Thread):
 
@@ -89,3 +92,7 @@ class SocketServer(threading.Thread):
             host=os.environ.get('SOCKET_SERVER_HOST'),
             port=int(os.environ.get('SOCKET_SERVER_PORT'))
         )
+
+    def register_subscribes(self, on_subscribe: callable, on_unsubscribe: callable):
+        self._socket.on(EVENT_SUBSCRIBE, on_subscribe)
+        self._socket.on(EVENT_UNSUBSCRIBE, on_unsubscribe)

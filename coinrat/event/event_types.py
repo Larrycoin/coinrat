@@ -1,1 +1,5 @@
 EVENT_NEW_CANDLE = 'new_candle'
+
+ALL_RABBIT_EVENTS = [
+    EVENT_NEW_CANDLE,
+]

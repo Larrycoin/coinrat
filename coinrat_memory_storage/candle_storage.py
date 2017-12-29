@@ -13,6 +13,10 @@ class CandleMemoryStorage(CandleStorage):
         self._candles: Dict[MinuteCandle] = {}
         self._current_candle: Union[MinuteCandle, None] = None
 
+    @property
+    def name(self) -> str:
+        return CANDLE_STORAGE_NAME
+
     def write_candle(self, candle: MinuteCandle) -> None:
         self._candles[candle.time.isoformat()] = candle
         if self._current_candle is None or self._current_candle.time < candle.time:
