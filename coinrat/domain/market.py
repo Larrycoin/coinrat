@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Union
+from typing import Union, Dict
 
 from .order import Order, OrderMarketInfo
 from .pair import Pair
@@ -29,6 +29,10 @@ class PairMarketInfo:
 class Market:
     @property
     def name(self) -> str:
+        raise NotImplementedError()
+
+    @staticmethod
+    def get_configuration_structure() -> Dict:
         raise NotImplementedError()
 
     @property

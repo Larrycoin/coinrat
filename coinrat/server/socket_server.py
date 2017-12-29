@@ -1,28 +1,24 @@
 import logging
 import threading
 import os
+
+import datetime
 import socketio
 from flask import Flask
+import dateutil.parser
 
 from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.domain import DateTimeFactory
 from coinrat.domain import Pair
 from coinrat.order_storage_plugins import OrderStoragePlugins
+from coinrat.server.event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, EVENT_GET_ORDERS, \
+    EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_NEW_CANDLES
+from market_plugins import MarketPlugins
+from strategy_plugins import StrategyPlugins
+from strategy_replayer import StrategyReplayer
 from .order import serialize_orders
 from .interval import parse_interval
 from .candle import serialize_candles, MinuteCandle, serialize_candle
-
-EVENT_PING_REQUEST = 'ping_request'
-EVENT_PING_RESPONSE = 'ping_response'
-
-EVENT_GET_CANDLES = 'get_candles'
-EVENT_NEW_CANDLES = 'new_candles'
-
-EVENT_GET_ORDERS = 'get_orders'
-EVENT_NEW_ORDERS = 'new_orders'
-
-EVENT_SUBSCRIBE = 'subscribe'
-EVENT_UNSUBSCRIBE = 'unsubscribe'
 
 
 class SocketServer(threading.Thread):
@@ -31,7 +27,9 @@ class SocketServer(threading.Thread):
         self,
         datetime_factory: DateTimeFactory,
         candle_storage_plugins: CandleStoragePlugins,
-        orders_storage_plugins: OrderStoragePlugins
+        orders_storage_plugins: OrderStoragePlugins,
+        strategy_plugins: StrategyPlugins,
+        market_plugins: MarketPlugins
     ):
         super().__init__()
         socket = socketio.Server(async_mode='threading')
@@ -72,6 +70,30 @@ class SocketServer(threading.Thread):
             )
 
             return 'OK', serialize_orders(result_orders)
+
+        @socket.on(EVENT_RUN_REPLY)
+        def orders(sid, data):
+            start = dateutil.parser.parse(data['start']).replace(tzinfo=datetime.timezone.utc)
+            end = dateutil.parser.parse(data['start']).replace(tzinfo=datetime.timezone.utc)
+
+            configuration = {
+            }
+
+            orders_storage = orders_storage_plugins.get_order_storage(data['orders_storage'])
+            candle_storage = candle_storage_plugins.get_candle_storage(data['candles_storage'])
+            replayer = StrategyReplayer(strategy_plugins, market_plugins)
+            replayer.replay(
+                data['strategy_name'],
+                data['market'],
+                Pair.from_string(data['pair']),
+                candle_storage,
+                orders_storage,
+                start,
+                end,
+                configuration
+            )
+
+            return 'OK'
 
         @socket.on('disconnect')
         def disconnect(sid):

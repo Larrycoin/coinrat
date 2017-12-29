@@ -1,9 +1,6 @@
-import datetime
 import pluggy
 
 from coinrat.strategy_plugins import StrategyPluginSpecification
-from coinrat.domain import CurrentUtcDateTimeFactory
-
 from .strategy import DoubleCrossoverStrategy, STRATEGY_NAME
 
 get_name_impl = pluggy.HookimplMarker('strategy_plugins')
@@ -23,14 +20,13 @@ class StrategyPlugin(StrategyPluginSpecification):
         return [STRATEGY_NAME]
 
     @get_strategy_impl
-    def get_strategy(self, name, candle_storage, order_storage):
+    def get_strategy(self, name, candle_storage, order_storage, datetime_factory, configuration):
         if name == STRATEGY_NAME:
             return DoubleCrossoverStrategy(
                 candle_storage,
                 order_storage,
-                CurrentUtcDateTimeFactory(),
-                datetime.timedelta(hours=1),
-                datetime.timedelta(minutes=15)
+                datetime_factory,
+                configuration
             )
 
         raise ValueError('Strategy "{}" not supported by this plugin.'.format(name))

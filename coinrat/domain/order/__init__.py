@@ -35,4 +35,7 @@ __all__ = [
 
     'OrderStorage',
     'OrderExporter',
+
+    'DIRECTION_SELL',
+    'DIRECTION_BUY',
 ]

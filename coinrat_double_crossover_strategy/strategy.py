@@ -1,6 +1,6 @@
 import datetime, time
 import logging
-from typing import Union, Tuple, List
+from typing import Union, Tuple, List, Dict
 from decimal import Decimal
 
 import math
@@ -26,11 +26,15 @@ class DoubleCrossoverStrategy(Strategy):
         candle_storage: CandleStorage,
         order_storage: OrderStorage,
         datetime_factory: DateTimeFactory,
-        long_average_interval: datetime.timedelta,
-        short_average_interval: datetime.timedelta,
-        delay: int = 30,
-        number_of_runs: Union[int, None] = None
+        configuration
     ) -> None:
+        configuration = self.fill_missing_values_with_default(configuration)
+
+        long_average_interval: datetime.timedelta = configuration['long_average_interval'],
+        short_average_interval: datetime.timedelta = configuration['short_average_interval'],
+        delay: int = configuration['delay'],
+        number_of_runs: Union[int, None] = configuration['number_of_runs']
+
         assert short_average_interval < long_average_interval
 
         self._candle_storage = candle_storage
@@ -56,6 +60,24 @@ class DoubleCrossoverStrategy(Strategy):
 
         self._increment_tick_counter()
         time.sleep(self._delay)
+
+    @staticmethod
+    def get_configuration_structure() -> Dict:
+        return {
+            'long_average_interval': datetime.timedelta,
+            'short_average_interval': datetime.timedelta,
+            'delay': int,
+            'number_of_runs': Union[int, None]
+        }
+
+    @staticmethod
+    def fill_missing_values_with_default(configuration: Dict) -> Dict:
+        if 'delay' not in configuration:
+            configuration['delay'] = 30
+        if 'number_of_runs' not in configuration:
+            configuration['number_of_runs'] = None
+
+        return configuration
 
     def _increment_tick_counter(self):
         if self._number_of_runs is not None:  # pragma: no cover

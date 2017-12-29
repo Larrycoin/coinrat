@@ -50,6 +50,8 @@ def test_candle_ticks_are_stored(
 
     datetime_factory = FrozenDateTimeFactory(start)
 
+    # todo: use StrategyReplayer
+
     strategy = DoubleCrossoverStrategy(
         candle_storage,
         order_storage,

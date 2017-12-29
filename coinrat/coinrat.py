@@ -181,7 +181,12 @@ def testing(ctx: Context) -> None:  # Todo: Used only for testing during develop
 @cli.command(help="Starts an socket server for communication with frontend.")
 @click.pass_context
 def start_server(ctx: Context):
-    socket_server = SocketServer(CurrentUtcDateTimeFactory(), candle_storage_plugins, order_storage_plugins)
+    socket_server = SocketServer(
+        CurrentUtcDateTimeFactory(),
+        candle_storage_plugins,
+        order_storage_plugins,
+        strategy_plugins
+    )
     rabbit_consumer = RabbitConsumer(ctx.obj['rabbit_connection'], socket_server)
 
     socket_server.start()

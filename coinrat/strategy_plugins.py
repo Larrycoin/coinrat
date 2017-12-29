@@ -1,10 +1,11 @@
 import pluggy
 from typing import List, Set
 
+from coinrat.domain.order import OrderStorage
+from coinrat.domain import DateTimeFactory
 from .plugins import PluginSpecification, plugins_loader
 from .domain import Strategy
 from .domain.candle import CandleStorage
-from coinrat.domain.order import OrderStorage
 
 get_available_strategies_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_strategy_spec = pluggy.HookspecMarker('coinrat_plugins')
@@ -17,7 +18,7 @@ class StrategyPluginSpecification(PluginSpecification):
         pass
 
     @get_strategy_spec
-    def get_strategy(self, name, candle_storage, order_storage):
+    def get_strategy(self, name, candle_storage, order_storage, datetime_factory, configuration):
         pass
 
 
@@ -39,10 +40,12 @@ class StrategyPlugins:
         self,
         name: str,
         candle_storage: CandleStorage,
-        order_storage: OrderStorage
+        order_storage: OrderStorage,
+        datetime_factory: DateTimeFactory,
+        configuration
     ) -> Strategy:
         for plugin in self._plugins:
             if name in plugin.get_available_strategies():
-                return plugin.get_strategy(name, candle_storage, order_storage)
+                return plugin.get_strategy(name, candle_storage, order_storage, datetime_factory, configuration)
 
         raise StrategyNotProvidedByAnyPluginException('Strategy "{}" not found.'.format(name))

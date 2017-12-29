@@ -20,6 +20,10 @@ class BittrexMarket(Market):
         self._client_v1 = client_v1
         self._client_v2 = client_v2
 
+    @staticmethod
+    def get_configuration_structure() -> Dict:
+        return {}
+
     @property
     def name(self) -> str:
         return MARKET_NAME

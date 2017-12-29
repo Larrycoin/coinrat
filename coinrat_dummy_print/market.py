@@ -1,5 +1,6 @@
 import uuid
 from decimal import Decimal
+from typing import Dict
 
 from coinrat.domain import Market, Balance, Pair, PairMarketInfo, DateTimeFactory
 from coinrat.domain.order import ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY, Order, OrderMarketInfo
@@ -10,15 +11,20 @@ DUMMY_QUANTITY = Decimal(1)
 
 
 class PrintDummyMarket(Market):
-    def get_order_status(self, order: Order) -> OrderMarketInfo:
-        return OrderMarketInfo(order, True, None, DUMMY_QUANTITY)
 
-    def __init__(self, datetime_factory: DateTimeFactory, name: str = MARKET_NAME) -> None:
-        self._name = name
+    def __init__(self, datetime_factory: DateTimeFactory, configuration: Dict) -> None:
+        self._name = configuration['mocked_market_name'] if 'mocked_market_name' in configuration else MARKET_NAME
         self._datetime_factory = datetime_factory
+
+    @staticmethod
+    def get_configuration_structure() -> Dict:
+        return {'mocked_market_name': str}
 
     def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:
         return PairMarketInfo(pair, Decimal(0.004))
+
+    def get_order_status(self, order: Order) -> OrderMarketInfo:
+        return OrderMarketInfo(order, True, None, DUMMY_QUANTITY)
 
     @property
     def name(self) -> str:

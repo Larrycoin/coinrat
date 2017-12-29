@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from .coinrat import ForEndUserException
 from .market import Market
@@ -14,4 +14,8 @@ class Strategy:
         raise NotImplementedError()
 
     def tick(self, markets: List[Market], pair: Pair) -> None:
+        raise NotImplementedError()
+
+    @staticmethod
+    def get_configuration_structure() -> Dict:
         raise NotImplementedError()

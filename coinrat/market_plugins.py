@@ -1,8 +1,8 @@
 import pluggy
-from typing import List, Set
+from typing import List, Set, Dict
 
 from .plugins import PluginSpecification, plugins_loader
-from .domain import Market
+from .domain import Market, DateTimeFactory
 
 get_available_markets_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_market_spec = pluggy.HookspecMarker('coinrat_plugins')
@@ -15,7 +15,7 @@ class MarketPluginSpecification(PluginSpecification):
         pass
 
     @get_market_spec
-    def get_market(self, name):
+    def get_market(self, name, datetime_factory, configuration):
         pass
 
 
@@ -33,9 +33,9 @@ class MarketPlugins:
     def get_available_markets(self) -> List[str]:
         return [market_name for plugin in self._plugins for market_name in plugin.get_available_markets()]
 
-    def get_market(self, name: str) -> Market:
+    def get_market(self, name: str, datetime_factory: DateTimeFactory, configuration: Dict) -> Market:
         for plugin in self._plugins:
             if name in plugin.get_available_markets():
-                return plugin.get_market(name)
+                return plugin.get_market(name, datetime_factory, configuration)
 
         raise MarketNotProvidedByAnyPluginException('Market "{}" not found.'.format(name))
