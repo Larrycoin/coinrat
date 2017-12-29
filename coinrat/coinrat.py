@@ -175,19 +175,13 @@ def run_strategy(ctx: Context, strategy_name: str, pair: Tuple[str, str], market
 @cli.command()
 @click.pass_context
 def testing(ctx: Context) -> None:  # Todo: Used only for testing during development, remove it after
-    pair = Pair('USD', 'BTC')
-    market = market_plugins.get_market('bittrex')
-    print(market.get_pair_market_info(pair))
+    print(candle_storage_plugins.get_available_candle_storages())
 
 
 @cli.command(help="Starts an socket server for communication with frontend.")
 @click.pass_context
 def start_server(ctx: Context):
-    socket_server = SocketServer(
-        CurrentUtcDateTimeFactory(),
-        ctx.obj['influxdb_candle_storage'],
-        ctx.obj['influxdb_order_storage'],
-    )
+    socket_server = SocketServer(CurrentUtcDateTimeFactory(), candle_storage_plugins, order_storage_plugins)
     rabbit_consumer = RabbitConsumer(ctx.obj['rabbit_connection'], socket_server)
 
     socket_server.start()

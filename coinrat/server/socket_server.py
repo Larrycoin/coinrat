@@ -4,10 +4,10 @@ import os
 import socketio
 from flask import Flask
 
+from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.domain import DateTimeFactory
-from coinrat.domain.candle import CandleStorage
 from coinrat.domain import Pair
-from coinrat.domain.order import OrderStorage
+from coinrat.order_storage_plugins import OrderStoragePlugins
 from .order import serialize_orders
 from .interval import parse_interval
 from .candle import serialize_candles, MinuteCandle, serialize_candle
@@ -24,7 +24,12 @@ EVENT_NEW_ORDERS = 'new_orders'
 
 class SocketServer(threading.Thread):
 
-    def __init__(self, datetime_factory: DateTimeFactory, candle_storage: CandleStorage, orders_storage: OrderStorage):
+    def __init__(
+        self,
+        datetime_factory: DateTimeFactory,
+        candle_storage_plugins: CandleStoragePlugins,
+        orders_storage_plugins: OrderStoragePlugins
+    ):
         super().__init__()
         socket = socketio.Server(async_mode='threading')
 
@@ -39,6 +44,10 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_GET_CANDLES)
         def candles(sid, data):
+            if 'candles_storage' not in data:
+                return 'ERROR', {'message': 'Missing "candle_storage" field in request.'}
+
+            candle_storage = candle_storage_plugins.get_candle_storage(data['candles_storage'])
             result_candles = candle_storage.find_by(
                 data['market_name'],
                 Pair.from_string(data['pair']),
@@ -49,6 +58,10 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_GET_ORDERS)
         def orders(sid, data):
+            if 'orders_storage' not in data:
+                return 'ERROR', {'message': 'Missing "orders_storage" field in request.'}
+
+            orders_storage = orders_storage_plugins.get_order_storage(data['orders_storage'])
             result_orders = orders_storage.find_by(
                 data['market_name'],
                 Pair.from_string(data['pair']),
