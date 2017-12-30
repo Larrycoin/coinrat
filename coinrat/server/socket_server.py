@@ -13,9 +13,9 @@ from coinrat.domain import Pair
 from coinrat.order_storage_plugins import OrderStoragePlugins
 from coinrat.server.event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, EVENT_GET_ORDERS, \
     EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_NEW_CANDLES
-from market_plugins import MarketPlugins
-from strategy_plugins import StrategyPlugins
-from strategy_replayer import StrategyReplayer
+from coinrat.market_plugins import MarketPlugins
+from coinrat.strategy_plugins import StrategyPlugins
+from coinrat.strategy_replayer import StrategyReplayer
 from .order import serialize_orders
 from .interval import parse_interval
 from .candle import serialize_candles, MinuteCandle, serialize_candle

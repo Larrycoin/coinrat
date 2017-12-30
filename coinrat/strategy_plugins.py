@@ -1,5 +1,5 @@
 import pluggy
-from typing import List, Set
+from typing import List, Set, Dict
 
 from coinrat.domain.order import OrderStorage
 from coinrat.domain import DateTimeFactory
@@ -42,7 +42,7 @@ class StrategyPlugins:
         candle_storage: CandleStorage,
         order_storage: OrderStorage,
         datetime_factory: DateTimeFactory,
-        configuration
+        configuration: Dict
     ) -> Strategy:
         for plugin in self._plugins:
             if name in plugin.get_available_strategies():

@@ -162,6 +162,12 @@ def run_strategy(ctx: Context, strategy_name: str, pair: Tuple[str, str], market
         strategy_name,
         ctx.obj['influxdb_candle_storage'],
         ctx.obj['influxdb_order_storage'],
+        CurrentUtcDateTimeFactory(),
+        # todo: make it configurable by definition from cmd line
+        {
+            'long_average_interval': datetime.timedelta(hours=1),
+            'short_average_interval': datetime.timedelta(minutes=15),
+        }
     )
 
     try:
@@ -185,7 +191,8 @@ def start_server(ctx: Context):
         CurrentUtcDateTimeFactory(),
         candle_storage_plugins,
         order_storage_plugins,
-        strategy_plugins
+        strategy_plugins,
+        market_plugins
     )
     rabbit_consumer = RabbitConsumer(ctx.obj['rabbit_connection'], socket_server)
 

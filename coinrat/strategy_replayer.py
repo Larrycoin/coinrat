@@ -4,8 +4,8 @@ from typing import Dict
 from coinrat.domain import FrozenDateTimeFactory, Pair
 from coinrat.domain.candle import CandleStorage
 from coinrat.domain.order import OrderStorage
-from market_plugins import MarketPlugins
-from strategy_plugins import StrategyPlugins
+from coinrat.market_plugins import MarketPlugins
+from coinrat.strategy_plugins import StrategyPlugins
 
 
 class StrategyReplayer:
