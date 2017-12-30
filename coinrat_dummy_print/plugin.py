@@ -11,9 +11,6 @@ get_market_impl = pluggy.HookimplMarker('market_plugins')
 
 PLUGIN_NAME = 'coinrat_dummy_print'
 
-get_available_synchronizers_spec = pluggy.HookimplMarker('synchronizer_plugins')
-get_synchronizer_impl = pluggy.HookimplMarker('synchronizer_plugins')
-
 
 class MarketPlugin(MarketPluginSpecification):
     @get_name_impl

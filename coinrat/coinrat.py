@@ -7,20 +7,11 @@ import sys
 from typing import Tuple
 from os.path import join, dirname
 
-import os
-import pika
 from click import Context
 from dotenv import load_dotenv
 
-from .event.event_emitter import EventEmitter
-from .server.rabbit_consumer import RabbitConsumer
-from .server.socket_server import SocketServer
+from .di_container import DiContainer
 from .domain import CurrentUtcDateTimeFactory
-from .order_storage_plugins import OrderStoragePlugins
-from .market_plugins import MarketPlugins
-from .candle_storage_plugins import CandleStoragePlugins
-from .synchronizer_plugins import SynchronizerPlugins
-from .strategy_plugins import StrategyPlugins
 from .domain import Pair, ForEndUserException, DateTimeInterval
 from .domain.candle import CandleExporter
 from .domain.order import OrderExporter
@@ -37,11 +28,7 @@ root.setLevel(logging.DEBUG)
 # logger.addHandler(RotatingFileHandler(logs_file, maxBytes=200000, backupCount=5))
 # logger.setLevel(logging.INFO)
 
-candle_storage_plugins = CandleStoragePlugins()
-order_storage_plugins = OrderStoragePlugins()
-market_plugins = MarketPlugins()
-synchronizer_plugins = SynchronizerPlugins()
-strategy_plugins = StrategyPlugins()
+di_container = DiContainer()
 
 
 @click.group('coinrat')
@@ -49,25 +36,20 @@ strategy_plugins = StrategyPlugins()
 @click.help_option()
 @click.pass_context
 def cli(ctx: Context) -> None:
-    ctx.obj['influxdb_candle_storage'] = candle_storage_plugins.get_candle_storage('influx_db')
-    ctx.obj['influxdb_order_storage'] = order_storage_plugins.get_order_storage('influx_db')
-    ctx.obj['rabbit_connection'] = pika.BlockingConnection(
-        pika.ConnectionParameters(os.environ.get('RABBITMQ_SERVER_HOST'))
-    )
-    ctx.obj['event_emitter'] = EventEmitter(ctx.obj['rabbit_connection'])
+    pass
 
 
 @cli.command(help='Shows available markets.')
 def markets() -> None:
     click.echo('Available markers:')
-    for market_name in market_plugins.get_available_markets():
+    for market_name in di_container.market_plugins.get_available_markets():
         click.echo('  - {}'.format(market_name))
 
 
 @cli.command(help='Shows available synchronizers.')
 def synchronizers() -> None:
     click.echo('Available synchronizers:')
-    for synchronizer_name in synchronizer_plugins.get_available_synchronizers():
+    for synchronizer_name in di_container.synchronizer_plugins.get_available_synchronizers():
         click.echo('  - {}'.format(synchronizer_name))
 
 
@@ -87,7 +69,7 @@ def export_candles(
     interval: Tuple[str, str],
     output_file: str
 ) -> None:
-    storage = ctx.obj['influxdb_candle_storage']
+    storage = di_container.candle_storage_plugins.get_candle_storage('influxdb_candle_storage')
     pair = Pair(pair[0], pair[1])
     interval = DateTimeInterval(
         dateutil.parser.parse(interval[0]).replace(tzinfo=datetime.timezone.utc),
@@ -115,7 +97,7 @@ def export_orders(
     interval: Tuple[str, str],
     output_file: str
 ) -> None:
-    storage = ctx.obj['influxdb_candle_storage']
+    storage = di_container.order_storage_plugins.get_order_storage('influxdb_order_storage')
     pair = Pair(pair[0], pair[1])
     interval = DateTimeInterval(
         dateutil.parser.parse(interval[0]).replace(tzinfo=datetime.timezone.utc),
@@ -137,7 +119,7 @@ Example:
 def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str]) -> None:
     pair = Pair(pair[0], pair[1])
 
-    synchronizer = synchronizer_plugins.get_synchronizer(
+    synchronizer = di_container.synchronizer_plugins.get_synchronizer(
         synchronizer_name,
         ctx.obj['influxdb_candle_storage'],
         ctx.obj['event_emitter']
@@ -158,7 +140,7 @@ Example:
 def run_strategy(ctx: Context, strategy_name: str, pair: Tuple[str, str], market_names: Tuple[str]) -> None:
     pair = Pair(pair[0], pair[1])
 
-    strategy = strategy_plugins.get_strategy(
+    strategy = di_container.strategy_plugins.get_strategy(
         strategy_name,
         ctx.obj['influxdb_candle_storage'],
         ctx.obj['influxdb_order_storage'],
@@ -171,7 +153,10 @@ def run_strategy(ctx: Context, strategy_name: str, pair: Tuple[str, str], market
     )
 
     try:
-        markers = [market_plugins.get_market(marker_name) for marker_name in market_names]
+        markers = [
+            di_container.market_plugins.get_market(marker_name, CurrentUtcDateTimeFactory(), {})
+            for marker_name in market_names
+        ]
         strategy.run(markers, pair)
     except ForEndUserException as e:
         click.echo('ERROR: {}'.format(e), err=True)
@@ -181,23 +166,20 @@ def run_strategy(ctx: Context, strategy_name: str, pair: Tuple[str, str], market
 @cli.command()
 @click.pass_context
 def testing(ctx: Context) -> None:  # Todo: Used only for testing during development, remove it after
-    print(candle_storage_plugins.get_available_candle_storages())
+    print(di_container.candle_storage_plugins.get_available_candle_storages())
 
 
 @cli.command(help="Starts an socket server for communication with frontend.")
 @click.pass_context
 def start_server(ctx: Context):
-    socket_server = SocketServer(
-        CurrentUtcDateTimeFactory(),
-        candle_storage_plugins,
-        order_storage_plugins,
-        strategy_plugins,
-        market_plugins
-    )
-    rabbit_consumer = RabbitConsumer(ctx.obj['rabbit_connection'], socket_server)
+    di_container.socket_server.start()
+    di_container.rabbit_event_consumer.start()
 
-    socket_server.start()
-    rabbit_consumer.start()
+
+@cli.command(help="Runs consumer of planned tasks.")
+@click.pass_context
+def start_task_consumer(ctx: Context):
+    di_container.task_consumer.run()
 
 
 def main():

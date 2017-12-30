@@ -9,7 +9,6 @@ from coinrat.strategy_plugins import StrategyPlugins
 
 
 class StrategyReplayer:
-
     def __init__(self, strategy_plugins: StrategyPlugins, market_plugins: MarketPlugins) -> None:
         super().__init__()
         self.strategy_plugins = strategy_plugins
@@ -37,7 +36,9 @@ class StrategyReplayer:
         )
 
         market = self.market_plugins.get_market(market_name, datetime_factory, {'mocked_market_name': market_name})
-
+        print(datetime_factory.now())
+        print(end)
         while datetime_factory.now() < end:
+            print(1)
             strategy.tick([market], pair)
             datetime_factory.move(datetime.timedelta(seconds=10))

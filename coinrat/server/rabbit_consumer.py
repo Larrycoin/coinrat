@@ -14,7 +14,7 @@ from .candle import parse_candle
 from .socket_server import SocketServer
 
 
-class RabbitConsumer(threading.Thread):
+class RabbitEventConsumer(threading.Thread):
     def __init__(self, rabbit_connection: pika.BlockingConnection, socket_server: SocketServer):
         super().__init__()
 

@@ -1,11 +1,10 @@
+import json
 import logging
 import threading
 import os
 
-import datetime
 import socketio
 from flask import Flask
-import dateutil.parser
 
 from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.domain import DateTimeFactory
@@ -13,9 +12,7 @@ from coinrat.domain import Pair
 from coinrat.order_storage_plugins import OrderStoragePlugins
 from coinrat.server.event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, EVENT_GET_ORDERS, \
     EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_NEW_CANDLES
-from coinrat.market_plugins import MarketPlugins
-from coinrat.strategy_plugins import StrategyPlugins
-from coinrat.strategy_replayer import StrategyReplayer
+from coinrat.task.task_planner import TaskPlanner
 from .order import serialize_orders
 from .interval import parse_interval
 from .candle import serialize_candles, MinuteCandle, serialize_candle
@@ -25,13 +22,13 @@ class SocketServer(threading.Thread):
 
     def __init__(
         self,
+        task_planner: TaskPlanner,
         datetime_factory: DateTimeFactory,
         candle_storage_plugins: CandleStoragePlugins,
-        orders_storage_plugins: OrderStoragePlugins,
-        strategy_plugins: StrategyPlugins,
-        market_plugins: MarketPlugins
+        orders_storage_plugins: OrderStoragePlugins
     ):
         super().__init__()
+        self.task_planner = task_planner
         socket = socketio.Server(async_mode='threading')
 
         @socket.on('connect')
@@ -72,26 +69,9 @@ class SocketServer(threading.Thread):
             return 'OK', serialize_orders(result_orders)
 
         @socket.on(EVENT_RUN_REPLY)
-        def orders(sid, data):
-            start = dateutil.parser.parse(data['start']).replace(tzinfo=datetime.timezone.utc)
-            end = dateutil.parser.parse(data['start']).replace(tzinfo=datetime.timezone.utc)
-
-            configuration = {
-            }
-
-            orders_storage = orders_storage_plugins.get_order_storage(data['orders_storage'])
-            candle_storage = candle_storage_plugins.get_candle_storage(data['candles_storage'])
-            replayer = StrategyReplayer(strategy_plugins, market_plugins)
-            replayer.replay(
-                data['strategy_name'],
-                data['market'],
-                Pair.from_string(data['pair']),
-                candle_storage,
-                orders_storage,
-                start,
-                end,
-                configuration
-            )
+        def reply(sid, data):
+            logging.info('Received Strategy REPLAY request: ' + json.dumps(data))
+            self.task_planner.plan_replay_strategy(data)
 
             return 'OK'
 

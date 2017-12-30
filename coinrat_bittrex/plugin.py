@@ -28,7 +28,7 @@ class MarketPlugin(MarketPluginSpecification):
         return [MARKET_NAME]
 
     @get_market_impl
-    def get_market(self, name):
+    def get_market(self, name, datetime_factory, configuration):
         if name == MARKET_NAME:
             return bittrex_market
 
