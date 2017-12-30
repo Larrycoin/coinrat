@@ -45,7 +45,7 @@ class TaskConsumer:
             else:
                 logging.info("[Rabbit] Task received -> not supported | %r", decoded_body)
 
-        self._channel.basic_consume(rabbit_message_callback, queue='events', no_ack=True)
+        self._channel.basic_consume(rabbit_message_callback, queue='tasks', no_ack=True)
 
     def process_reply_strategy(self, data: Dict) -> None:
         logging.info("[Rabbit] Task %s -> not supported | %r", TASK_REPLY_STRATEGY, data)
@@ -57,6 +57,7 @@ class TaskConsumer:
         configuration = {
             'long_average_interval': datetime.timedelta(hours=1),
             'short_average_interval': datetime.timedelta(minutes=15),
+            'delay': 0,
         }
 
         orders_storage = self.orders_storage_plugins.get_order_storage(data['orders_storage'])
