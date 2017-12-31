@@ -27,11 +27,9 @@ class RabbitEventConsumer(threading.Thread):
 
         def on_subscribe(sid, data):
             if data['event'] == EVENT_NEW_CANDLE:
-                data['storage'] = data['candle_storage']
                 self._subscribe_for_new_entity_event(data)
 
             if data['event'] == EVENT_NEW_ORDER:
-                data['storage'] = data['order_storage']
                 self._subscribe_for_new_entity_event(data)
 
         def on_unsubscribe(sid, data):
@@ -85,7 +83,7 @@ class RabbitEventConsumer(threading.Thread):
         order = parse_order(decoded_body['order'])
         if self.is_event_subscribed(
             decoded_body['event'],
-            decoded_body['order_storage'],
+            decoded_body['storage'],
             decoded_body['order']['market'],
             decoded_body['order']['pair'],
             decoded_body['order']['created_at'],
@@ -98,7 +96,7 @@ class RabbitEventConsumer(threading.Thread):
         candle = parse_candle(decoded_body['candle'])
         if self.is_event_subscribed(
             decoded_body['event'],
-            decoded_body['candle_storage'],
+            decoded_body['storage'],
             decoded_body['candle']['market'],
             decoded_body['candle']['pair'],
             decoded_body['candle']['time'],

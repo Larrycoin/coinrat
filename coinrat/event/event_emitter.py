@@ -21,12 +21,12 @@ class EventEmitter:
             self.channel.basic_publish(exchange='', routing_key='events', body=json.dumps({
                 'event': EVENT_NEW_CANDLE,
                 'candle': serialize_candle(candle),
-                'candle_storage': candle_storage
+                'storage': candle_storage
             }))
 
     def emit_new_order(self, order_storage: str, order: Order):
         self.channel.basic_publish(exchange='', routing_key='events', body=json.dumps({
             'event': EVENT_NEW_ORDER,
             'order': serialize_order(order),
-            'order_storage': order_storage,
+            'storage': order_storage,
         }))
