@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List, Union
 from uuid import UUID
 
@@ -81,6 +82,7 @@ class OrderInnoDbStorage(OrderStorage):
         sql = '''
             DELETE FROM "{}" WHERE "order_id" = '{}'
         '''.format(MEASUREMENT_ORDERS_NAME, order_id)
+        logging.info(sql)
         self._client.query(sql)
 
     @staticmethod

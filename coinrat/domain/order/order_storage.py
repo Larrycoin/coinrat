@@ -27,3 +27,16 @@ class OrderStorage:
 
     def delete(self, order_id) -> None:
         raise NotImplementedError()
+
+    def delete_by(
+        self,
+        market_name: str,
+        pair: Pair,
+        status: str = None,
+        direction: str = None,
+        interval: DateTimeInterval = DateTimeInterval(None, None)
+    ):
+        orders = self.find_by(market_name, pair, status, direction, interval)
+        print(orders)
+        for order in orders:
+            self.delete(order.order_id)

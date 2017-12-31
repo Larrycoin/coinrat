@@ -20,11 +20,12 @@ class StrategyPlugin(StrategyPluginSpecification):
         return [STRATEGY_NAME]
 
     @get_strategy_impl
-    def get_strategy(self, name, candle_storage, order_storage, datetime_factory, configuration):
+    def get_strategy(self, name, candle_storage, order_storage, event_emitter, datetime_factory, configuration):
         if name == STRATEGY_NAME:
             return DoubleCrossoverStrategy(
                 candle_storage,
                 order_storage,
+                event_emitter,
                 datetime_factory,
                 configuration
             )

@@ -12,11 +12,11 @@ from coinrat.synchronizer_plugins import SynchronizerPlugins
 from coinrat.domain import CurrentUtcDateTimeFactory, DateTimeFactory
 from coinrat.task.task_planner import TaskPlanner
 from coinrat.task.task_consumer import TaskConsumer
+from coinrat.strategy_replayer import StrategyReplayer
 
 
 class DiContainer:
     def __init__(self) -> None:
-        super().__init__()
         self._storage = {
             'candle_storage_plugins': {
                 'instance': None,
@@ -69,13 +69,19 @@ class DiContainer:
                 'instance': None,
                 'factory': lambda: RabbitEventConsumer(self.rabbit_connection, self.socket_server)
             },
+            'strategy_replayer': {
+                'instance': None,
+                'factory': lambda: StrategyReplayer(self.strategy_plugins, self.market_plugins, self.event_emitter)
+            },
             'task_consumer': {
                 'instance': None,
                 'factory': lambda: TaskConsumer(
                     self.rabbit_connection,
                     self.candle_storage_plugins,
                     self.order_storage_plugins,
-                    self.strategy_plugins, self.market_plugins
+                    self.strategy_plugins,
+                    self.market_plugins,
+                    self.strategy_replayer
                 ),
             }
         }
@@ -116,7 +122,7 @@ class DiContainer:
 
     @property
     def event_emitter(self) -> EventEmitter:
-        return self._get('rabbit_connection')
+        return self._get('event_emitter')
 
     @property
     def task_planner(self) -> TaskPlanner:
@@ -133,3 +139,7 @@ class DiContainer:
     @property
     def task_consumer(self) -> TaskConsumer:
         return self._get('task_consumer')
+
+    @property
+    def strategy_replayer(self) -> StrategyReplayer:
+        return self._get('strategy_replayer')

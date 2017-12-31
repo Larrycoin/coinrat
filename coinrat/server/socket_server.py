@@ -11,7 +11,7 @@ from coinrat.domain import DateTimeFactory
 from coinrat.domain import Pair
 from coinrat.order_storage_plugins import OrderStoragePlugins
 from coinrat.server.event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, EVENT_GET_ORDERS, \
-    EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_NEW_CANDLES, EVENT_NEW_ORDERS
+    EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_NEW_CANDLES, EVENT_NEW_ORDERS, EVENT_CLEAR_ORDERS
 from coinrat.task.task_planner import TaskPlanner
 from coinrat.domain.order import Order
 from .order import serialize_orders, serialize_order
@@ -25,7 +25,7 @@ class SocketServer(threading.Thread):
         task_planner: TaskPlanner,
         datetime_factory: DateTimeFactory,
         candle_storage_plugins: CandleStoragePlugins,
-        orders_storage_plugins: OrderStoragePlugins
+        order_storage_plugins: OrderStoragePlugins
     ):
         super().__init__()
         self.task_planner = task_planner
@@ -37,17 +37,21 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_PING_REQUEST)
         def ping_request(sid, data):
+            logging.info('RECEIVED: {}, {}'.format(EVENT_PING_REQUEST, data))
+
             data['response_timestamp'] = datetime_factory.now().timestamp()
             socket.emit(EVENT_PING_RESPONSE, data)
 
         @socket.on(EVENT_GET_CANDLES)
         def candles(sid, data):
-            if 'candles_storage' not in data:
+            logging.info('RECEIVED: {}, {}'.format(EVENT_GET_CANDLES, data))
+
+            if 'candle_storage' not in data:
                 return 'ERROR', {'message': 'Missing "candle_storage" field in request.'}
 
-            candle_storage = candle_storage_plugins.get_candle_storage(data['candles_storage'])
+            candle_storage = candle_storage_plugins.get_candle_storage(data['candle_storage'])
             result_candles = candle_storage.find_by(
-                data['market_name'],
+                data['market'],
                 Pair.from_string(data['pair']),
                 parse_interval(data['interval'])
             )
@@ -56,17 +60,38 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_GET_ORDERS)
         def orders(sid, data):
-            if 'orders_storage' not in data:
-                return 'ERROR', {'message': 'Missing "orders_storage" field in request.'}
+            logging.info('RECEIVED: {}, {}'.format(EVENT_GET_ORDERS, data))
 
-            orders_storage = orders_storage_plugins.get_order_storage(data['orders_storage'])
-            result_orders = orders_storage.find_by(
-                data['market_name'],
+            if 'order_storage' not in data:
+                return 'ERROR', {'message': 'Missing "order_storage" field in request.'}
+
+            order_storage = order_storage_plugins.get_order_storage(data['order_storage'])
+            result_orders = order_storage.find_by(
+                data['market'],
                 Pair.from_string(data['pair']),
                 interval=parse_interval(data['interval'])
             )
 
             return 'OK', serialize_orders(result_orders)
+
+        @socket.on(EVENT_CLEAR_ORDERS)
+        def clear_orders(sid, data):
+            logging.info('RECEIVED: {}, {}'.format(EVENT_CLEAR_ORDERS, data))
+
+            if 'order_storage' not in data:
+                return 'ERROR', {'message': 'Missing "order_storage" field in request.'}
+
+            logging.info(0)
+            order_storage = order_storage_plugins.get_order_storage(data['order_storage'])
+            logging.info(1)
+            order_storage.delete_by(
+                data['market'],
+                Pair.from_string(data['pair']),
+                interval=parse_interval(data['interval'])
+            )
+            logging.info(2)
+
+            return 'OK'
 
         @socket.on(EVENT_RUN_REPLY)
         def reply(sid, data):

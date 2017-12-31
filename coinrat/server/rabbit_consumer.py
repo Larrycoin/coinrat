@@ -27,7 +27,12 @@ class RabbitEventConsumer(threading.Thread):
 
         def on_subscribe(sid, data):
             if data['event'] == EVENT_NEW_CANDLE:
-                self._subscribe_for_new_candle_event(data)
+                data['storage'] = data['candle_storage']
+                self._subscribe_for_new_entity_event(data)
+
+            if data['event'] == EVENT_NEW_ORDER:
+                data['storage'] = data['order_storage']
+                self._subscribe_for_new_entity_event(data)
 
         def on_unsubscribe(sid, data):
             self._subscribed_events[data['event']] = None
@@ -39,40 +44,29 @@ class RabbitEventConsumer(threading.Thread):
             decoded_body = json.loads(body.decode("utf-8"))
 
             event = decoded_body['event']
-            if self.is_event_subscribed(decoded_body):
-                if event == EVENT_NEW_CANDLE:
-                    candle = parse_candle(decoded_body['candle'])
-                    self._socket_server.emit_new_candle(candle)
-                if event == EVENT_NEW_ORDER:
-                    order = parse_order(decoded_body['order'])
-                    self._socket_server.emit_new_order(order)
-                else:
-                    logging.info("[Rabbit] Event received -> not supported | %r", decoded_body)
+
+            if event == EVENT_NEW_CANDLE:
+                self.process_new_candle_event(decoded_body)
+
+            if event == EVENT_NEW_ORDER:
+                self.process_new_order_event(decoded_body)
+
             else:
                 logging.info("[Rabbit] Event received -> no subscription | %r", decoded_body)
 
         self._channel.basic_consume(rabbit_message_callback, queue='events', no_ack=True)
 
-    def is_event_subscribed(self, event_data: Dict):
-        event_name = event_data['event']
-        if event_name == EVENT_NEW_CANDLE:
-            storage = event_data['candle_storage']
-            market_name = event_data['candle']['market']
-            pair = event_data['candle']['pair']
-            candle_time = dateutil.parser.parse(event_data['candle']['time']).replace(tzinfo=datetime.timezone.utc)
+    def is_event_subscribed(self, event_name: str, storage: str, market: str, pair: str, time: str):
+        try:
+            interval: DateTimeInterval = self._subscribed_events[event_name][storage][market][pair]
+        except KeyError:
+            return False
 
-            try:
-                interval: DateTimeInterval = self._subscribed_events[event_name][storage][market_name][pair]
-            except KeyError:
-                return False
+        return interval.contains(dateutil.parser.parse(time).replace(tzinfo=datetime.timezone.utc))
 
-            return interval.contains(candle_time)
-
-        return False
-
-    def _subscribe_for_new_candle_event(self, data):
+    def _subscribe_for_new_entity_event(self, data):
         subscription = {
-            data['candle_storage']: {
+            data['storage']: {
                 data['market']: {
                     data['pair']: parse_interval(data['interval'])
                 }
@@ -81,11 +75,37 @@ class RabbitEventConsumer(threading.Thread):
         self._subscribed_events[data['event']] = subscription
         logging.info('Event {} subscribed: {} {} {} {}'.format(
             data['event'],
-            data['candle_storage'],
+            data['storage'],
             data['market'],
             data['pair'],
             data['interval'])
         )
+
+    def process_new_order_event(self, decoded_body: Dict) -> None:
+        order = parse_order(decoded_body['order'])
+        if self.is_event_subscribed(
+            decoded_body['event'],
+            decoded_body['order_storage'],
+            decoded_body['order']['market'],
+            decoded_body['order']['pair'],
+            decoded_body['order']['created_at'],
+        ):
+            self._socket_server.emit_new_order(order)
+        else:
+            logging.info("[Rabbit] Event received -> not supported | %r", decoded_body)
+
+    def process_new_candle_event(self, decoded_body: Dict) -> None:
+        candle = parse_candle(decoded_body['candle'])
+        if self.is_event_subscribed(
+            decoded_body['event'],
+            decoded_body['candle_storage'],
+            decoded_body['candle']['market'],
+            decoded_body['candle']['pair'],
+            decoded_body['candle']['time'],
+        ):
+            self._socket_server.emit_new_candle(candle)
+        else:
+            logging.info("[Rabbit] Event received -> not supported | %r", decoded_body)
 
     def run(self):
         self._channel.start_consuming()

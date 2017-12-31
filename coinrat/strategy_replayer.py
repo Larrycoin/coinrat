@@ -6,13 +6,20 @@ from coinrat.domain.candle import CandleStorage
 from coinrat.domain.order import OrderStorage
 from coinrat.market_plugins import MarketPlugins
 from coinrat.strategy_plugins import StrategyPlugins
+from coinrat.event.event_emitter import EventEmitter
 
 
 class StrategyReplayer:
-    def __init__(self, strategy_plugins: StrategyPlugins, market_plugins: MarketPlugins) -> None:
+    def __init__(
+        self,
+        strategy_plugins: StrategyPlugins,
+        market_plugins: MarketPlugins,
+        event_emitter: EventEmitter
+    ) -> None:
         super().__init__()
-        self.strategy_plugins = strategy_plugins
-        self.market_plugins = market_plugins
+        self._strategy_plugins = strategy_plugins
+        self._market_plugins = market_plugins
+        self._event_emitter = event_emitter
 
     def replay(
         self,
@@ -26,16 +33,15 @@ class StrategyReplayer:
         configuration: Dict
     ):
         datetime_factory = FrozenDateTimeFactory(start)
-
-        strategy = self.strategy_plugins.get_strategy(
+        strategy = self._strategy_plugins.get_strategy(
             strategy_name,
             candle_storage,
             order_storage,
+            self._event_emitter,
             datetime_factory,
             configuration
         )
-
-        market = self.market_plugins.get_market('dummy_print', datetime_factory, {'mocked_market_name': market_name})
+        market = self._market_plugins.get_market('dummy_print', datetime_factory, {'mocked_market_name': market_name})
         while datetime_factory.now() < end:
             strategy.tick([market], pair)
             datetime_factory.move(datetime.timedelta(seconds=10))

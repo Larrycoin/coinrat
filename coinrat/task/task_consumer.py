@@ -22,14 +22,15 @@ class TaskConsumer:
         candle_storage_plugins: CandleStoragePlugins,
         orders_storage_plugins: OrderStoragePlugins,
         strategy_plugins: StrategyPlugins,
-        market_plugins: MarketPlugins
-
+        market_plugins: MarketPlugins,
+        strategy_replayer: StrategyReplayer
     ) -> None:
         super().__init__()
-        self.candle_storage_plugins = candle_storage_plugins
-        self.orders_storage_plugins = orders_storage_plugins
-        self.strategy_plugins = strategy_plugins
-        self.market_plugins = market_plugins
+        self._candle_storage_plugins = candle_storage_plugins
+        self._orders_storage_plugins = orders_storage_plugins
+        self._strategy_plugins = strategy_plugins
+        self._market_plugins = market_plugins
+        self._strategy_replayer = strategy_replayer
 
         self._channel = rabbit_connection.channel()
         self._channel.queue_declare(queue='tasks')
@@ -60,13 +61,10 @@ class TaskConsumer:
             'delay': 0,
         }
 
-        orders_storage = self.orders_storage_plugins.get_order_storage(data['orders_storage'])
-        candle_storage = self.candle_storage_plugins.get_candle_storage(data['candles_storage'])
-        replayer = StrategyReplayer(self.strategy_plugins, self.market_plugins)
+        orders_storage = self._orders_storage_plugins.get_order_storage(data['orders_storage'])
+        candle_storage = self._candle_storage_plugins.get_candle_storage(data['candles_storage'])
 
-        print('----')
-
-        replayer.replay(
+        self._strategy_replayer.replay(
             data['strategy_name'],
             data['market'],
             Pair.from_string(data['pair']),
@@ -76,8 +74,6 @@ class TaskConsumer:
             end,
             configuration
         )
-
-        print('--222')
 
     def run(self):
         self._channel.start_consuming()

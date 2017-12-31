@@ -6,6 +6,7 @@ EVENT_NEW_CANDLES = 'new_candles'
 
 EVENT_GET_ORDERS = 'get_orders'
 EVENT_NEW_ORDERS = 'new_orders'
+EVENT_CLEAR_ORDERS = 'clear_orders'
 
 EVENT_SUBSCRIBE = 'subscribe'
 EVENT_UNSUBSCRIBE = 'unsubscribe'
