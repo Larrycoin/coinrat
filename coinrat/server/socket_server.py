@@ -11,15 +11,15 @@ from coinrat.domain import DateTimeFactory
 from coinrat.domain import Pair
 from coinrat.order_storage_plugins import OrderStoragePlugins
 from coinrat.server.event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, EVENT_GET_ORDERS, \
-    EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_NEW_CANDLES
+    EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_NEW_CANDLES, EVENT_NEW_ORDERS
 from coinrat.task.task_planner import TaskPlanner
-from .order import serialize_orders
+from coinrat.domain.order import Order
+from .order import serialize_orders, serialize_order
 from .interval import parse_interval
 from .candle import serialize_candles, MinuteCandle, serialize_candle
 
 
 class SocketServer(threading.Thread):
-
     def __init__(
         self,
         task_planner: TaskPlanner,
@@ -84,6 +84,11 @@ class SocketServer(threading.Thread):
     def emit_new_candle(self, candle: MinuteCandle):
         data = serialize_candle(candle)
         logging.info('EMITTING: {}, {}'.format(EVENT_NEW_CANDLES, data))
+        self._socket.emit(EVENT_NEW_CANDLES, data)
+
+    def emit_new_order(self, order: Order):
+        data = serialize_order(order)
+        logging.info('EMITTING: {}, {}'.format(EVENT_NEW_ORDERS, data))
         self._socket.emit(EVENT_NEW_CANDLES, data)
 
     def run(self):

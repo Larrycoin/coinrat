@@ -5,7 +5,9 @@ import pika
 
 from coinrat.server.candle import serialize_candle
 from coinrat.domain.candle import MinuteCandle
-from .event_types import EVENT_NEW_CANDLE
+from coinrat.domain.order import Order
+from coinrat.server.order import serialize_order
+from .event_types import EVENT_NEW_CANDLE, EVENT_NEW_ORDER
 
 
 class EventEmitter:
@@ -21,3 +23,10 @@ class EventEmitter:
                 'candle': serialize_candle(candle),
                 'candle_storage': candle_storage
             }))
+
+    def emit_new_order(self, order_storage: str, order: Order):
+        self.channel.basic_publish(exchange='', routing_key='events', body=json.dumps({
+            'event': EVENT_NEW_ORDER,
+            'order': serialize_order(order),
+            'order_storage': order_storage,
+        }))

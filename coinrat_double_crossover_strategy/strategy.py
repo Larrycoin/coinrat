@@ -12,6 +12,7 @@ from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_
     NotEnoughBalanceToPerformOrderException
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from coinrat_double_crossover_strategy.utils import absolute_possible_percentage_gain
+from coinrat.event.event_emitter import EventEmitter
 
 STRATEGY_NAME = 'double_crossover'
 
@@ -25,6 +26,7 @@ class DoubleCrossoverStrategy(Strategy):
         self,
         candle_storage: CandleStorage,
         order_storage: OrderStorage,
+        event_emitter: EventEmitter,
         datetime_factory: DateTimeFactory,
         configuration
     ) -> None:
@@ -39,6 +41,7 @@ class DoubleCrossoverStrategy(Strategy):
 
         self._candle_storage = candle_storage
         self._order_storage = order_storage
+        self._event_emitter = event_emitter
         self._datetime_factory = datetime_factory
         self._long_average_interval = long_average_interval
         self._short_average_interval = short_average_interval
@@ -102,6 +105,7 @@ class DoubleCrossoverStrategy(Strategy):
         if self._last_signal is not None:
             order = self._trade_on_signal(market, pair)
             if order is not None:
+                self._event_emitter.emit_new_order(self._order_storage.name, order)
                 self._order_storage.save_order(order)
 
     def _does_trade_worth_it(self, market: Market, pair: Pair) -> bool:
@@ -146,9 +150,7 @@ class DoubleCrossoverStrategy(Strategy):
     @staticmethod
     def _create_signal(current_sign: int) -> Signal:
         assert current_sign in [-1, 1]
-        if current_sign == 1:
-            return Signal(SIGNAL_BUY)
-        return Signal(SIGNAL_SELL)
+        return Signal(SIGNAL_BUY) if current_sign == 1 else Signal(SIGNAL_SELL)
 
     @staticmethod
     def _calculate_sign_of_change(long_average: Decimal, short_average: Decimal) -> int:

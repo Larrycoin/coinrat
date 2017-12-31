@@ -7,9 +7,10 @@ import pika
 
 from typing import Dict
 
-from coinrat.event.event_types import EVENT_NEW_CANDLE
+from coinrat.event.event_types import EVENT_NEW_CANDLE, EVENT_NEW_ORDER
 from coinrat.server.interval import parse_interval
 from coinrat.domain import DateTimeInterval
+from coinrat.server.order import parse_order
 from .candle import parse_candle
 from .socket_server import SocketServer
 
@@ -42,6 +43,9 @@ class RabbitEventConsumer(threading.Thread):
                 if event == EVENT_NEW_CANDLE:
                     candle = parse_candle(decoded_body['candle'])
                     self._socket_server.emit_new_candle(candle)
+                if event == EVENT_NEW_ORDER:
+                    order = parse_order(decoded_body['order'])
+                    self._socket_server.emit_new_order(order)
                 else:
                     logging.info("[Rabbit] Event received -> not supported | %r", decoded_body)
             else:

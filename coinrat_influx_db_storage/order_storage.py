@@ -24,6 +24,10 @@ class OrderInnoDbStorage(OrderStorage):
     def __init__(self, influx_db_client: InfluxDBClient):
         self._client = influx_db_client
 
+    @property
+    def name(self) -> str:
+        return ORDER_STORAGE_NAME
+
     def save_order(self, order: Order) -> None:
         self._client.write_points([self._get_serialized_order(order)])
 

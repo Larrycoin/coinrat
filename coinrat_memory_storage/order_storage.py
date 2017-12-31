@@ -11,6 +11,10 @@ class OrderMemoryStorage(OrderStorage):
         self._orders: Dict[Order] = {}
         self._last_order: Union[Order, None] = None
 
+    @property
+    def name(self) -> str:
+        return ORDER_STORAGE_NAME
+
     def save_order(self, order: Order) -> None:
         self._orders[str(order.order_id)] = order
 

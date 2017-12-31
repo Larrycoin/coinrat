@@ -69,7 +69,7 @@ def export_candles(
     interval: Tuple[str, str],
     output_file: str
 ) -> None:
-    storage = di_container.candle_storage_plugins.get_candle_storage('influxdb_candle_storage')
+    storage = di_container.candle_storage_plugins.get_candle_storage('influx_db')
     pair = Pair(pair[0], pair[1])
     interval = DateTimeInterval(
         dateutil.parser.parse(interval[0]).replace(tzinfo=datetime.timezone.utc),
@@ -97,7 +97,7 @@ def export_orders(
     interval: Tuple[str, str],
     output_file: str
 ) -> None:
-    storage = di_container.order_storage_plugins.get_order_storage('influxdb_order_storage')
+    storage = di_container.order_storage_plugins.get_order_storage('influx_db')
     pair = Pair(pair[0], pair[1])
     interval = DateTimeInterval(
         dateutil.parser.parse(interval[0]).replace(tzinfo=datetime.timezone.utc),
@@ -121,8 +121,8 @@ def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str]) -> 
 
     synchronizer = di_container.synchronizer_plugins.get_synchronizer(
         synchronizer_name,
-        ctx.obj['influxdb_candle_storage'],
-        ctx.obj['event_emitter']
+        di_container.candle_storage_plugins.get_candle_storage('influx_db'),
+        di_container.event_emitter
     )
     synchronizer.synchronize(pair)
 
@@ -142,8 +142,8 @@ def run_strategy(ctx: Context, strategy_name: str, pair: Tuple[str, str], market
 
     strategy = di_container.strategy_plugins.get_strategy(
         strategy_name,
-        ctx.obj['influxdb_candle_storage'],
-        ctx.obj['influxdb_order_storage'],
+        di_container.candle_storage_plugins.get_candle_storage('influx_db'),
+        di_container.order_storage_plugins.get_order_storage('influx_db'),
         CurrentUtcDateTimeFactory(),
         # todo: make it configurable by definition from cmd line
         {

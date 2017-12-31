@@ -5,6 +5,10 @@ from coinrat.domain.datetime_interval import DateTimeInterval
 
 
 class OrderStorage:
+    @property
+    def name(self) -> str:
+        raise NotImplementedError()
+
     def save_order(self, order: Order) -> None:
         raise NotImplementedError()
 
