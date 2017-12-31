@@ -52,7 +52,7 @@ class RabbitEventConsumer(threading.Thread):
                 self.process_new_order_event(decoded_body)
 
             else:
-                logging.info("[Rabbit] Event received -> no subscription | %r", decoded_body)
+                logging.info("[Rabbit] Event received -> not supported | %r", decoded_body)
 
         self._channel.basic_consume(rabbit_message_callback, queue='events', no_ack=True)
 
@@ -92,7 +92,7 @@ class RabbitEventConsumer(threading.Thread):
         ):
             self._socket_server.emit_new_order(order)
         else:
-            logging.info("[Rabbit] Event received -> not supported | %r", decoded_body)
+            logging.info("[Rabbit] Event received -> no subscription | %r", decoded_body)
 
     def process_new_candle_event(self, decoded_body: Dict) -> None:
         candle = parse_candle(decoded_body['candle'])
@@ -105,7 +105,7 @@ class RabbitEventConsumer(threading.Thread):
         ):
             self._socket_server.emit_new_candle(candle)
         else:
-            logging.info("[Rabbit] Event received -> not supported | %r", decoded_body)
+            logging.info("[Rabbit] Event received -> no subscription | %r", decoded_body)
 
     def run(self):
         self._channel.start_consuming()

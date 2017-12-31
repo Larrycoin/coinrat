@@ -111,7 +111,7 @@ class SocketServer(threading.Thread):
     def emit_new_order(self, order: Order):
         data = serialize_order(order)
         logging.info('EMITTING: {}, {}'.format(EVENT_NEW_ORDERS, data))
-        self._socket.emit(EVENT_NEW_CANDLES, data)
+        self._socket.emit(EVENT_NEW_ORDERS, data)
 
     def run(self):
         app = Flask(__name__)
