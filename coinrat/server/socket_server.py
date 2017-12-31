@@ -33,7 +33,7 @@ class SocketServer(threading.Thread):
 
         @socket.on('connect')
         def connect(sid, environ):
-            print("connect ", sid)
+            logging.info('Socket %s connected ', sid)
 
         @socket.on(EVENT_PING_REQUEST)
         def ping_request(sid, data):
@@ -81,15 +81,12 @@ class SocketServer(threading.Thread):
             if 'order_storage' not in data:
                 return 'ERROR', {'message': 'Missing "order_storage" field in request.'}
 
-            logging.info(0)
             order_storage = order_storage_plugins.get_order_storage(data['order_storage'])
-            logging.info(1)
             order_storage.delete_by(
                 data['market'],
                 Pair.from_string(data['pair']),
                 interval=parse_interval(data['interval'])
             )
-            logging.info(2)
 
             return 'OK'
 
@@ -102,7 +99,7 @@ class SocketServer(threading.Thread):
 
         @socket.on('disconnect')
         def disconnect(sid):
-            print('disconnect ', sid)
+            logging.info('Socket %s disconnect ', sid)
 
         self._socket = socket
 

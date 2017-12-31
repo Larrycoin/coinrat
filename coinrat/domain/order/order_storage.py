@@ -37,6 +37,5 @@ class OrderStorage:
         interval: DateTimeInterval = DateTimeInterval(None, None)
     ):
         orders = self.find_by(market_name, pair, status, direction, interval)
-        print(orders)
         for order in orders:
             self.delete(order.order_id)
