@@ -3,7 +3,8 @@ from decimal import Decimal
 from typing import Dict
 
 from coinrat.domain import Market, Balance, Pair, PairMarketInfo, DateTimeFactory
-from coinrat.domain.order import ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY, Order, OrderMarketInfo
+from coinrat.domain.order import ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY, Order, OrderMarketInfo, \
+    ORDER_STATUS_CLOSED
 
 MARKET_NAME = 'dummy_print'
 DUMMY_STATIC_BALANCE = Decimal(0.5)
@@ -58,13 +59,16 @@ class PrintDummyMarket(Market):
         return self._create_fake_order(pair, DIRECTION_SELL)
 
     def _create_fake_order(self, pair: Pair, direction: str) -> Order:
+        created_at = self._datetime_factory.now()
         return Order(
             uuid.uuid4(),
             self._name,
             direction,
-            self._datetime_factory.now(),
+            created_at,
             pair,
             ORDER_TYPE_LIMIT,
             DUMMY_QUANTITY,
-            Decimal(8000)
+            Decimal(8000),
+            status=ORDER_STATUS_CLOSED,
+            closed_at=created_at
         )
