@@ -62,7 +62,8 @@ class DiContainer:
                     self.task_planner,
                     self.datetime_factory,
                     self.candle_storage_plugins,
-                    self.order_storage_plugins
+                    self.order_storage_plugins,
+                    self.market_plugins
                 ),
             },
             'rabbit_event_consumer': {

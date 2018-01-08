@@ -11,9 +11,11 @@ from coinrat.domain import DateTimeFactory
 from coinrat.domain import Pair
 from coinrat.order_storage_plugins import OrderStoragePlugins
 from coinrat.server.event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, EVENT_GET_ORDERS, \
-    EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_NEW_CANDLES, EVENT_NEW_ORDERS, EVENT_CLEAR_ORDERS
+    EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_NEW_CANDLES, EVENT_NEW_ORDERS, EVENT_CLEAR_ORDERS, \
+    EVENT_GET_MARKETS
 from coinrat.task.task_planner import TaskPlanner
 from coinrat.domain.order import Order
+from coinrat.market_plugins import MarketPlugins
 from .order import serialize_orders, serialize_order
 from .interval import parse_interval
 from .candle import serialize_candles, MinuteCandle, serialize_candle
@@ -25,7 +27,8 @@ class SocketServer(threading.Thread):
         task_planner: TaskPlanner,
         datetime_factory: DateTimeFactory,
         candle_storage_plugins: CandleStoragePlugins,
-        order_storage_plugins: OrderStoragePlugins
+        order_storage_plugins: OrderStoragePlugins,
+        market_plugins: MarketPlugins
     ):
         super().__init__()
         self.task_planner = task_planner
@@ -57,6 +60,12 @@ class SocketServer(threading.Thread):
             )
 
             return 'OK', serialize_candles(result_candles)
+
+        @socket.on(EVENT_GET_MARKETS)
+        def markets(sid, data):
+            logging.info('RECEIVED: {}, {}'.format(EVENT_GET_MARKETS, data))
+
+            return 'OK', list(map(lambda market: {'name': market}, market_plugins.get_available_markets()))
 
         @socket.on(EVENT_GET_ORDERS)
         def orders(sid, data):
