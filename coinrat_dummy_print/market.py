@@ -1,6 +1,6 @@
 import uuid
 from decimal import Decimal
-from typing import Dict
+from typing import Dict, List
 
 from coinrat.domain import Market, Balance, Pair, PairMarketInfo, DateTimeFactory
 from coinrat.domain.order import ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY, Order, OrderMarketInfo, \
@@ -57,6 +57,18 @@ class PrintDummyMarket(Market):
     def sell_max_available(self, pair: Pair) -> Order:
         print('SELLING max available for: {}'.format(pair))
         return self._create_fake_order(pair, DIRECTION_SELL)
+
+    def get_all_tradable_pairs(self) -> List[Pair]:
+        return [
+            Pair('USD', 'BTC'),
+            Pair('USD', 'LTC'),
+            Pair('USD', 'ETH'),
+            Pair('USD', 'XMR'),
+
+            Pair('BTC', 'LTC'),
+            Pair('BTC', 'ETH'),
+            Pair('BTC', 'XMR'),
+        ]
 
     def _create_fake_order(self, pair: Pair, direction: str) -> Order:
         created_at = self._datetime_factory.now()

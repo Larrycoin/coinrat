@@ -141,6 +141,24 @@ class BittrexMarket(Market):
             tick.average_price
         ))
 
+    def get_all_tradable_pairs(self) -> List[Pair]:
+        raw_pairs = self._client_v1.get_markets()['result']
+        result = []
+        for raw_pair in raw_pairs:
+            if raw_pair['IsActive']:
+                base_currency = self.normalize_currency_code(raw_pair['BaseCurrency'])
+                market_currency = self.normalize_currency_code(raw_pair['MarketCurrency'])
+
+                result.append(Pair(base_currency, market_currency))
+
+        return result
+
+    @staticmethod
+    def normalize_currency_code(currency_code: str) -> str:
+        if currency_code == 'USDT':
+            currency_code = 'USD'
+        return currency_code
+
     def _create_order_entity(
         self,
         order_direction: str,

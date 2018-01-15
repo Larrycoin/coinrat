@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Union, Dict
+from typing import Union, Dict, List
 
 from .order import Order, OrderMarketInfo
 from .pair import Pair
@@ -61,6 +61,9 @@ class Market:
         raise NotImplementedError()
 
     def sell_max_available(self, pair: Pair) -> Order:
+        raise NotImplementedError()
+
+    def get_all_tradable_pairs(self) -> List[Pair]:
         raise NotImplementedError()
 
     def __repr__(self) -> str:
