@@ -12,7 +12,7 @@ from coinrat.domain import Pair
 from coinrat.order_storage_plugins import OrderStoragePlugins
 from coinrat.server.event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, EVENT_GET_ORDERS, \
     EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_NEW_CANDLES, EVENT_NEW_ORDERS, EVENT_CLEAR_ORDERS, \
-    EVENT_GET_MARKETS, EVENT_GET_PAIRS
+    EVENT_GET_MARKETS, EVENT_GET_PAIRS, EVENT_GET_CANDLE_STORAGES, EVENT_GET_ORDER_STORAGES
 from coinrat.task.task_planner import TaskPlanner
 from coinrat.domain.order import Order
 from coinrat.market_plugins import MarketPlugins
@@ -65,7 +65,7 @@ class SocketServer(threading.Thread):
         def markets(sid, data):
             logging.info('RECEIVED: {}, {}'.format(EVENT_GET_MARKETS, data))
 
-            return 'OK', list(map(lambda market: {'name': market}, market_plugins.get_available_markets()))
+            return 'OK', list(map(lambda market_name: {'name': market_name}, market_plugins.get_available_markets()))
 
         @socket.on(EVENT_GET_PAIRS)
         def markets(sid, data):
@@ -80,6 +80,24 @@ class SocketServer(threading.Thread):
                     'name': pair.base_currency + '-' + pair.market_currency
                 },
                 market.get_all_tradable_pairs()
+            ))
+
+        @socket.on(EVENT_GET_CANDLE_STORAGES)
+        def markets(sid, data):
+            logging.info('RECEIVED: {}, {}'.format(EVENT_GET_CANDLE_STORAGES, data))
+
+            return 'OK', list(map(
+                lambda storage_name: {'name': storage_name},
+                candle_storage_plugins.get_available_candle_storages()
+            ))
+
+        @socket.on(EVENT_GET_ORDER_STORAGES)
+        def markets(sid, data):
+            logging.info('RECEIVED: {}, {}'.format(EVENT_GET_ORDER_STORAGES, data))
+
+            return 'OK', list(map(
+                lambda storage_name: {'name': storage_name},
+                order_storage_plugins.get_available_order_storages()
             ))
 
         @socket.on(EVENT_GET_ORDERS)
