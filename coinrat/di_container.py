@@ -63,7 +63,8 @@ class DiContainer:
                     self.datetime_factory,
                     self.candle_storage_plugins,
                     self.order_storage_plugins,
-                    self.market_plugins
+                    self.market_plugins,
+                    self.strategy_plugins
                 ),
             },
             'rabbit_event_consumer': {
