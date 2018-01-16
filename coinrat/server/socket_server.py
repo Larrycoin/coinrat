@@ -67,11 +67,23 @@ class SocketServer(threading.Thread):
         def markets(sid, data):
             logging.info('RECEIVED: {}, {}'.format(EVENT_GET_MARKETS, data))
 
-            return 'OK', list(map(lambda market_name: {'name': market_name}, market_plugins.get_available_markets()))
+            market_names = market_plugins.get_available_markets()
+            result = []
+            for market_name in market_names:
+                market = market_plugins.get_market(market_name, datetime_factory, {})
+                result.append = {
+                    'name'
+                    'configuration_structure': market.get_configuration_structure(),
+                }
+
+            return 'OK', result
 
         @socket.on(EVENT_GET_PAIRS)
         def markets(sid, data):
             logging.info('RECEIVED: {}, {}'.format(EVENT_GET_PAIRS, data))
+
+            if 'market_name' not in data:
+                return 'ERROR', {'message': 'Missing "market_name" field in request.'}
 
             market_name = data['market_name']
             market = market_plugins.get_market(market_name, datetime_factory, {})

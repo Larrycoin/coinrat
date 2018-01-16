@@ -26,7 +26,10 @@ class MockMarket(Market):
 
     @staticmethod
     def get_configuration_structure() -> Dict:
-        return {'mocked_market_name': str}
+        return {
+            'mocked_market_name': str,
+            'mocked_transaction_fee': Decimal
+        }
 
     def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:
         return PairMarketInfo(pair, Decimal(0.004))
