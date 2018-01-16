@@ -17,6 +17,7 @@ from coinrat.task.task_planner import TaskPlanner
 from coinrat.domain.order import Order
 from coinrat.market_plugins import MarketPlugins
 from coinrat.strategy_plugins import StrategyPlugins
+from .configuration_structure import serialize_configuration_structure
 from .order import serialize_orders, serialize_order
 from .interval import parse_interval
 from .candle import serialize_candles, MinuteCandle, serialize_candle
@@ -67,14 +68,13 @@ class SocketServer(threading.Thread):
         def markets(sid, data):
             logging.info('RECEIVED: {}, {}'.format(EVENT_GET_MARKETS, data))
 
-            market_names = market_plugins.get_available_markets()
             result = []
-            for market_name in market_names:
+            for market_name in market_plugins.get_available_markets():
                 market = market_plugins.get_market(market_name, datetime_factory, {})
-                result.append = {
-                    'name'
-                    'configuration_structure': market.get_configuration_structure(),
-                }
+                result.append({
+                    'name': market_name,
+                    'configuration_structure': serialize_configuration_structure(market.get_configuration_structure()),
+                })
 
             return 'OK', result
 
