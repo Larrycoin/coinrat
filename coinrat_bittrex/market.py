@@ -21,7 +21,7 @@ class BittrexMarket(Market):
         self._client_v2 = client_v2
 
     @staticmethod
-    def get_configuration_structure() -> Dict:
+    def get_configuration_structure() -> Dict[str, Dict[str, str]]:
         return {}
 
     @property

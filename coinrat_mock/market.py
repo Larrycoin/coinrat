@@ -25,10 +25,16 @@ class MockMarket(Market):
         self._datetime_factory = datetime_factory
 
     @staticmethod
-    def get_configuration_structure() -> Dict:
+    def get_configuration_structure() -> Dict[str, Dict[str, str]]:
         return {
-            'mocked_market_name': str,
-            'mocked_transaction_fee': Decimal
+            'mocked_market_name': {
+                'type': 'string',
+                'title': 'Mocked Market Name',
+            },
+            'mocked_transaction_fee': {
+                'type': 'Decimal',
+                'title': 'Transaction Fee',
+            },
         }
 
     def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:

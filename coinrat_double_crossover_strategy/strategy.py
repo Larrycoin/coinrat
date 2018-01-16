@@ -65,12 +65,24 @@ class DoubleCrossoverStrategy(Strategy):
         time.sleep(self._delay)
 
     @staticmethod
-    def get_configuration_structure() -> Dict:
+    def get_configuration_structure() -> Dict[str, Dict[str, str]]:
         return {
-            'long_average_interval': datetime.timedelta,
-            'short_average_interval': datetime.timedelta,
-            'delay': int,
-            'number_of_runs': Union[int, None]
+            'long_average_interval': {
+                'type': 'timedelta',
+                'title': 'Long average time-delta',
+            },
+            'short_average_interval': {
+                'type': 'timedelta',
+                'title': 'Short average time-delta',
+            },
+            'delay': {
+                'type': 'int',
+                'title': 'Delay between checks',
+            },
+            'number_of_runs': {
+                'type': '?int',
+                'title': '',
+            },
         }
 
     @staticmethod

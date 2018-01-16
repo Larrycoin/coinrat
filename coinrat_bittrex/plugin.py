@@ -4,11 +4,12 @@ from coinrat.market_plugins import MarketPluginSpecification
 from coinrat.synchronizer_plugins import SynchronizerPluginSpecification
 from .synchronizer import BittrexSynchronizer
 
-from .market import bittrex_market_factory, MARKET_NAME
+from .market import bittrex_market_factory, MARKET_NAME, BittrexMarket
 
 get_name_impl = pluggy.HookimplMarker('market_plugins')
 get_available_markets_spec = pluggy.HookimplMarker('market_plugins')
 get_market_impl = pluggy.HookimplMarker('market_plugins')
+get_market_class_impl = pluggy.HookimplMarker('market_plugins')
 
 PLUGIN_NAME = 'coinrat_bittrex'
 SYNCHRONIZER_NAME = 'bittrex'
@@ -31,6 +32,13 @@ class MarketPlugin(MarketPluginSpecification):
     def get_market(self, name, datetime_factory, configuration):
         if name == MARKET_NAME:
             return bittrex_market
+
+        raise ValueError('Market "{}" not supported by this plugin.'.format(name))
+
+    @get_market_class_impl
+    def get_market_class(self, name):
+        if name == MARKET_NAME:
+            return BittrexMarket
 
         raise ValueError('Market "{}" not supported by this plugin.'.format(name))
 

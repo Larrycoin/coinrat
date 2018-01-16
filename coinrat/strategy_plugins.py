@@ -10,6 +10,7 @@ from .domain.candle import CandleStorage
 
 get_available_strategies_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_strategy_spec = pluggy.HookspecMarker('coinrat_plugins')
+get_strategy_class_spec = pluggy.HookspecMarker('coinrat_plugins')
 
 
 #   "ValueError: Function has keyword-only parameters or annotations, use getfullargspec() API which can support them"
@@ -20,6 +21,10 @@ class StrategyPluginSpecification(PluginSpecification):
 
     @get_strategy_spec
     def get_strategy(self, name, candle_storage, order_storage, event_emitter, datetime_factory, configuration):
+        pass
+
+    @get_strategy_class_spec
+    def get_strategy_class(self, name):
         pass
 
 
@@ -36,6 +41,13 @@ class StrategyPlugins:
 
     def get_available_strategies(self) -> List[str]:
         return [strategy_name for plugin in self._plugins for strategy_name in plugin.get_available_strategies()]
+
+    def get_strategy_class(self, name: str):
+        for plugin in self._plugins:
+            if name in plugin.get_available_strategies():
+                return plugin.get_strategy_class(name)
+
+        raise StrategyNotProvidedByAnyPluginException('Strategy "{}" not found.'.format(name))
 
     def get_strategy(
         self,

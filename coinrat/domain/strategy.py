@@ -17,5 +17,5 @@ class Strategy:
         raise NotImplementedError()
 
     @staticmethod
-    def get_configuration_structure() -> Dict:
+    def get_configuration_structure() -> Dict[str, str]:
         raise NotImplementedError()

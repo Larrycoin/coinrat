@@ -6,6 +6,7 @@ from .strategy import DoubleCrossoverStrategy, STRATEGY_NAME
 get_name_impl = pluggy.HookimplMarker('strategy_plugins')
 get_available_strategies_spec = pluggy.HookimplMarker('strategy_plugins')
 get_strategy_impl = pluggy.HookimplMarker('strategy_plugins')
+get_strategy_class_impl = pluggy.HookimplMarker('strategy_plugins')
 
 PACKAGE_NAME = 'coinrat_double_crossover_strategy'
 
@@ -29,6 +30,13 @@ class StrategyPlugin(StrategyPluginSpecification):
                 datetime_factory,
                 configuration
             )
+
+        raise ValueError('Strategy "{}" not supported by this plugin.'.format(name))
+
+    @get_strategy_class_impl
+    def get_strategy_class(self, name):
+        if name == STRATEGY_NAME:
+            return DoubleCrossoverStrategy
 
         raise ValueError('Strategy "{}" not supported by this plugin.'.format(name))
 

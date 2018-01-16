@@ -32,7 +32,7 @@ class Market:
         raise NotImplementedError()
 
     @staticmethod
-    def get_configuration_structure() -> Dict:
+    def get_configuration_structure() -> Dict[str, Dict[str, str]]:
         raise NotImplementedError()
 
     @property
