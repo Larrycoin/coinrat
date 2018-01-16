@@ -6,15 +6,22 @@ from coinrat.domain import Market, Balance, Pair, PairMarketInfo, DateTimeFactor
 from coinrat.domain.order import ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY, Order, OrderMarketInfo, \
     ORDER_STATUS_CLOSED
 
-MARKET_NAME = 'dummy_print'
+MARKET_NAME = 'mock'
 DUMMY_STATIC_BALANCE = Decimal(0.5)
 DUMMY_QUANTITY = Decimal(1)
 
+DEFAULT_TRANSACTION_FEE = Decimal(0.0025)
 
-class PrintDummyMarket(Market):
+
+class MockMarket(Market):
 
     def __init__(self, datetime_factory: DateTimeFactory, configuration: Dict) -> None:
         self._name = configuration['mocked_market_name'] if 'mocked_market_name' in configuration else MARKET_NAME
+
+        self._transaction_fee = configuration['mocked_transaction_fee'] \
+            if 'mocked_transaction_fee' in configuration \
+            else DEFAULT_TRANSACTION_FEE
+
         self._datetime_factory = datetime_factory
 
     @staticmethod
@@ -33,7 +40,7 @@ class PrintDummyMarket(Market):
 
     @property
     def transaction_fee(self) -> Decimal:
-        return Decimal(0.0025)
+        return self._transaction_fee
 
     def get_balance(self, currency: str):
         return Balance(MARKET_NAME, currency, DUMMY_STATIC_BALANCE)

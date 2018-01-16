@@ -12,7 +12,7 @@ from coinrat.domain import Pair, FrozenDateTimeFactory
 from coinrat.domain.candle import CandleExporter
 from coinrat.domain.order import Order
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
-from coinrat_dummy_print.market import PrintDummyMarket
+from coinrat_mock.market import MockMarket
 from coinrat_memory_storage.candle_storage import CandleMemoryStorage
 from coinrat_memory_storage.order_storage import OrderMemoryStorage
 
@@ -61,7 +61,7 @@ def test_candle_ticks_are_stored(
         0
     )
 
-    market = PrintDummyMarket(datetime_factory, name='bittrex')
+    market = MockMarket(datetime_factory, name='bittrex')
 
     while datetime_factory.now() < end:
         strategy.tick([market], BTC_USD_PAIR)

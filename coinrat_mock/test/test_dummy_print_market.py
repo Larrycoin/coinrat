@@ -4,7 +4,7 @@ from uuid import UUID
 
 from coinrat.domain import Pair, CurrentUtcDateTimeFactory
 from coinrat.domain.order import Order, ORDER_TYPE_LIMIT, DIRECTION_BUY
-from coinrat_dummy_print.market import PrintDummyMarket
+from coinrat_mock.market import MockMarket
 
 BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_ORDER = Order(
@@ -20,8 +20,8 @@ DUMMY_ORDER = Order(
 
 
 def test_market():
-    market = PrintDummyMarket(CurrentUtcDateTimeFactory(), 'dummy_print')
-    assert 'dummy_print' == market.name
+    market = MockMarket(CurrentUtcDateTimeFactory(), 'mock')
+    assert 'mock' == market.name
     assert Decimal(0.004) == market.get_pair_market_info(BTC_USD_PAIR).minimal_order_size
     assert '0.50000000 BTC' == str(market.get_balance('BTC'))
     assert '0.50000000 LOL' == str(market.get_balance('LOL'))

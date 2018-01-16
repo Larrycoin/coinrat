@@ -24,7 +24,7 @@ def test_synchronizer_plugins():
 def test_market_plugins():
     plugins = MarketPlugins()
     assert 'bittrex' in plugins.get_available_markets()
-    assert 'dummy_print' in plugins.get_available_markets()
+    assert 'mock' in plugins.get_available_markets()
 
     assert isinstance(plugins.get_market('bittrex'), Market)
     with pytest.raises(MarketNotProvidedByAnyPluginException):

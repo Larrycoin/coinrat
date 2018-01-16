@@ -41,7 +41,7 @@ class StrategyReplayer:
             datetime_factory,
             configuration
         )
-        market = self._market_plugins.get_market('dummy_print', datetime_factory, {'mocked_market_name': market_name})
+        market = self._market_plugins.get_market('mock', datetime_factory, {'mocked_market_name': market_name})
         while datetime_factory.now() < end:
             strategy.tick([market], pair)
             datetime_factory.move(datetime.timedelta(seconds=30))

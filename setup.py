@@ -26,7 +26,7 @@ setup(
         ],
         'coinrat_market_plugins': [
             'coinrat_bittrex = coinrat_bittrex:market_plugin',
-            'coinrat_dummy_print = coinrat_dummy_print:market_plugin',
+            'coinrat_mock = coinrat_mock:market_plugin',
         ],
         'coinrat_candle_storage_plugins': [
             'coinrat_influx_db_storage = coinrat_influx_db_storage:candle_storage_plugin',
