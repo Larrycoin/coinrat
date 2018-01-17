@@ -1,10 +1,10 @@
 import datetime
 import json
 import logging
-from typing import Dict
-
 import pika
 import dateutil.parser
+
+from typing import Dict, Union
 
 from coinrat.strategy_replayer import StrategyReplayer
 from coinrat.domain import Pair
@@ -54,12 +54,8 @@ class TaskConsumer:
         start = dateutil.parser.parse(data['start']).replace(tzinfo=datetime.timezone.utc)
         end = dateutil.parser.parse(data['stop']).replace(tzinfo=datetime.timezone.utc)
 
-        # todo: make it configurable from frontend
-        configuration = {
-            'long_average_interval': datetime.timedelta(hours=1),
-            'short_average_interval': datetime.timedelta(minutes=15),
-            'delay': 0,
-        }
+        configuration: Dict[str, Union[str, int]] = data['configuration']
+        configuration['delay'] = 0
 
         orders_storage = self._orders_storage_plugins.get_order_storage(data['orders_storage'])
         candle_storage = self._candle_storage_plugins.get_candle_storage(data['candles_storage'])

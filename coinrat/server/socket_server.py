@@ -78,7 +78,7 @@ class SocketServer(threading.Thread):
             return 'OK', result
 
         @socket.on(EVENT_GET_PAIRS)
-        def markets(sid, data):
+        def pairs(sid, data):
             logging.info('RECEIVED: {}, {}'.format(EVENT_GET_PAIRS, data))
 
             if 'market_name' not in data:
@@ -96,7 +96,7 @@ class SocketServer(threading.Thread):
             ))
 
         @socket.on(EVENT_GET_CANDLE_STORAGES)
-        def markets(sid, data):
+        def candle_storages(sid, data):
             logging.info('RECEIVED: {}, {}'.format(EVENT_GET_CANDLE_STORAGES, data))
 
             return 'OK', list(map(
@@ -105,7 +105,7 @@ class SocketServer(threading.Thread):
             ))
 
         @socket.on(EVENT_GET_ORDER_STORAGES)
-        def markets(sid, data):
+        def order_storages(sid, data):
             logging.info('RECEIVED: {}, {}'.format(EVENT_GET_ORDER_STORAGES, data))
 
             return 'OK', list(map(
@@ -114,7 +114,7 @@ class SocketServer(threading.Thread):
             ))
 
         @socket.on(EVENT_GET_STRATEGIES)
-        def markets(sid, data):
+        def strategies(sid, data):
             logging.info('RECEIVED: {}, {}'.format(EVENT_GET_STRATEGIES, data))
 
             result = []

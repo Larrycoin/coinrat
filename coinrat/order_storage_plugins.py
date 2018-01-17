@@ -12,11 +12,11 @@ get_order_storage_spec = pluggy.HookspecMarker('coinrat_plugins')
 class OrderStoragePluginSpecification(PluginSpecification):
     @get_available_order_storages_spec
     def get_available_order_storages(self):
-        pass
+        raise NotImplementedError()
 
     @get_order_storage_spec
     def get_order_storage(self, name):
-        pass
+        raise NotImplementedError()
 
 
 class OrderStorageNotProvidedByAnyPluginException(Exception):

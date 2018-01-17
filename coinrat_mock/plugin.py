@@ -22,6 +22,10 @@ class MarketPlugin(MarketPluginSpecification):
     def get_available_markets(self):
         return [MARKET_NAME]
 
+    @get_market_impl
+    def get_market(self, name, datetime_factory, configuration):
+        return MockMarket(datetime_factory, configuration)
+
     @get_market_class_impl
     def get_market_class(self, name):
         if name == MARKET_NAME:

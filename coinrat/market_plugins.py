@@ -13,15 +13,15 @@ get_market_class_spec = pluggy.HookspecMarker('coinrat_plugins')
 class MarketPluginSpecification(PluginSpecification):
     @get_available_markets_spec
     def get_available_markets(self):
-        pass
+        raise NotImplementedError()
 
     @get_market_spec
     def get_market(self, name, datetime_factory, configuration):
-        pass
+        raise NotImplementedError()
 
     @get_market_class_spec
     def get_market_class(self, name):
-        pass
+        raise NotImplementedError()
 
 
 class MarketNotProvidedByAnyPluginException(Exception):

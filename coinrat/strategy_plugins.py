@@ -17,15 +17,15 @@ get_strategy_class_spec = pluggy.HookspecMarker('coinrat_plugins')
 class StrategyPluginSpecification(PluginSpecification):
     @get_available_strategies_spec
     def get_available_strategies(self):
-        pass
+        raise NotImplementedError()
 
     @get_strategy_spec
     def get_strategy(self, name, candle_storage, order_storage, event_emitter, datetime_factory, configuration):
-        pass
+        raise NotImplementedError()
 
     @get_strategy_class_spec
     def get_strategy_class(self, name):
-        pass
+        raise NotImplementedError()
 
 
 class StrategyNotProvidedByAnyPluginException(Exception):

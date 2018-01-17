@@ -32,8 +32,8 @@ class DoubleCrossoverStrategy(Strategy):
     ) -> None:
         configuration = self.fill_missing_values_with_default(configuration)
 
-        long_average_interval: datetime.timedelta(seconds=configuration['long_average_interval'])
-        short_average_interval: datetime.timedelta(seconds=configuration['short_average_interval'])
+        long_average_interval = datetime.timedelta(seconds=configuration['long_average_interval'])
+        short_average_interval = datetime.timedelta(seconds=configuration['short_average_interval'])
         delay: int = configuration['delay']
         number_of_runs: Union[int, None] = configuration['number_of_runs']
 

@@ -15,15 +15,15 @@ get_synchronizer_spec = pluggy.HookspecMarker('coinrat_plugins')
 class SynchronizerPluginSpecification(PluginSpecification):
     @get_name_spec
     def get_name(self):
-        pass
+        raise NotImplementedError()
 
     @get_available_synchronizers_spec
     def get_available_synchronizers(self):
-        pass
+        raise NotImplementedError()
 
     @get_synchronizer_spec
     def get_synchronizer(self, name, storage, event_emitter):
-        pass
+        raise NotImplementedError()
 
 
 class SynchronizerNotProvidedByAnyPluginException(Exception):
