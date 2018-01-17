@@ -39,9 +39,9 @@ class BittrexMarket(Market):
 
         return Balance(self.name, currency, Decimal(result['result']['Available']))
 
-    def get_last_candle(self, pair: Pair) -> MinuteCandle:
+    def get_last_candles(self, pair: Pair, count: int = 1) -> List[MinuteCandle]:
         result = self._get_sorted_candles_from_api(pair)
-        return self._create_candle_from_raw_ticker_data(pair, result[-1])
+        return [self._create_candle_from_raw_ticker_data(pair, candle_data) for candle_data in result[-count:]]
 
     def get_candles(self, pair: Pair) -> List[MinuteCandle]:
         result = self._get_sorted_candles_from_api(pair)
