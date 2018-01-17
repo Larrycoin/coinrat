@@ -151,11 +151,12 @@ def run_strategy(ctx: Context, strategy_name: str, pair: Tuple[str, str], market
         strategy_name,
         di_container.candle_storage_plugins.get_candle_storage('influx_db'),
         di_container.order_storage_plugins.get_order_storage('influx_db'),
-        CurrentUtcDateTimeFactory(),
+        di_container.event_emitter,
+        di_container.datetime_factory,
         # todo: make it configurable by definition from cmd line
         {
-            'long_average_interval': datetime.timedelta(hours=1),
-            'short_average_interval': datetime.timedelta(minutes=15),
+            'long_average_interval': 60 * 60,
+            'short_average_interval': 15 * 60,
         }
     )
 

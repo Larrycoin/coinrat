@@ -58,8 +58,8 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
         candle_storage,
         mock_order_storage(),
         CurrentUtcDateTimeFactory(),
-        datetime.timedelta(hours=1),
-        datetime.timedelta(minutes=15),
+        60 * 60,
+        15 * 60,
         0,
         1
     )
@@ -175,8 +175,8 @@ def test_not_enough_balance_logs_warning():
         candle_storage,
         mock_order_storage(),
         CurrentUtcDateTimeFactory(),
-        datetime.timedelta(hours=1),
-        datetime.timedelta(minutes=15),
+        60 * 60,
+        15 * 60,
         0,
         2
     )
@@ -222,8 +222,8 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
         candle_storage,
         order_storage,
         CurrentUtcDateTimeFactory(),
-        datetime.timedelta(hours=1),
-        datetime.timedelta(minutes=15),
+        60 * 60,
+        15 * 60,
         0,
         1
     )

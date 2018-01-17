@@ -56,8 +56,8 @@ def test_candle_ticks_are_stored(
         candle_storage,
         order_storage,
         datetime_factory,
-        datetime.timedelta(hours=1),
-        datetime.timedelta(minutes=15),
+        60 * 60,
+        15 * 60,
         0
     )
 
