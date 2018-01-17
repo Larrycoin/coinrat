@@ -14,9 +14,11 @@ DEFAULT_TRANSACTION_FEE = Decimal(0.0025)
 
 
 class MockMarket(Market):
-
     def __init__(self, datetime_factory: DateTimeFactory, configuration: Dict) -> None:
         self._name = configuration['mocked_market_name'] if 'mocked_market_name' in configuration else MARKET_NAME
+        self._mocked_balance = configuration['mocked_balance'] \
+            if 'mocked_balance' in configuration \
+            else DUMMY_STATIC_BALANCE
 
         self._transaction_fee = configuration['mocked_transaction_fee'] \
             if 'mocked_transaction_fee' in configuration \
@@ -31,6 +33,13 @@ class MockMarket(Market):
                 'type': 'string',
                 'title': 'Mocked Market Name',
                 'default': 'bittrex',
+            },
+            'mocked_balance': {
+                'type': 'Decimal',
+                'title': 'Mocked balance',
+                'description': 'Balance for selected pair, that will be available for strategy on mocked market.',
+                'default': '0.5',
+                'unit': 'market currency',
             },
             'mocked_transaction_fee': {
                 'type': 'Decimal',
@@ -55,7 +64,7 @@ class MockMarket(Market):
         return self._transaction_fee
 
     def get_balance(self, currency: str):
-        return Balance(MARKET_NAME, currency, DUMMY_STATIC_BALANCE)
+        return Balance(MARKET_NAME, currency, self._mocked_balance)
 
     def place_sell_order(self, order: Order) -> Order:
         print('Creating SELL order {}'.format(order))

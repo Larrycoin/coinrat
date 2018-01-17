@@ -54,7 +54,7 @@ class TaskConsumer:
         start = dateutil.parser.parse(data['start']).replace(tzinfo=datetime.timezone.utc)
         end = dateutil.parser.parse(data['stop']).replace(tzinfo=datetime.timezone.utc)
 
-        configuration: Dict[str, Union[str, int]] = data['configuration']
+        configuration: Dict[str, Union[str, int]] = data['strategy_configuration']
         configuration['delay'] = 0
 
         orders_storage = self._orders_storage_plugins.get_order_storage(data['orders_storage'])
@@ -62,7 +62,7 @@ class TaskConsumer:
 
         self._strategy_replayer.replay(
             data['strategy_name'],
-            data['market'],
+            data['market_configuration'],
             Pair.from_string(data['pair']),
             candle_storage,
             orders_storage,

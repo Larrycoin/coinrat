@@ -24,7 +24,7 @@ class StrategyReplayer:
     def replay(
         self,
         strategy_name: str,
-        market_name: str,
+        market_configuration: Dict,
         pair: Pair,
         candle_storage: CandleStorage,
         order_storage: OrderStorage,
@@ -41,8 +41,7 @@ class StrategyReplayer:
             datetime_factory,
             configuration
         )
-        market = self._market_plugins.get_market('mock', datetime_factory, {'mocked_market_name': market_name})
-        print(market)
+        market = self._market_plugins.get_market('mock', datetime_factory, market_configuration)
         while datetime_factory.now() < end:
             strategy.tick([market], pair)
             datetime_factory.move(datetime.timedelta(seconds=30))
