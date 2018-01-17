@@ -30,10 +30,13 @@ class MockMarket(Market):
             'mocked_market_name': {
                 'type': 'string',
                 'title': 'Mocked Market Name',
+                'default': 'bittrex',
             },
             'mocked_transaction_fee': {
                 'type': 'Decimal',
                 'title': 'Transaction Fee',
+                'default': '0.004',
+                'unit': 'percents',
             },
         }
 

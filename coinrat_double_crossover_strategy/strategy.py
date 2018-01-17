@@ -68,20 +68,22 @@ class DoubleCrossoverStrategy(Strategy):
     def get_configuration_structure() -> Dict[str, Dict[str, str]]:
         return {
             'long_average_interval': {
-                'type': 'timedelta',
+                'type': 'int',
                 'title': 'Long average time-delta',
+                'default': 60 * 60,
+                'unit': 'seconds',
             },
             'short_average_interval': {
-                'type': 'timedelta',
+                'type': 'int',
                 'title': 'Short average time-delta',
+                'default': 15 * 60,
+                'unit': 'seconds',
             },
             'delay': {
                 'type': 'int',
                 'title': 'Delay between checks',
-            },
-            'number_of_runs': {
-                'type': '?int',
-                'title': '',
+                'default': 30,
+                'unit': 'seconds',
             },
         }
 
