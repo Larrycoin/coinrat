@@ -53,6 +53,13 @@ def synchronizers() -> None:
         click.echo('  - {}'.format(synchronizer_name))
 
 
+@cli.command(help='Shows available strategies.')
+def strategies() -> None:
+    click.echo('Available strategies:')
+    for synchronizer_name in di_container.strategy_plugins.get_available_strategies():
+        click.echo('  - {}'.format(synchronizer_name))
+
+
 @cli.command(help="""
 Exports candles into JSON file. Interval must be in UTC. \n\nExample: \n\n
     "python -m coinrat export_candles bittrex USD BTC \'2017-12-02T00:00:00\' \'2017-12-03T00:00:00\' output.json"

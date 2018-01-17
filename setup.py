@@ -42,6 +42,7 @@ setup(
         ],
         'coinrat_strategy_plugins': [
             'coinrat_double_crossover_strategy = coinrat_double_crossover_strategy:strategy_plugin',
+            'coinrat_heikin_ashi_strategy = coinrat_heikin_ashi_strategy:strategy_plugin',
         ],
     },
     setup_requires=['pytest-runner'],
