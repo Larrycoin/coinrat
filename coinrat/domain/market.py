@@ -37,7 +37,11 @@ class Market:
         raise NotImplementedError()
 
     @property
-    def transaction_fee(self):
+    def transaction_taker_fee(self):
+        raise NotImplementedError()
+
+    @property
+    def transaction_maker_fee(self):
         raise NotImplementedError()
 
     def get_balance(self, currency: str) -> Balance:
@@ -46,10 +50,7 @@ class Market:
     def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:
         raise NotImplementedError()
 
-    def place_sell_order(self, order: Order) -> Order:
-        raise NotImplementedError()
-
-    def place_buy_order(self, order: Order) -> Order:
+    def place_order(self, order: Order) -> Order:
         raise NotImplementedError()
 
     def get_order_status(self, order: Order) -> OrderMarketInfo:
@@ -58,20 +59,14 @@ class Market:
     def cancel_order(self, order_id: str) -> None:
         raise NotImplementedError()
 
-    def buy_max_available(self, pair: Pair) -> Order:
-        raise NotImplementedError()
-
-    def sell_max_available(self, pair: Pair) -> Order:
-        raise NotImplementedError()
-
     def get_all_tradable_pairs(self) -> List[Pair]:
         raise NotImplementedError()
 
     def __repr__(self) -> str:
         return self.name
 
-    def calculate_maximal_amount_to_by(self, pair: Pair, current_price: Decimal) -> Decimal:
+    def calculate_maximal_amount_to_buy(self, pair: Pair, current_price: Decimal) -> Decimal:
         base_currency_balance = self.get_balance(pair.base_currency)
-        coefficient_due_fee = Decimal(1) - self.transaction_fee
+        coefficient_due_fee = Decimal(1) - self.transaction_taker_fee
 
         return (base_currency_balance.available_amount / current_price) * coefficient_due_fee

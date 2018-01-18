@@ -25,8 +25,8 @@ def test_market():
     assert Decimal(0.004) == market.get_pair_market_info(BTC_USD_PAIR).minimal_order_size
     assert '0.50000000 BTC' == str(market.get_balance('BTC'))
     assert '0.50000000 LOL' == str(market.get_balance('LOL'))
-    assert Decimal(0.0025) == market.transaction_fee
-    assert DUMMY_ORDER == market.place_sell_order(DUMMY_ORDER)
+    assert Decimal(0.0025) == market.transaction_taker_fee
+    assert DUMMY_ORDER == market.place_order(DUMMY_ORDER)
     assert DUMMY_ORDER == market.place_buy_order(DUMMY_ORDER)
     assert market.cancel_order('xxx') is None
     buy_order = market.buy_max_available(BTC_USD_PAIR)

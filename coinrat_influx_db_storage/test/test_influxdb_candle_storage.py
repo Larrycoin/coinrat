@@ -85,12 +85,12 @@ def test_get_current_candle(influx_database: InfluxDBClient):
     storage = CandleInnoDbStorage(influx_database)
     storage.write_candles([_create_dummy_candle(1, 8300)])
 
-    candle = storage.get_current_candle(DUMMY_MARKET, BTC_USD_PAIR)
+    candle = storage.get_last_candle(DUMMY_MARKET, BTC_USD_PAIR)
     assert candle.time.minute == 1
 
     storage.write_candles([_create_dummy_candle(2, 8300)])
 
-    candle = storage.get_current_candle(DUMMY_MARKET, BTC_USD_PAIR)
+    candle = storage.get_last_candle(DUMMY_MARKET, BTC_USD_PAIR)
     assert candle.time.minute == 2
 
 

@@ -29,7 +29,11 @@ class BittrexMarket(Market):
         return MARKET_NAME
 
     @property
-    def transaction_fee(self) -> Decimal:
+    def transaction_taker_fee(self) -> Decimal:
+        return Decimal(0.0025)
+
+    @property
+    def transaction_maker_fee(self) -> Decimal:
         return Decimal(0.0025)
 
     def get_balance(self, currency: str) -> Balance:
@@ -59,39 +63,24 @@ class BittrexMarket(Market):
             'MarketPair "{}" not found on the "{}".'.format(market, self.name)
         )
 
-    def place_sell_order(self, order: Order) -> Order:
+    def place_order(self, order: Order) -> Order:
         assert order.market_name == self.name
-        assert order.is_sell()
 
-        logging.info('Placing SELL order: {}'.format(order))
+        logging.info('Placing order: {}'.format(order))
         market = self.format_market_pair(order.pair)
         self._validate_minimal_order(order)
 
         if order.type == ORDER_TYPE_MARKET:
-            raise NotImplementedError('Bittrex does not support that.')
+            raise NotImplementedError('Bittrex does not support MARKET orders.')
 
         elif order.type == ORDER_TYPE_LIMIT:
-            result = self._client_v1.sell_limit(market, float(order.quantity), float(order.rate))
-            self._validate_result(result)
-            order.set_id_on_market(result['result']['uuid'])
-            return order
+            if order.is_sell():
+                result = self._client_v1.sell_limit(market, float(order.quantity), float(order.rate))
+            elif order.is_buy():
+                result = self._client_v1.buy_limit(market, float(order.quantity), float(order.rate))
+            else:
+                raise ValueError('Unknown order direction: {}'.format(order._direction))
 
-        else:
-            raise ValueError('Unknown order type: {}'.format(order.type))
-
-    def place_buy_order(self, order: Order) -> Order:
-        assert order.market_name == self.name
-        assert order.is_buy()
-
-        logging.info('Placing BUY order: {}'.format(order))
-        market = self.format_market_pair(order.pair)
-        self._validate_minimal_order(order)
-
-        if order.type == ORDER_TYPE_MARKET:
-            raise NotImplementedError('Bittrex does not support that.')
-
-        elif order.type == ORDER_TYPE_LIMIT:
-            result = self._client_v1.buy_limit(market, float(order.quantity), float(order.rate))
             self._validate_result(result)
             order.set_id_on_market(result['result']['uuid'])
             return order
@@ -113,29 +102,6 @@ class BittrexMarket(Market):
     def cancel_order(self, order_id: str) -> None:
         result = self._client_v1.cancel(order_id)
         self._validate_result(result)
-
-    def buy_max_available(self, pair: Pair) -> Order:
-        tick = self.get_last_candles(pair, 1)[0]
-
-        return self.place_buy_order(self._create_order_entity(
-            DIRECTION_BUY,
-            ORDER_TYPE_LIMIT,
-            pair,
-            self.calculate_maximal_amount_to_by(pair, tick.average_price),
-            tick.average_price
-        ))
-
-    def sell_max_available(self, pair: Pair) -> Order:
-        market_currency_available = self.get_balance(pair.market_currency).available_amount
-        tick = self.get_last_candles(pair, 1)[0]
-
-        return self.place_sell_order(self._create_order_entity(
-            DIRECTION_SELL,
-            ORDER_TYPE_LIMIT,
-            pair,
-            market_currency_available,
-            tick.average_price
-        ))
 
     def get_all_tradable_pairs(self) -> List[Pair]:
         raw_pairs = self._client_v1.get_markets()['result']

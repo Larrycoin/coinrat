@@ -13,7 +13,7 @@ BTC_USD_PAIR = Pair('USD', 'BTC')
 def test_bittrex_static_data():
     synchronizer = bittrex_market_factory('', '')
     assert 'bittrex' == synchronizer.name
-    assert Decimal(0.0025) == synchronizer.transaction_fee
+    assert Decimal(0.0025) == synchronizer.transaction_taker_fee
 
 
 def test_get_pair_market_info():

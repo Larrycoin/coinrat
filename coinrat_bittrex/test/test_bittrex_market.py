@@ -62,7 +62,7 @@ def test_create_sell_order():
     order = copy.deepcopy(DUMMY_LIMIT_BUY_ORDER)
     order._direction = DIRECTION_SELL
 
-    order = market.place_sell_order(order)
+    order = market.place_order(order)
 
     assert '16fd2706-8baf-433b-82eb-8c7fada847da' == str(order.order_id)
     assert 'abcd' == order.id_on_market
@@ -92,7 +92,7 @@ def test_market_order_not_implemented():
     with pytest.raises(NotImplementedError):
         order = copy.deepcopy(DUMMY_MARKET_BUY_ORDER)
         order._direction = DIRECTION_SELL
-        market.place_sell_order(order)
+        market.place_order(order)
 
 
 def test_invalid_order():
@@ -106,7 +106,7 @@ def test_invalid_order():
 
     with pytest.raises(ValueError):
         order._direction = DIRECTION_SELL
-        market.place_sell_order(order)
+        market.place_order(order)
 
 
 def test_not_enough_balance():
@@ -119,7 +119,7 @@ def test_not_enough_balance():
 
     with pytest.raises(NotEnoughBalanceToPerformOrderException):
         order._direction = DIRECTION_SELL
-        market.place_sell_order(order)
+        market.place_order(order)
 
 
 def test_cancel_order():

@@ -50,7 +50,7 @@ class CandleMemoryStorage(CandleStorage):
 
         return result
 
-    def get_current_candle(self, market_name: str, pair: Pair) -> MinuteCandle:
+    def get_last_candle(self, market_name: str, pair: Pair) -> MinuteCandle:
         return self._current_candle
 
     def mean(

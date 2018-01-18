@@ -59,10 +59,10 @@ class CandleInnoDbStorage(CandleStorage):
 
         return [self._create_candle_from_serialized(row) for row in data]
 
-    def get_current_candle(self, market_name: str, pair: Pair) -> MinuteCandle:
+    def get_last_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> MinuteCandle:
         sql = '''
-            SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' ORDER BY "time" DESC LIMIT 1
-        '''.format(MEASUREMENT_CANDLES_NAME, create_pair_identifier(pair), market_name)
+            SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' AND "time" <= '{}' ORDER BY "time" DESC LIMIT 1
+        '''.format(MEASUREMENT_CANDLES_NAME, create_pair_identifier(pair), market_name, current_time.isoformat())
 
         result: ResultSet = self._client.query(sql)
         result = list(result.get_points())

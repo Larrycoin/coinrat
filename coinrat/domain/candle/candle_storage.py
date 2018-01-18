@@ -1,6 +1,6 @@
-from typing import List
-
+import datetime
 from decimal import Decimal
+from typing import List
 
 from coinrat.domain.coinrat import ForEndUserException
 from coinrat.domain.pair import Pair
@@ -43,7 +43,7 @@ class CandleStorage:
     ) -> Decimal:
         raise NotImplementedError()
 
-    def get_current_candle(self, market_name: str, pair: Pair) -> MinuteCandle:
+    def get_last_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> MinuteCandle:
         raise NotImplementedError()
 
     @property

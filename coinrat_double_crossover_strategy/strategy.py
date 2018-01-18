@@ -1,5 +1,6 @@
 import datetime, time
 import logging
+import uuid
 from typing import Union, Tuple, List, Dict
 from decimal import Decimal
 
@@ -9,7 +10,7 @@ from coinrat.domain import Strategy, Pair, Market, MarketOrderException, Strateg
     DateTimeFactory, DateTimeInterval
 from coinrat.domain.candle import CandleStorage, CANDLE_STORAGE_FIELD_CLOSE
 from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, \
-    NotEnoughBalanceToPerformOrderException
+    NotEnoughBalanceToPerformOrderException, ORDER_TYPE_LIMIT
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from coinrat_double_crossover_strategy.utils import absolute_possible_percentage_gain
 from coinrat.event.event_emitter import EventEmitter
@@ -128,9 +129,9 @@ class DoubleCrossoverStrategy(Strategy):
         if last_order is None:
             return True
 
-        current_price = self._candle_storage.get_current_candle(market.name, pair).average_price
+        current_price = self.get_current_average_price(market, pair)
 
-        does_worth_it = absolute_possible_percentage_gain(last_order.rate, current_price) > market.transaction_fee
+        does_worth_it = absolute_possible_percentage_gain(last_order.rate, current_price) > market.transaction_taker_fee
         if not does_worth_it:
             logging.info('Skipping trade at current price: "{0:.8f}" (last order at: "{1:.8f}")'.format(
                 current_price, last_order.rate
@@ -141,6 +142,7 @@ class DoubleCrossoverStrategy(Strategy):
     def _check_for_signal(self, market: Market, pair: Pair) -> Union[Signal, None]:
         long_average, short_average = self._get_averages(market, pair)
         current_sign = self._calculate_sign_of_change(long_average, short_average)
+        current_average_price = self.get_current_average_price(market, pair)
 
         logging.info(
             '[{0}] Previous_sign: {1}, Current-sign: {2:.8f}, Long-now: {3:.8f}, Short-now: {4:.8f}'.format(
@@ -157,15 +159,20 @@ class DoubleCrossoverStrategy(Strategy):
 
         signal = None
         if self._previous_sign is not None and current_sign != self._previous_sign:
-            signal = self._create_signal(current_sign)
+            signal = self._create_signal(current_sign, current_average_price)
 
         self._previous_sign = current_sign
         return signal
 
+    def get_current_average_price(self, market, pair):
+        candle = self._candle_storage.get_last_candle(market.name, pair, self._datetime_factory.now())
+        current_average_price = candle.average_price
+        return current_average_price
+
     @staticmethod
-    def _create_signal(current_sign: int) -> Signal:
+    def _create_signal(current_sign: int, average_price: Decimal) -> Signal:
         assert current_sign in [-1, 1]
-        return Signal(SIGNAL_BUY) if current_sign == 1 else Signal(SIGNAL_SELL)
+        return Signal(SIGNAL_BUY, average_price) if current_sign == 1 else Signal(SIGNAL_SELL, average_price)
 
     @staticmethod
     def _calculate_sign_of_change(long_average: Decimal, short_average: Decimal) -> int:
@@ -201,13 +208,35 @@ class DoubleCrossoverStrategy(Strategy):
             if self._last_signal.is_buy():
                 self._cancel_open_order(market, pair, DIRECTION_SELL)
                 if self._does_trade_worth_it(market, pair):
-                    order = market.buy_max_available(pair)
+                    order = Order(
+                        uuid.uuid4(),
+                        market.name,
+                        DIRECTION_BUY,
+                        self._datetime_factory.now(),
+                        pair,
+                        ORDER_TYPE_LIMIT,
+                        market.calculate_maximal_amount_to_buy(pair, self._last_signal.average_price),
+                        self._last_signal.average_price
+                    )
+
+                    market.place_order(order)
                     self._last_signal = None
 
             elif self._last_signal.is_sell():
                 self._cancel_open_order(market, pair, DIRECTION_BUY)
                 if self._does_trade_worth_it(market, pair):
-                    order = market.sell_max_available(pair)
+                    order = Order(
+                        uuid.uuid4(),
+                        market.name,
+                        DIRECTION_SELL,
+                        self._datetime_factory.now(),
+                        pair,
+                        ORDER_TYPE_LIMIT,
+                        market.get_balance(pair.market_currency).available_amount,
+                        self._last_signal.average_price
+                    )
+
+                    market.place_order(order)
                     self._last_signal = None
             else:
                 raise ValueError('Unknown signal: "{}"'.format(self._last_signal))  # pragma: no cover
