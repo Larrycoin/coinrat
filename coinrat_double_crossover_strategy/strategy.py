@@ -13,6 +13,7 @@ from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from coinrat_double_crossover_strategy.utils import absolute_possible_percentage_gain
 from coinrat.event.event_emitter import EventEmitter
+from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_INT
 
 STRATEGY_NAME = 'double_crossover'
 
@@ -68,19 +69,19 @@ class DoubleCrossoverStrategy(Strategy):
     def get_configuration_structure() -> Dict[str, Dict[str, str]]:
         return {
             'long_average_interval': {
-                'type': 'int',
+                'type': CONFIGURATION_STRUCTURE_TYPE_INT,
                 'title': 'Long average time-delta',
                 'default': 60 * 60,
                 'unit': 'seconds',
             },
             'short_average_interval': {
-                'type': 'int',
+                'type': CONFIGURATION_STRUCTURE_TYPE_INT,
                 'title': 'Short average time-delta',
                 'default': 15 * 60,
                 'unit': 'seconds',
             },
             'delay': {
-                'type': 'int',
+                'type': CONFIGURATION_STRUCTURE_TYPE_INT,
                 'title': 'Delay between checks',
                 'default': 30,
                 'unit': 'seconds',

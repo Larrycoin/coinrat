@@ -5,6 +5,8 @@ from typing import Dict, List
 from coinrat.domain import Market, Balance, Pair, PairMarketInfo, DateTimeFactory
 from coinrat.domain.order import ORDER_TYPE_LIMIT, DIRECTION_SELL, DIRECTION_BUY, Order, OrderMarketInfo, \
     ORDER_STATUS_CLOSED
+from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_STRING, \
+    CONFIGURATION_STRUCTURE_TYPE_DECIMAL
 
 MARKET_NAME = 'mock'
 DUMMY_STATIC_BALANCE = Decimal(0.5)
@@ -30,19 +32,19 @@ class MockMarket(Market):
     def get_configuration_structure() -> Dict[str, Dict[str, str]]:
         return {
             'mocked_market_name': {
-                'type': 'string',
+                'type': CONFIGURATION_STRUCTURE_TYPE_STRING,
                 'title': 'Mocked Market Name',
                 'default': 'bittrex',
             },
             'mocked_balance': {
-                'type': 'Decimal',
+                'type': CONFIGURATION_STRUCTURE_TYPE_DECIMAL,
                 'title': 'Mocked balance',
                 'description': 'Balance for selected pair, that will be available for strategy on mocked market.',
                 'default': '0.5',
                 'unit': 'market currency',
             },
             'mocked_transaction_fee': {
-                'type': 'Decimal',
+                'type': CONFIGURATION_STRUCTURE_TYPE_DECIMAL,
                 'title': 'Transaction Fee',
                 'default': '0.004',
                 'unit': 'percents',
