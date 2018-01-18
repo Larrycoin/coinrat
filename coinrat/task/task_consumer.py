@@ -7,7 +7,7 @@ import dateutil.parser
 from typing import Dict, Union
 
 from coinrat.strategy_replayer import StrategyReplayer
-from coinrat.domain import Pair
+from coinrat.domain import deserialize_pair
 from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.market_plugins import MarketPlugins
 from coinrat.order_storage_plugins import OrderStoragePlugins
@@ -64,7 +64,7 @@ class TaskConsumer:
             data['strategy_name'],
             data['market_configuration'],
             strategy_configuration,
-            Pair.from_string(data['pair']),
+            deserialize_pair(data['pair']),
             candle_storage,
             orders_storage,
             start,

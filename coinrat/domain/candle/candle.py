@@ -1,6 +1,16 @@
 import datetime
 from decimal import Decimal
-from coinrat.domain.pair import Pair
+from typing import Dict, List
+import dateutil.parser
+
+from coinrat.domain.pair import Pair, serialize_pair, deserialize_pair
+
+CANDLE_STORAGE_FIELD_OPEN = 'open'
+CANDLE_STORAGE_FIELD_CLOSE = 'close'
+CANDLE_STORAGE_FIELD_LOW = 'low'
+CANDLE_STORAGE_FIELD_HIGH = 'high'
+CANDLE_STORAGE_FIELD_MARKET = 'market'
+CANDLE_STORAGE_FIELD_PAIR = 'pair'
 
 
 class MinuteCandle:
@@ -76,3 +86,35 @@ class MinuteCandle:
     def __repr__(self):
         return '{0} O:{1:.8f} H:{2:.8f} L:{3:.8f} C:{4:.8f}' \
             .format(self._time.isoformat(), self._open, self._high, self._low, self._close)
+
+
+def serialize_candle(candle: MinuteCandle) -> Dict[str, str]:
+    return {
+        'market': candle.market_name,
+        'pair': serialize_pair(candle.pair),
+        'time': candle.time.isoformat(),
+        CANDLE_STORAGE_FIELD_OPEN: str(candle.open),
+        CANDLE_STORAGE_FIELD_HIGH: str(candle.high),
+        CANDLE_STORAGE_FIELD_LOW: str(candle.low),
+        CANDLE_STORAGE_FIELD_CLOSE: str(candle.close),
+    }
+
+
+def serialize_candles(candles: List[MinuteCandle]) -> List[Dict[str, str]]:
+    return list(map(serialize_candle, candles))
+
+
+def deserialize_candle(row: Dict) -> MinuteCandle:
+    return MinuteCandle(
+        row['market'],
+        deserialize_pair(row['pair']),
+        dateutil.parser.parse(row['time']).replace(tzinfo=datetime.timezone.utc),
+        Decimal(row[CANDLE_STORAGE_FIELD_OPEN]),
+        Decimal(row[CANDLE_STORAGE_FIELD_HIGH]),
+        Decimal(row[CANDLE_STORAGE_FIELD_LOW]),
+        Decimal(row[CANDLE_STORAGE_FIELD_CLOSE])
+    )
+
+
+def deserialize_candles(serialized_candles: List[Dict[str, str]]) -> List[MinuteCandle]:
+    return list(map(deserialize_candle, serialized_candles))

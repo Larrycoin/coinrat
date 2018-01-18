@@ -7,13 +7,6 @@ from coinrat.domain.pair import Pair
 from coinrat.domain import DateTimeInterval
 from .candle import MinuteCandle
 
-CANDLE_STORAGE_FIELD_OPEN = 'open'
-CANDLE_STORAGE_FIELD_CLOSE = 'close'
-CANDLE_STORAGE_FIELD_LOW = 'low'
-CANDLE_STORAGE_FIELD_HIGH = 'high'
-CANDLE_STORAGE_FIELD_MARKET = 'market'
-CANDLE_STORAGE_FIELD_PAIR = 'pair'
-
 
 class NoCandlesForMarketInStorageException(ForEndUserException):
     pass

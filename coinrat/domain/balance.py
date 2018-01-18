@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Dict, List
 
 
 class Balance:
@@ -27,3 +28,14 @@ class Balance:
 
     def __repr__(self):
         return '{0:.8f} {1}'.format(self._available_amount, self._currency)
+
+
+def serialize_balance(balance: Balance) -> Dict[str, str]:
+    return {
+        'currency': balance.currency,
+        'available_amount': balance.available_amount,
+    }
+
+
+def serialize_balances(balances: List[Balance]) -> List[Dict[str, str]]:
+    return list(map(serialize_balance, balances))

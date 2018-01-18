@@ -1,5 +1,6 @@
 import datetime
-from typing import Union
+import dateutil.parser
+from typing import Union, Dict
 
 
 class DateTimeInterval:
@@ -37,3 +38,13 @@ class DateTimeInterval:
             'None' if self._since is None else self._since.isoformat(),
             'None' if self._till is None else self._till.isoformat()
         )
+
+
+def deserialize_datetime_interval(data: Dict[str, str]) -> DateTimeInterval:
+    since = data['since']
+    till = data['till']
+
+    return DateTimeInterval(
+        dateutil.parser.parse(since).replace(tzinfo=datetime.timezone.utc) if since is not None else None,
+        dateutil.parser.parse(till).replace(tzinfo=datetime.timezone.utc) if till is not None else None
+    )

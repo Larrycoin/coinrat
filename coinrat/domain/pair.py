@@ -24,9 +24,12 @@ class Pair:
         return self._market_currency
 
     def __repr__(self):
-        return '{}_{}'.format(self._base_currency, self._market_currency)
+        return serialize_pair(self)
 
-    @staticmethod
-    def from_string(raw_pair: str):
-        pair_data = raw_pair.split('_')
-        return Pair(pair_data[0], pair_data[1])
+
+def serialize_pair(pair: Pair) -> str:
+    return '{}_{}'.format(pair.base_currency, pair.market_currency)
+
+
+def deserialize_pair(identifier: str) -> Pair:
+    return Pair(*identifier.split('_'))

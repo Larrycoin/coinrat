@@ -100,6 +100,13 @@ class MockMarket(Market):
 
         return Balance(MARKET_NAME, currency, self._balances[currency])
 
+    def get_balances(self) -> List[Balance]:
+        result = []
+        for currency, available_amount in self._balances.items():
+            result.append(Balance(self.name, currency, available_amount))
+
+        return result
+
     def place_order(self, order: Order) -> Order:
         self._process_order(order)
         return order

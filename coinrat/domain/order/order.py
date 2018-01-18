@@ -1,11 +1,12 @@
+import datetime
+import dateutil.parser
+
 from decimal import Decimal
-from typing import Union
+from typing import Union, Dict, List
 from uuid import UUID
 
-import datetime
-
 from coinrat.domain.coinrat import ForEndUserException
-from coinrat.domain.pair import Pair
+from coinrat.domain.pair import Pair, deserialize_pair, serialize_pair
 
 ORDER_TYPE_LIMIT = 'limit'
 ORDER_TYPE_MARKET = 'market'
@@ -180,6 +181,56 @@ class Order:
             '{0:.8f}'.format(self._rate) if self._rate is not None else 'None',
             self._quantity
         )
+
+
+def serialize_order(order: Order) -> Dict[str, Union[str, None]]:
+    return {
+        ORDER_FIELD_ORDER_ID: str(order.order_id),
+        ORDER_FIELD_MARKET: order.market_name,
+        ORDER_FIELD_DIRECTION: order._direction,
+        ORDER_FIELD_CREATED_AT: order.created_at.isoformat(),
+        ORDER_FIELD_PAIR: serialize_pair(order.pair),
+        ORDER_FIELD_TYPE: order.type,
+        ORDER_FIELD_QUANTITY: str(order.quantity),
+        ORDER_FIELD_RATE: str(order.rate),
+        ORDER_FIELD_ID_ON_MARKET: order.id_on_market,
+        ORDER_FIELD_STATUS: order._status,
+        ORDER_FIELD_CLOSED_AT: order.closed_at.isoformat() if order.closed_at is not None else None,
+        ORDER_FIELD_CANCELED_AT: order.canceled_at.isoformat() if order.canceled_at is not None else None,
+    }
+
+
+def serialize_orders(orders: List[Order]) -> List[Dict[str, Union[str, None]]]:
+    return list(map(serialize_order, orders))
+
+
+def deserialize_order(serialized: Dict) -> Order:
+    closed_at = serialized[ORDER_FIELD_CLOSED_AT]
+    if closed_at is not None:
+        closed_at = dateutil.parser.parse(closed_at).replace(tzinfo=datetime.timezone.utc)
+
+    canceled_at = serialized[ORDER_FIELD_CANCELED_AT]
+    if canceled_at is not None:
+        canceled_at = dateutil.parser.parse(canceled_at).replace(tzinfo=datetime.timezone.utc)
+
+    return Order(
+        serialized[ORDER_FIELD_ORDER_ID],
+        serialized[ORDER_FIELD_MARKET],
+        serialized[ORDER_FIELD_DIRECTION],
+        dateutil.parser.parse(serialized[ORDER_FIELD_CREATED_AT]).replace(tzinfo=datetime.timezone.utc),
+        deserialize_pair(serialized[ORDER_FIELD_PAIR]),
+        serialized[ORDER_FIELD_TYPE],
+        Decimal(serialized[ORDER_FIELD_QUANTITY]),
+        Decimal(serialized[ORDER_FIELD_RATE]),
+        serialized[ORDER_FIELD_ID_ON_MARKET],
+        serialized[ORDER_FIELD_STATUS],
+        closed_at,
+        canceled_at
+    )
+
+
+def deserialize_orders(serialized_orders: List[Dict]) -> List[Order]:
+    return list(map(deserialize_order, serialized_orders))
 
 
 class OrderMarketInfo:

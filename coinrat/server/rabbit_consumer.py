@@ -7,11 +7,10 @@ import pika
 
 from typing import Dict
 
+from coinrat.domain import DateTimeInterval, deserialize_datetime_interval
+from coinrat.domain.candle import deserialize_candle
+from coinrat.domain.order import deserialize_order
 from coinrat.event.event_types import EVENT_NEW_CANDLE, EVENT_NEW_ORDER
-from coinrat.server.interval import parse_interval
-from coinrat.domain import DateTimeInterval
-from coinrat.server.order import parse_order
-from .candle import parse_candle
 from .socket_server import SocketServer
 
 
@@ -66,7 +65,7 @@ class RabbitEventConsumer(threading.Thread):
         subscription = {
             data['storage']: {
                 data['market']: {
-                    data['pair']: parse_interval(data['interval'])
+                    data['pair']: deserialize_datetime_interval(data['interval'])
                 }
             }
         }
@@ -80,7 +79,7 @@ class RabbitEventConsumer(threading.Thread):
         )
 
     def process_new_order_event(self, decoded_body: Dict) -> None:
-        order = parse_order(decoded_body['order'])
+        order = deserialize_order(decoded_body['order'])
         if self.is_event_subscribed(
             decoded_body['event'],
             decoded_body['storage'],
@@ -93,7 +92,7 @@ class RabbitEventConsumer(threading.Thread):
             logging.info("[Rabbit] Event received -> no subscription | %r", decoded_body)
 
     def process_new_candle_event(self, decoded_body: Dict) -> None:
-        candle = parse_candle(decoded_body['candle'])
+        candle = deserialize_candle(decoded_body['candle'])
         if self.is_event_subscribed(
             decoded_body['event'],
             decoded_body['storage'],

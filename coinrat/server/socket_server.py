@@ -6,20 +6,19 @@ import os
 import socketio
 from flask import Flask
 
-from coinrat.candle_storage_plugins import CandleStoragePlugins
-from coinrat.domain import DateTimeFactory
-from coinrat.domain import Pair
+from coinrat.domain import DateTimeFactory, deserialize_pair, serialize_balances, serialize_pair, \
+    deserialize_datetime_interval
+from coinrat.domain.order import Order, serialize_order, serialize_orders
+from coinrat.domain.candle import serialize_candles, MinuteCandle, serialize_candle
 from coinrat.order_storage_plugins import OrderStoragePlugins
+from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.server.event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, EVENT_GET_ORDERS, \
     EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_NEW_CANDLES, EVENT_NEW_ORDERS, EVENT_CLEAR_ORDERS, \
-    EVENT_GET_MARKETS, EVENT_GET_PAIRS, EVENT_GET_CANDLE_STORAGES, EVENT_GET_ORDER_STORAGES, EVENT_GET_STRATEGIES
+    EVENT_GET_MARKETS, EVENT_GET_PAIRS, EVENT_GET_CANDLE_STORAGES, EVENT_GET_ORDER_STORAGES, EVENT_GET_STRATEGIES, \
+    SOCKET_EVENT_GET_BALANCE
 from coinrat.task.task_planner import TaskPlanner
-from coinrat.domain.order import Order
 from coinrat.market_plugins import MarketPlugins
 from coinrat.strategy_plugins import StrategyPlugins
-from .order import serialize_orders, serialize_order
-from .interval import parse_interval
-from .candle import serialize_candles, MinuteCandle, serialize_candle
 
 
 class SocketServer(threading.Thread):
@@ -47,6 +46,17 @@ class SocketServer(threading.Thread):
             data['response_timestamp'] = datetime_factory.now().timestamp()
             socket.emit(EVENT_PING_RESPONSE, data)
 
+        @socket.on(SOCKET_EVENT_GET_BALANCE)
+        def candles(sid, data):
+            logging.info('RECEIVED: {}, {}'.format(SOCKET_EVENT_GET_BALANCE, data))
+
+            if 'market_name' not in data:
+                return 'ERROR', {'message': 'Missing "market_name" field in request.'}
+
+            market = market_plugins.get_market(data['market_name'], datetime_factory, {})
+
+            return 'OK', serialize_balances(market.get_balances())
+
         @socket.on(EVENT_GET_CANDLES)
         def candles(sid, data):
             logging.info('RECEIVED: {}, {}'.format(EVENT_GET_CANDLES, data))
@@ -57,8 +67,8 @@ class SocketServer(threading.Thread):
             candle_storage = candle_storage_plugins.get_candle_storage(data['candle_storage'])
             result_candles = candle_storage.find_by(
                 data['market'],
-                Pair.from_string(data['pair']),
-                parse_interval(data['interval'])
+                deserialize_pair(data['pair']),
+                deserialize_datetime_interval(data['interval'])
             )
 
             return 'OK', serialize_candles(result_candles)
@@ -89,7 +99,7 @@ class SocketServer(threading.Thread):
 
             return 'OK', list(map(
                 lambda pair: {
-                    'key': str(pair),
+                    'key': serialize_pair(pair),
                     'name': pair.base_currency + '-' + pair.market_currency
                 },
                 market.get_all_tradable_pairs()
@@ -137,8 +147,8 @@ class SocketServer(threading.Thread):
             order_storage = order_storage_plugins.get_order_storage(data['order_storage'])
             result_orders = order_storage.find_by(
                 data['market'],
-                Pair.from_string(data['pair']),
-                interval=parse_interval(data['interval'])
+                deserialize_pair(data['pair']),
+                interval=deserialize_datetime_interval(data['interval'])
             )
 
             return 'OK', serialize_orders(result_orders)
@@ -153,8 +163,8 @@ class SocketServer(threading.Thread):
             order_storage = order_storage_plugins.get_order_storage(data['order_storage'])
             order_storage.delete_by(
                 data['market'],
-                Pair.from_string(data['pair']),
-                interval=parse_interval(data['interval'])
+                deserialize_pair(data['pair']),
+                interval=deserialize_datetime_interval(data['interval'])
             )
 
             return 'OK'

@@ -18,3 +18,5 @@ EVENT_GET_PAIRS = 'get_pairs'
 EVENT_GET_CANDLE_STORAGES = 'get_candle_storages'
 EVENT_GET_ORDER_STORAGES = 'get_order_storages'
 EVENT_GET_STRATEGIES = 'get_strategies'
+
+SOCKET_EVENT_GET_BALANCE = 'get_balance'

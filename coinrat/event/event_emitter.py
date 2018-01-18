@@ -3,10 +3,9 @@ from typing import List
 
 import pika
 
-from coinrat.server.candle import serialize_candle
-from coinrat.domain.candle import MinuteCandle
+from coinrat.domain.candle import MinuteCandle, serialize_candle
 from coinrat.domain.order import Order
-from coinrat.server.order import serialize_order
+from coinrat.domain.order import serialize_order
 from .event_types import EVENT_NEW_CANDLE, EVENT_NEW_ORDER
 
 

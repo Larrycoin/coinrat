@@ -47,6 +47,9 @@ class Market:
     def get_balance(self, currency: str) -> Balance:
         raise NotImplementedError()
 
+    def get_balances(self) -> List[Balance]:
+        raise NotImplementedError()
+
     def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:
         raise NotImplementedError()
 

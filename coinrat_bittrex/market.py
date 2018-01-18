@@ -43,6 +43,15 @@ class BittrexMarket(Market):
 
         return Balance(self.name, currency, Decimal(result['result']['Available']))
 
+    def get_balances(self) -> List[Balance]:
+        result = self._client_v2.get_balances()
+        self._validate_result(result)
+
+        return list(map(
+            lambda data: Balance(self.name, data['Currency'], Decimal(data['Available'])),
+            result['result']
+        ))
+
     def get_last_candles(self, pair: Pair, count: int = 1) -> List[MinuteCandle]:
         result = self._get_sorted_candles_from_api(pair)
         return [self._create_candle_from_raw_ticker_data(pair, candle_data) for candle_data in result[-count:]]
