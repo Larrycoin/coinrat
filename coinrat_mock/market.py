@@ -7,8 +7,8 @@ from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_
     CONFIGURATION_STRUCTURE_TYPE_DECIMAL
 
 MARKET_NAME = 'mock'
-DEFAULT_BASE_BALANCE = Decimal(1000)
-DEFAULT_TRANSACTION_FEE = Decimal(0.0025)
+DEFAULT_BASE_BALANCE = Decimal('1000')
+DEFAULT_TRANSACTION_FEE = Decimal('0.0025')
 DEFAULT_BASE_CURRENCY = 'USD'
 
 
@@ -52,16 +52,18 @@ class MockMarket(Market):
             },
             'mocked_base_currency_balance': {
                 'type': CONFIGURATION_STRUCTURE_TYPE_DECIMAL,
-                'title': 'Mocked balance',
-                'description': 'Balance for selected pair, that will be available for strategy on mocked market.',
-                'default': '0.5',
-                'unit': 'market currency',
+                'title': 'Starting balance',
+                'description':
+                    'Balance for selected pair, that will be available for strategy on the market at beginning.',
+                'default': str(DEFAULT_BASE_BALANCE),
+                'unit': 'base currency',
             },
             'mocked_transaction_maker_fee': {
                 'type': CONFIGURATION_STRUCTURE_TYPE_DECIMAL,
                 'title': 'Maker Fee',
-                'description': 'Transaction fee that will be charged when you add the stock (usually all LIMIT orders).',
-                'default': str(DEFAULT_TRANSACTION_FEE),
+                'description':
+                    'Transaction fee that will be charged when you add the stock (usually all LIMIT orders).',
+                'default': '{0:.4f}'.format(DEFAULT_TRANSACTION_FEE),
                 'unit': 'percents',
             },
             'mocked_transaction_taker_fee': {
@@ -69,7 +71,7 @@ class MockMarket(Market):
                 'title': 'Taker Fee',
                 'description':
                     'Transaction fee that will be charged when you reduce stock by you action (usually MARKET orders).',
-                'default': '0.004',
+                'default': '{0:.4f}'.format(DEFAULT_TRANSACTION_FEE),
                 'unit': 'percents',
             },
         }

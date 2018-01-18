@@ -66,7 +66,7 @@ class Market:
         return self.name
 
     def calculate_maximal_amount_to_buy(self, pair: Pair, current_price: Decimal) -> Decimal:
-        base_currency_balance = self.get_balance(pair.base_currency)
-        coefficient_due_fee = Decimal(1) - self.transaction_taker_fee
+        return self.get_balance(pair.base_currency).available_amount / current_price
 
-        return (base_currency_balance.available_amount / current_price) * coefficient_due_fee
+    def calculate_maximal_amount_to_sell(self, pair: Pair) -> Decimal:
+        return self.get_balance(pair.market_currency).available_amount

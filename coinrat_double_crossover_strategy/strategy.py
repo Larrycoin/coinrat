@@ -232,7 +232,7 @@ class DoubleCrossoverStrategy(Strategy):
                         self._datetime_factory.now(),
                         pair,
                         ORDER_TYPE_LIMIT,
-                        market.get_balance(pair.market_currency).available_amount,
+                        market.calculate_maximal_amount_to_sell(pair),
                         self._last_signal.average_price
                     )
 
