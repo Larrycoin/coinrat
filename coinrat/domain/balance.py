@@ -33,7 +33,7 @@ class Balance:
 def serialize_balance(balance: Balance) -> Dict[str, str]:
     return {
         'currency': balance.currency,
-        'available_amount': balance.available_amount,
+        'available_amount': str(balance.available_amount),
     }
 
 

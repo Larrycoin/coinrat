@@ -48,7 +48,11 @@ class BittrexMarket(Market):
         self._validate_result(result)
 
         return list(map(
-            lambda data: Balance(self.name, data['Currency'], Decimal(data['Available'])),
+            lambda data: Balance(
+                self.name,
+                self._fix_currency(data['Balance']['Currency']),
+                Decimal(data['Balance']['Available'])
+            ),
             result['result']
         ))
 

@@ -47,7 +47,7 @@ class SocketServer(threading.Thread):
             socket.emit(EVENT_PING_RESPONSE, data)
 
         @socket.on(SOCKET_EVENT_GET_BALANCE)
-        def candles(sid, data):
+        def balances(sid, data):
             logging.info('RECEIVED: {}, {}'.format(SOCKET_EVENT_GET_BALANCE, data))
 
             if 'market_name' not in data:
