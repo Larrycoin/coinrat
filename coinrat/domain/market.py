@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import Union, Dict, List
 
+from coinrat.domain import Balance
 from .order import Order, OrderMarketInfo
 from .pair import Pair
 
@@ -39,7 +40,7 @@ class Market:
     def transaction_fee(self):
         raise NotImplementedError()
 
-    def get_balance(self, currency: str) -> Decimal:
+    def get_balance(self, currency: str) -> Balance:
         raise NotImplementedError()
 
     def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:
@@ -68,3 +69,9 @@ class Market:
 
     def __repr__(self) -> str:
         return self.name
+
+    def calculate_maximal_amount_to_by(self, pair: Pair, current_price: Decimal) -> Decimal:
+        base_currency_balance = self.get_balance(pair.base_currency)
+        coefficient_due_fee = Decimal(1) - self.transaction_fee
+
+        return (base_currency_balance.available_amount / current_price) * coefficient_due_fee

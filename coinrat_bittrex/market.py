@@ -32,7 +32,7 @@ class BittrexMarket(Market):
     def transaction_fee(self) -> Decimal:
         return Decimal(0.0025)
 
-    def get_balance(self, currency: str):
+    def get_balance(self, currency: str) -> Balance:
         currency = self._fix_currency(currency)
         result = self._client_v2.get_balance(currency)
         self._validate_result(result)
@@ -115,23 +115,19 @@ class BittrexMarket(Market):
         self._validate_result(result)
 
     def buy_max_available(self, pair: Pair) -> Order:
-        base_currency_balance = self.get_balance(pair.base_currency)
-        tick = self.get_last_candle(pair)
-
-        coefficient_due_fee = Decimal(1) - self.transaction_fee
-        amount_to_buy = (base_currency_balance.available_amount / tick.average_price) * coefficient_due_fee
+        tick = self.get_last_candles(pair, 1)[0]
 
         return self.place_buy_order(self._create_order_entity(
             DIRECTION_BUY,
             ORDER_TYPE_LIMIT,
             pair,
-            amount_to_buy,
+            self.calculate_maximal_amount_to_by(pair, tick.average_price),
             tick.average_price
         ))
 
     def sell_max_available(self, pair: Pair) -> Order:
         market_currency_available = self.get_balance(pair.market_currency).available_amount
-        tick = self.get_last_candle(pair)
+        tick = self.get_last_candles(pair, 1)[0]
 
         return self.place_sell_order(self._create_order_entity(
             DIRECTION_SELL,
