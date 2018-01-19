@@ -17,7 +17,6 @@ def influx_database():
     influx.drop_database('coinrat_test')
 
 
-@pytest.mark.skip(reason="")  # Todo: unskip
 def test_candle_ticks_are_stored(influx_database: InfluxDBClient):
     emitter_mock = flexmock()
     emitter_mock.should_receive('emit_new_candles')
