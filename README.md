@@ -34,6 +34,14 @@ to help you run simulations and visualize results.
     * `python -m pip install -r requirements.txt`
     * `cp .env_example .env`
     * Configure `.env`
+    
+# Usage
+Platform has five plugin types that are registered in `setup.py`: 
+* `coinrat_market_plugins` - This plugin provides one or more stock-market connections (Bitfinex, Bittrex, ...) and platform uses those plugin create order, check balances, ...
+* `coinrat_candle_storage_plugins` - This plugin provides storage for candles (stock-market price data).
+* `coinrat_order_storage_plugins` - This plugin provides storage for orders that are created by strategies in platform.
+* `coinrat_synchronizer_plugins` - This plugin is responsible for pumping stock-market data (candles) into platform. Usually one module contains both market and synchronizer plugin (for stock-market modules). But for read only sources (eg. cryptocompare.com) can be provided solely in the module. 
+* `coinrat_strategy_plugins` - Most interesting plugins. Represents one trading strategy. Strategy runs with one instance of candle and order storage, but in theory can use multiple markets (for example for [Market Arbitrage](https://www.investopedia.com/terms/m/marketarbitrage.asp))
 
 # Additional tips & tricks
 * There is visualization tool for Influx DB called [Chronograf](https://github.com/influxdata/chronograf), it can be usefull for visualizing data too.
