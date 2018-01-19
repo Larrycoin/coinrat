@@ -33,6 +33,7 @@ to help you run simulations and visualize results.
     * `. __venv__/bin/activate`
     * `python -m pip install --upgrade git+https://github.com/ericsomdahl/python-bittrex.git` ([Package on Pypi](https://pypi.python.org/pypi/bittrex/0.1.4) is not up to date.) 
     * `python -m pip install -r requirements.txt`
+    * `python setup.py install` (or `python setup.py develop` if you want to develop something into)
     * `cp .env_example .env`
     * Configure `.env`
     
@@ -71,3 +72,8 @@ Run one of default strategies with this command: `python -m coinrat run_strategy
 
 ## Additional tips & tricks
 * There is visualization tool for Influx DB called [Chronograf](https://github.com/influxdata/chronograf), it can be usefull for visualizing data too.
+
+## Development
+* Run `python setup.py develop` (instead of `python setup.py install`)
+* In `_scripts` there are some useful tools for development.
+* For more information how to add your plugin, see [Pluggy](https://github.com/pytest-dev/pluggy) - plugin system that is used here.
