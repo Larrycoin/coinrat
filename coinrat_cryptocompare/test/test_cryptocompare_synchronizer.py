@@ -3,6 +3,7 @@ from flexmock import flexmock
 
 from coinrat_cryptocompare.synchronizer import CryptocompareSynchronizer, CryptocompareRequestException
 from coinrat.domain import Pair
+from coinrat.event.event_emitter import EventEmitter
 
 BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_CANDLE_DATA = [
@@ -32,7 +33,7 @@ def test_synchronize_success():
     synchronizer = CryptocompareSynchronizer(
         'bittrex',
         mock_storage(1),
-        flexmock().should_receive('emit_new_candles'),
+        create_event_emitter_mock(),
         mock_session(response),
         delay=0,
         number_of_runs=1
@@ -66,8 +67,7 @@ def test_synchronize_response_field_indicates_error():
 
 
 def create_synchronizer_with_no_retries(response):
-    emitter_mock = flexmock()
-    emitter_mock.should_receive('emit_new_candles')
+    emitter_mock = create_event_emitter_mock()
     synchronizer = CryptocompareSynchronizer(
         'bittrex',
         mock_storage(0),
@@ -81,8 +81,14 @@ def create_synchronizer_with_no_retries(response):
     return synchronizer
 
 
+def create_event_emitter_mock() -> EventEmitter:
+    emitter_mock = flexmock()
+    emitter_mock.should_receive('emit_new_candles')
+    return emitter_mock
+
+
 def mock_storage(write_candles_call_count: int):
-    storage = flexmock()
+    storage = flexmock(name='yolo_storage')
     storage.should_receive('write_candles').times(write_candles_call_count)
 
     return storage

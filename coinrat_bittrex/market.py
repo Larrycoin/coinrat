@@ -66,7 +66,7 @@ class BittrexMarket(Market):
 
     def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:
         market = self.format_market_pair(pair)
-        result = self._client_v2.get_markets()
+        result = self._client_v1.get_markets()
         self._validate_result(result)
         for market_data in result['result']:
             if market_data['MarketName'] == market:

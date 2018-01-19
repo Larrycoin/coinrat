@@ -6,7 +6,8 @@ from decimal import Decimal
 from typing import Dict, Union
 from uuid import UUID
 
-from flexmock import flexmock
+from bittrex import Bittrex
+from flexmock import flexmock, Mock
 
 from coinrat.domain import Pair, MarketOrderException
 from coinrat.domain.order import Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, DIRECTION_BUY, DIRECTION_SELL, \
@@ -42,7 +43,7 @@ flexmock(uuid).should_receive('uuid4').and_return(UUID('16fd2706-8baf-433b-82eb-
 
 
 def test_get_balance():
-    market = BittrexMarket(flexmock(), mock_client_v2())
+    market = BittrexMarket(mock_client_v1(), mock_client_v2())
     balance = market.get_balance('BTC')
 
     assert 'BTC' == balance.currency
@@ -51,12 +52,13 @@ def test_get_balance():
 
 
 def test_place_order():
-    client_v1 = flexmock()
+    client_v1 = mock_client_v1()
     client_v1 \
         .should_receive('sell_limit') \
         .with_args('USDT-BTC', 1, 8000) \
         .and_return({'success': True, 'result': {'uuid': 'abcd'}}) \
         .once()
+
     market = BittrexMarket(client_v1, mock_client_v2())
 
     order = copy.deepcopy(DUMMY_LIMIT_BUY_ORDER)
@@ -69,14 +71,14 @@ def test_place_order():
 
 
 def test_market_order_not_implemented():
-    market = BittrexMarket(flexmock(), mock_client_v2())
+    market = BittrexMarket(mock_client_v1(), mock_client_v2())
 
     with pytest.raises(NotImplementedError):
         market.place_order(DUMMY_MARKET_BUY_ORDER)
 
 
 def test_invalid_order():
-    market = BittrexMarket(flexmock(), mock_client_v2())
+    market = BittrexMarket(mock_client_v1(), mock_client_v2())
 
     order = copy.deepcopy(DUMMY_LIMIT_BUY_ORDER)
     order._type = 'gandalf'
@@ -89,13 +91,13 @@ def test_not_enough_balance():
     order = copy.deepcopy(DUMMY_LIMIT_BUY_ORDER)
     order._quantity = Decimal(0.00001)
 
-    market = BittrexMarket(flexmock(), mock_client_v2())
+    market = BittrexMarket(mock_client_v1(), mock_client_v2())
     with pytest.raises(NotEnoughBalanceToPerformOrderException):
         market.place_order(order)
 
 
 def test_cancel_order():
-    client_v1 = flexmock()
+    client_v1 = mock_client_v1()
     client_v1.should_receive('cancel').with_args('abcd').and_return({'success': True}).once()
 
     market = BittrexMarket(client_v1, mock_client_v2())
@@ -138,9 +140,16 @@ def test_result_validation():
         BittrexMarket._validate_result({'success': False, 'message': 'You shall not pass!'})
 
 
+def mock_client_v1() -> Union[Bittrex, Mock]:
+    client_v1 = flexmock()
+    client_v1 \
+        .should_receive('get_markets') \
+        .and_return({'success': True, 'result': [MARKET_USDT_BTC_DATA]})
+    return client_v1
+
+
 def mock_client_v2():
     client_v2 = flexmock()
-    client_v2.should_receive('get_markets').and_return({'success': True, 'result': [MARKET_USDT_BTC_DATA]})
     client_v2.should_receive('get_balance') \
         .with_args('BTC') \
         .and_return({'success': True, 'result': {'Available': str(MY_BTC_BALANCE)}})

@@ -44,10 +44,13 @@ class DoubleCrossoverStrategy(Strategy):
     ) -> None:
         configuration = self.fill_missing_values_with_default(configuration)
 
-        long_average_interval = datetime.timedelta(seconds=configuration['long_average_interval'])
-        short_average_interval = datetime.timedelta(seconds=configuration['short_average_interval'])
-        delay: int = configuration['delay']
-        number_of_runs: Union[int, None] = configuration['number_of_runs']
+        long_average_interval = datetime.timedelta(minutes=60)
+        if 'long_average_interval' in configuration:
+            long_average_interval = datetime.timedelta(seconds=configuration['long_average_interval'])
+
+        short_average_interval = datetime.timedelta(minutes=15)
+        if 'short_average_interval ' in configuration:
+            short_average_interval = datetime.timedelta(seconds=configuration['short_average_interval'])
 
         assert short_average_interval < long_average_interval
 
@@ -57,11 +60,17 @@ class DoubleCrossoverStrategy(Strategy):
         self._datetime_factory = datetime_factory
         self._long_average_interval = long_average_interval
         self._short_average_interval = short_average_interval
-        self._delay = delay
-        self._number_of_runs = number_of_runs
+        self._delay = 30
+        self._number_of_runs: Union[int, None] = None
         self._previous_sign = None
         self._strategy_ticker = 0
         self._last_signal: Union[Signal, None] = None
+
+        if 'delay' in configuration:
+            self._delay = configuration['delay']
+
+        if 'number_of_runs' in configuration:
+            self._number_of_runs = configuration['number_of_runs']
 
     def run(self, markets: List[Market], pair: Pair) -> None:
         while self._should_run():

@@ -9,7 +9,12 @@ def test_plugin():
     storage = flexmock()
 
     assert 'coinrat_cryptocompare' == synchronizer_plugin.get_name()
+
     assert ['cryptocompare'] == synchronizer_plugin.get_available_synchronizers()
-    assert isinstance(synchronizer_plugin.get_synchronizer('cryptocompare', storage), CryptocompareSynchronizer)
+
+    assert isinstance(
+        synchronizer_plugin.get_synchronizer('cryptocompare', storage, flexmock()),
+        CryptocompareSynchronizer
+    )
     with pytest.raises(ValueError):
-        synchronizer_plugin.get_synchronizer('gandalf', storage)
+        synchronizer_plugin.get_synchronizer('gandalf', storage, flexmock())

@@ -11,14 +11,20 @@ def test_synchronizer_plugin():
 
     assert 'coinrat_bittrex' == synchronizer_plugin.get_name()
     assert ['bittrex'] == synchronizer_plugin.get_available_synchronizers()
-    assert isinstance(synchronizer_plugin.get_synchronizer('bittrex', storage), BittrexSynchronizer)
+    assert isinstance(synchronizer_plugin.get_synchronizer('bittrex', storage, flexmock()), BittrexSynchronizer)
     with pytest.raises(ValueError):
-        synchronizer_plugin.get_synchronizer('gandalf', storage)
+        synchronizer_plugin.get_synchronizer('gandalf', storage, flexmock())
 
 
 def test_market_plugin():
     assert 'coinrat_bittrex' == market_plugin.get_name()
+
     assert ['bittrex'] == market_plugin.get_available_markets()
-    assert isinstance(market_plugin.get_market('bittrex'), BittrexMarket)
+
+    assert isinstance(market_plugin.get_market('bittrex', flexmock(), {}), BittrexMarket)
     with pytest.raises(ValueError):
-        market_plugin.get_market('gandalf')
+        market_plugin.get_market('gandalf', flexmock(), {})
+
+    assert BittrexMarket == market_plugin.get_market_class('bittrex')
+    with pytest.raises(ValueError):
+        market_plugin.get_market_class('gandalf')

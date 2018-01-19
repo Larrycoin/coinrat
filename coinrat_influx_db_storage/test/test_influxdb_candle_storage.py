@@ -81,7 +81,7 @@ def test_mean_no_data_raise_exception(influx_database: InfluxDBClient):
         storage.mean(DUMMY_MARKET, BTC_USD_PAIR, CANDLE_STORAGE_FIELD_CLOSE, interval)
 
 
-def test_get_current_candle(influx_database: InfluxDBClient):
+def test_get_last_candle(influx_database: InfluxDBClient):
     storage = CandleInnoDbStorage(influx_database)
     storage.write_candles([_create_dummy_candle(1, 8300)])
 

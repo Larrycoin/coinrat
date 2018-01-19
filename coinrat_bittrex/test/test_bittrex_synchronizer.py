@@ -21,13 +21,12 @@ DUMMY_CANDLE = MinuteCandle(
 
 
 def test_synchronize_success():
-    market = flexmock()
+    market = flexmock(name='yolo_market')
     market.should_receive('get_candles').and_return([DUMMY_CANDLE, DUMMY_CANDLE])
-    market.should_receive('get_last_candle').and_return(DUMMY_CANDLE)
+    market.should_receive('get_last_candles').and_return(DUMMY_CANDLE)
 
-    storage = flexmock()
-    storage.should_receive('write_candle').once()
-    storage.should_receive('write_candles').once()
+    storage = flexmock(name='yolo_storage')
+    storage.should_receive('write_candles').times(2)
 
     synchronizer = BittrexSynchronizer(market, storage, create_emitter_mock(), delay=0, number_of_runs=1)
     synchronizer.synchronize(BTC_USD_PAIR)
