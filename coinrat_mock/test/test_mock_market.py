@@ -2,21 +2,14 @@ import datetime
 from decimal import Decimal
 from uuid import UUID
 
-from coinrat.domain import Pair, CurrentUtcDateTimeFactory
-from coinrat.domain.order import Order, ORDER_TYPE_LIMIT, DIRECTION_BUY
+import pytest
+
+from coinrat.domain import Pair, CurrentUtcDateTimeFactory, Market
+from coinrat.domain.order import Order, ORDER_TYPE_LIMIT, DIRECTION_BUY, DIRECTION_SELL, \
+    NotEnoughBalanceToPerformOrderException
 from coinrat_mock.market import MockMarket
 
 BTC_USD_PAIR = Pair('USD', 'BTC')
-DUMMY_ORDER = Order(
-    UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
-    'dummy_market_name',
-    DIRECTION_BUY,
-    datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
-    BTC_USD_PAIR,
-    ORDER_TYPE_LIMIT,
-    Decimal(1),
-    Decimal(8000)
-)
 
 
 def test_market():
@@ -36,5 +29,45 @@ def test_market():
     assert '0.00000000 LOL' == str(market.get_balance('LOL'))
     assert Decimal('0.001') == market.transaction_taker_fee
     assert Decimal('0.001') == market.transaction_maker_fee
-    assert DUMMY_ORDER == market.place_order(DUMMY_ORDER)
+    order = create_order()
+    assert order == market.place_order(order)
     assert market.cancel_order('xxx') is None
+
+
+def test_market_processes_orders():
+    market = MockMarket(CurrentUtcDateTimeFactory(), {})
+
+    assert market.get_balance('USD').available_amount == Decimal(1000)
+
+    with pytest.raises(NotEnoughBalanceToPerformOrderException):
+        market.place_order(create_order())
+
+    assert market.get_balance('USD').available_amount == Decimal(1000)
+
+    market.place_order(create_order(quantity=Decimal('0.1')))
+    assert market.get_balance('USD').available_amount == Decimal(0)
+    assert market.get_balance('BTC').available_amount == Decimal('0.09975')
+
+    with pytest.raises(NotEnoughBalanceToPerformOrderException):
+        market.place_order(create_order(direction=DIRECTION_SELL, quantity=Decimal('0.1')))
+
+    market.place_order(create_order(direction=DIRECTION_SELL, quantity=Decimal('0.09975')))
+    assert market.get_balance('USD').available_amount == Decimal('995.00625')  # fee applied twice
+    assert market.get_balance('BTC').available_amount == Decimal(0)
+
+
+def create_order(
+    direction: str = DIRECTION_BUY,
+    quantity: Decimal = Decimal(1),
+    rate: Decimal = Decimal(10000)
+) -> Order:
+    return Order(
+        UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
+        'dummy_market_name',
+        direction,
+        datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
+        BTC_USD_PAIR,
+        ORDER_TYPE_LIMIT,
+        quantity,
+        rate
+    )

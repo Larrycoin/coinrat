@@ -2,7 +2,8 @@ from decimal import Decimal
 from typing import Dict, List
 
 from coinrat.domain import Market, Balance, Pair, PairMarketInfo, DateTimeFactory
-from coinrat.domain.order import ORDER_TYPE_LIMIT, Order, OrderMarketInfo, ORDER_TYPE_MARKET
+from coinrat.domain.order import ORDER_TYPE_LIMIT, Order, OrderMarketInfo, ORDER_TYPE_MARKET, \
+    NotEnoughBalanceToPerformOrderException
 from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_STRING, \
     CONFIGURATION_STRUCTURE_TYPE_DECIMAL
 
@@ -142,7 +143,16 @@ class MockMarket(Market):
         return result
 
     def place_order(self, order: Order) -> Order:
-        self._process_order(order)
+        fee = self._calculate_fee(order)
+        self._initialize_balances(order.pair)
+
+        if order.is_sell():
+            self._process_sell(fee, order)
+        elif order.is_buy():
+            self._process_buy(fee, order)
+
+        order.close(order.created_at)
+
         return order
 
     def cancel_order(self, order_id: str) -> None:
@@ -160,26 +170,31 @@ class MockMarket(Market):
             Pair('BTC', 'XMR'),
         ]
 
-    def _process_order(self, order: Order) -> None:
-        order.close(order.created_at)
+    def _initialize_balances(self, pair: Pair) -> None:
+        if pair.base_currency not in self._balances:
+            self._balances[pair.base_currency] = Decimal(0)
+        if pair.market_currency not in self._balances:
+            self._balances[pair.market_currency] = Decimal(0)
 
-        fee = self.calculate_fee(order)
+    def _process_buy(self, fee: Decimal, order: Order) -> None:
+        max_to_buy = self.calculate_maximal_amount_to_buy(order.pair, order.rate)
+        if max_to_buy < order.quantity:
+            raise NotEnoughBalanceToPerformOrderException(
+                'Max to buy is {}, you want to buy {}'.format(max_to_buy, order.quantity)
+            )
+        self._balances[order.pair.base_currency] -= order.quantity * order.rate
+        self._balances[order.pair.market_currency] += order.quantity * (1 - fee)
 
-        if order.pair.base_currency not in self._balances:
-            self._balances[order.pair.base_currency] = Decimal(0)
+    def _process_sell(self, fee: Decimal, order: Order) -> None:
+        max_to_sell = self.calculate_maximal_amount_to_sell(order.pair)
+        if max_to_sell < order.quantity:
+            raise NotEnoughBalanceToPerformOrderException(
+                'Max to sell is {}, you want to sell {}'.format(max_to_sell, order.quantity)
+            )
+        self._balances[order.pair.base_currency] += order.quantity * order.rate * (1 - fee)
+        self._balances[order.pair.market_currency] -= order.quantity
 
-        if order.pair.market_currency not in self._balances:
-            self._balances[order.pair.market_currency] = Decimal(0)
-
-        if order.is_sell():
-            self._balances[order.pair.base_currency] += order.quantity * order.rate * (1 - fee)
-            self._balances[order.pair.market_currency] -= order.quantity
-
-        elif order.is_buy():
-            self._balances[order.pair.base_currency] -= order.quantity * order.rate
-            self._balances[order.pair.market_currency] -= order.quantity * (1 - fee)
-
-    def calculate_fee(self, order: Order):
+    def _calculate_fee(self, order: Order):
         if order.type == ORDER_TYPE_LIMIT:
             return self._transaction_maker_fee
 

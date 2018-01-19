@@ -43,7 +43,7 @@ class HeikinAshiStrategy(Strategy):
             self.tick(markets, pair)
 
     def tick(self, markets: List[Market], pair: Pair) -> None:
-        pass
+        raise NotImplementedError('this strategy is not implemented yet')
 
     @staticmethod
     def get_configuration_structure() -> Dict[str, Dict[str, str]]:

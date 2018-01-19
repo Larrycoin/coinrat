@@ -112,10 +112,12 @@ class Order:
 
     @property
     def rate(self) -> Union[Decimal, None]:
+        """How much BASE CURRENCY I need to buy 1 MARKET CURRENCY"""
         return self._rate
 
     @property
     def quantity(self) -> Decimal:
+        """Always in MARKET CURRENCY"""
         return self._quantity
 
     @property
