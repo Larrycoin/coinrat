@@ -16,6 +16,8 @@ from coinrat.strategy_replayer import StrategyReplayer
 
 
 class DiContainer:
+    """Simple Dependency Injection Container that supports Lazy Loading"""
+
     def __init__(self) -> None:
         self._storage = {
             'candle_storage_plugins': {

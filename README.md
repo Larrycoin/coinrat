@@ -50,8 +50,16 @@ Platform has five plugin types that are registered in `setup.py`:
 * **`coinrat_strategy_plugins`** - Most interesting plugins. Represents one **trading strategy**. Strategy runs with one instance of candle and order storage, but in theory can use multiple markets (for example for [Market Arbitrage](https://www.investopedia.com/terms/m/marketarbitrage.asp))
     * You can check available strategies by: `python -m coinrat strategies`
 
+## Configuration for markets and strategies
+Each strategy or market from plugin can have special configuration. Both strategy and market provides structure
+of the configuration and you can see it by running  `python -m coinrat market <market_name>` / `python -m coinrat strategy <strategy_name>`.
+
+You can create JSON file with specific properties and provide it via `-c` option to `run_strategy` command fot strategy.
+
+> (Market have configuration, but providing it to the `run_strategy` is not implemented yet. See [#18](https://github.com/Achse/coinrat/issues/18) for more info.)
+
 ## Feed data from stock markets
-Fist, we need stock-market data. There are two synchonizers in default plugins
+Fist, we need stock-market data. There are two synchronizers in default plugins
 * `python -m coinrat synchronize bittrex USD BTC`
 * `python -m coinrat synchronize cryptocompare USD BTC`
 
@@ -69,6 +77,13 @@ Once we have data we can see them in the UI-App.
 > :bangbang: **This will execute strategy against real market!** One good option for testing is to create separate account on the stockmarket wtih **very** limited resources on it.
 
 Run one of default strategies with this command: `python -m coinrat run_strategy double_crossover USD BTC bittrex` 
+
+## Troubleshooting
+* `ERROR: For market "bittrex" no candles in storage "influx_db".` 
+    * Strategy has no data for given market in given storage.
+    * Make sure you have synchronizer running. 
+    * Or, that you have data in the storage for given time period in case you are attempting to run simulation.
+    * Or, your time interval somewhere is too small.   
 
 ## Additional tips & tricks
 * There is visualization tool for Influx DB called [Chronograf](https://github.com/influxdata/chronograf), it can be usefull for visualizing data too.

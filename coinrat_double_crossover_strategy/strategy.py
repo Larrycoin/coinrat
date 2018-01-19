@@ -49,7 +49,7 @@ class DoubleCrossoverStrategy(Strategy):
             long_average_interval = datetime.timedelta(seconds=configuration['long_average_interval'])
 
         short_average_interval = datetime.timedelta(minutes=15)
-        if 'short_average_interval ' in configuration:
+        if 'short_average_interval' in configuration:
             short_average_interval = datetime.timedelta(seconds=configuration['short_average_interval'])
 
         assert short_average_interval < long_average_interval
