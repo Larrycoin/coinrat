@@ -8,9 +8,8 @@ from decimal import Decimal
 from flexmock import flexmock, Mock
 
 from coinrat.domain import Pair, Market, StrategyConfigurationException, CurrentUtcDateTimeFactory
-from coinrat.domain.candle import MinuteCandle
 from coinrat.domain.order import ORDER_TYPE_LIMIT, Order, OrderMarketInfo, DIRECTION_BUY, DIRECTION_SELL, \
-    NotEnoughBalanceToPerformOrderException, ORDER_STATUS_CLOSED, ORDER_STATUS_OPEN
+    NotEnoughBalanceToPerformOrderException, ORDER_STATUS_CLOSED, ORDER_STATUS_OPEN, OrderStorage
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 from coinrat.event.event_emitter import EventEmitter
 
@@ -51,17 +50,20 @@ DUMMY_OPEN_ORDER = Order(
     ]
 )
 def test_number_of_markets_validation(error: bool, markets: List[Union[Market, Mock]]):
-    candle_storage = flexmock().should_receive('mean').and_return(0).mock()
-    candle_storage.should_receive('get_last_candle').and_return(
-        flexmock(average_price=Decimal(8000))
-    )
+    candle_storage = flexmock()
+    candle_storage.should_receive('mean').and_return(0).mock()
+    candle_storage.should_receive('get_last_candle').and_return(flexmock(average_price=Decimal(8000)))
 
     if len(markets) == 1:  # Flexmock is not working properly with @pytest.mark.parametrize (MethodSignatureError)
         markets = [markets[0].should_receive('name').and_return(DUMMY_MARKET_NAME).mock()]
 
+    order_storage = create_order_storage_mock()
+    order_storage.should_receive('find_by').and_return([])
+    order_storage.should_receive('find_last_order').and_return(None)
+
     strategy = DoubleCrossoverStrategy(
         candle_storage,
-        mock_order_storage(),
+        order_storage,
         create_event_emitter_mock(),
         CurrentUtcDateTimeFactory(),
         {
@@ -128,8 +130,7 @@ def test_sending_signal(
     candle_storage.should_receive('get_last_candle').and_return(
         flexmock(average_price=Decimal(current_candle_average_price))
     )
-
-    market = flexmock(transaction_fee=Decimal(0.0025), name=DUMMY_MARKET_NAME)
+    market = create_market_mock()
 
     class OrderDirectionMatcher(object):
         def __init__(self, direction): self._direction = direction
@@ -144,11 +145,11 @@ def test_sending_signal(
     market.should_receive('place_order') \
         .with_args(OrderDirectionMatcher(DIRECTION_SELL)) \
         .and_return(DUMMY_CLOSED_ORDER) \
-        .times(expected_buy)
+        .times(expected_sell)
 
     market.should_receive('cancel_order').with_args(DUMMY_OPEN_ORDER.id_on_market).times(canceled_orders_count)
 
-    order_storage = flexmock()
+    order_storage = flexmock(name='yolo_order_storage')
     order_storage.should_receive('find_by').with_args(
         market_name=DUMMY_MARKET_NAME,
         pair=BTC_USD_PAIR,
@@ -192,14 +193,18 @@ def test_sending_signal(
 def test_not_enough_balance_logs_warning():
     candle_storage = flexmock()
     candle_storage.should_receive('mean').and_return(8000).and_return(7900).and_return(8000).and_return(8100)
+    candle_storage.should_receive('get_last_candle').and_return(flexmock(average_price=Decimal(Decimal(8000))))
 
-    market = flexmock()
-    market.should_receive('name').and_return(DUMMY_MARKET_NAME)
+    market = create_market_mock()
     market.should_receive('place_order').and_raise(NotEnoughBalanceToPerformOrderException)
+
+    order_storage = create_order_storage_mock()
+    order_storage.should_receive('find_by').and_return([])
+    order_storage.should_receive('find_last_order').and_return(None)
 
     strategy = DoubleCrossoverStrategy(
         candle_storage,
-        mock_order_storage(),
+        order_storage,
         create_event_emitter_mock(),
         CurrentUtcDateTimeFactory(),
         {
@@ -237,24 +242,14 @@ STILL_OPEN_ORDER_INFO = OrderMarketInfo(
 def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int, markets_order_info: OrderMarketInfo):
     candle_storage = flexmock()
     candle_storage.should_receive('mean').and_return(8000).and_return(7900)
-    candle_storage.should_receive('get_last_candle').and_return(
-        MinuteCandle(
-            DUMMY_MARKET_NAME,
-            BTC_USD_PAIR,
-            datetime.datetime(2017, 12, 28, 0, 0, 0).astimezone(datetime.timezone.utc),
-            Decimal(7800),
-            Decimal(7800),
-            Decimal(7800),
-            Decimal(7800))
-    )
+    candle_storage.should_receive('get_last_candle').and_return(flexmock(average_price=Decimal(Decimal(8000))))
 
-    order_storage = flexmock()
+    order_storage = create_order_storage_mock()
     order_storage.should_receive('find_by').and_return([DUMMY_OPEN_ORDER])
     order_storage.should_receive('delete')
     order_storage.should_receive('save_order').times(expected_save_order_called)
 
-    market = flexmock()
-    market.should_receive('name').and_return(DUMMY_MARKET_NAME)
+    market = create_market_mock()
     market.should_receive('get_order_status').and_return(markets_order_info).once()
 
     strategy = DoubleCrossoverStrategy(
@@ -272,11 +267,20 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
     strategy.run([market], BTC_USD_PAIR)
 
 
-def mock_order_storage():
-    mock = flexmock()
-    mock.should_receive('find_by').and_return([])
-    mock.should_receive('find_last_order').and_return(None)
-    return mock
+def create_market_mock() -> Union[Market, Mock]:
+    market = flexmock(
+        transaction_taker_fee=Decimal(0.0025),
+        transaction_makerfee=Decimal(0.0025),
+        name=DUMMY_MARKET_NAME
+    )
+    market.should_receive('calculate_maximal_amount_to_buy').and_return(Decimal(1))
+    market.should_receive('calculate_maximal_amount_to_sell').and_return(Decimal(1))
+    return market
+
+
+def create_order_storage_mock() -> Union[OrderStorage, Mock]:
+    order_storage = flexmock(name='yolo_order_storage')
+    return order_storage
 
 
 def create_event_emitter_mock() -> EventEmitter:

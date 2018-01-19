@@ -246,6 +246,7 @@ class DoubleCrossoverStrategy(Strategy):
 
                     market.place_order(order)
                     self._last_signal = None
+                    return order
 
             elif self._last_signal.is_sell():
                 self._cancel_open_order(market, pair, DIRECTION_BUY)
@@ -263,6 +264,7 @@ class DoubleCrossoverStrategy(Strategy):
 
                     market.place_order(order)
                     self._last_signal = None
+                    return order
             else:
                 raise ValueError('Unknown signal: "{}"'.format(self._last_signal))  # pragma: no cover
 
@@ -271,8 +273,6 @@ class DoubleCrossoverStrategy(Strategy):
             # just ignores buy/sell and waits for next signal.
             logging.warning(e)
             self._last_signal = None
-
-        return order
 
     def _cancel_open_order(self, market: Market, pair: Pair, direction: str):
         orders = self._order_storage.find_by(
