@@ -18,6 +18,7 @@ to help you run simulations and visualize results.
 
 ## Installation
 * Coinrat core has dependency only on **Python** :snake: and **RabbitMQ** :rabbit:.
+    * **Minimum python version is: `Python 3.6.3`!**
     * Following [official instructions](https://www.rabbitmq.com/install-debian.html) to install rabbit.
 
 * If you want to use default storage plugin (recommended), you will need **Influx DB** installed.
@@ -29,7 +30,7 @@ to help you run simulations and visualize results.
         * Grand this user with R+W access to the database: `curl -XPOST "http://localhost:8086/query" --data-urlencode 'q=GRANT ALL ON "coinrat" TO "coinrat"'`
 
 * Create [virtual-env](http://docs.python-guide.org/en/latest/dev/virtualenvs/) and install Python dependencies
-    * `python3.6 -m venv __venv__`
+    * `python3.6 -m venv __venv__` (Python 3.6.3 minimum!)
     * `. __venv__/bin/activate`
     * `python -m pip install --upgrade git+https://github.com/ericsomdahl/python-bittrex.git` ([Package on Pypi](https://pypi.python.org/pypi/bittrex/0.1.4) is not up to date.) 
     * `python -m pip install -r requirements.txt`
