@@ -4,17 +4,20 @@ import logging
 import dateutil.parser
 import click
 import sys
-from typing import Tuple
+from typing import Tuple, Dict
 from os.path import join, dirname
 
 from click import Context
 from dotenv import load_dotenv
 
-from .di_container import DiContainer
-from .domain import CurrentUtcDateTimeFactory
-from .domain import Pair, ForEndUserException, DateTimeInterval
-from .domain.candle import CandleExporter
-from .domain.order import OrderExporter
+from coinrat.domain import Market
+from coinrat.domain.candle import CandleExporter
+from coinrat.di_container import DiContainer
+from coinrat.domain import CurrentUtcDateTimeFactory
+from coinrat.domain import Pair, ForEndUserException, DateTimeInterval
+from coinrat.domain.order import OrderExporter
+from coinrat.market_plugins import MarketNotProvidedByAnyPluginException
+from coinrat.strategy_plugins import StrategyNotProvidedByAnyPluginException
 
 dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
@@ -46,6 +49,19 @@ def markets() -> None:
         click.echo('  - {}'.format(market_name))
 
 
+@cli.command(help='Shows market detail.')
+@click.argument('market_name', nargs=1)
+def market(market_name) -> None:
+    try:
+        market_obj: Market = di_container.market_plugins.get_market_class(market_name)
+    except MarketNotProvidedByAnyPluginException as e:
+        click.echo('Error: ' + str(e), err=True)
+        sys.exit(1)
+
+    click.echo('Markets configuration structure:')
+    print_structure_configuration(market_obj.get_configuration_structure())
+
+
 @cli.command(help='Shows available synchronizers.')
 def synchronizers() -> None:
     click.echo('Available synchronizers:')
@@ -72,6 +88,19 @@ def strategies() -> None:
     click.echo('Available strategies:')
     for synchronizer_name in di_container.strategy_plugins.get_available_strategies():
         click.echo('  - {}'.format(synchronizer_name))
+
+
+@cli.command(help='Shows strategy detail.')
+@click.argument('strategy_name', nargs=1)
+def strategy(strategy_name) -> None:
+    try:
+        strategy_obj: Market = di_container.strategy_plugins.get_strategy_class(strategy_name)
+    except StrategyNotProvidedByAnyPluginException as e:
+        click.echo('Error: ' + str(e), err=True)
+        sys.exit(1)
+
+    click.echo('Strategy configuration structure:')
+    print_structure_configuration(strategy_obj.get_configuration_structure())
 
 
 @cli.command(help="""
@@ -202,6 +231,16 @@ def start_server(ctx: Context):
 @click.pass_context
 def start_task_consumer(ctx: Context):
     di_container.task_consumer.run()
+
+
+def print_structure_configuration(structure: Dict) -> None:
+    for key, value in structure.items():
+        if 'hidden' in value and value['hidden'] is True:
+            continue
+
+        title = value['title'] if 'title' in value else ''
+        description = ' - ' + value['description'] if 'description' in value else ''
+        click.echo('    {:<40} {}{}'.format(key + ':' + value['type'], title, description))
 
 
 def main():
