@@ -53,6 +53,20 @@ def synchronizers() -> None:
         click.echo('  - {}'.format(synchronizer_name))
 
 
+@cli.command(help='Shows available candle storages.')
+def candle_storages() -> None:
+    click.echo('Available candle storages:')
+    for synchronizer_name in di_container.candle_storage_plugins.get_available_candle_storages():
+        click.echo('  - {}'.format(synchronizer_name))
+
+
+@cli.command(help='Shows available order storages.')
+def order_storages() -> None:
+    click.echo('Available order storages:')
+    for synchronizer_name in di_container.order_storage_plugins.get_available_order_storages():
+        click.echo('  - {}'.format(synchronizer_name))
+
+
 @cli.command(help='Shows available strategies.')
 def strategies() -> None:
     click.echo('Available strategies:')
