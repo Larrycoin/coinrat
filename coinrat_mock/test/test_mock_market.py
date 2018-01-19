@@ -33,6 +33,8 @@ def test_market():
     assert order == market.place_order(order)
     assert market.cancel_order('xxx') is None
 
+    assert str(market.get_balances()) == '[0.00000000 WTF, 0.00000000 LOL, 0.09999990 BTC]'
+
 
 def test_market_processes_orders():
     market = MockMarket(CurrentUtcDateTimeFactory(), {})
@@ -54,6 +56,19 @@ def test_market_processes_orders():
     market.place_order(create_order(direction=DIRECTION_SELL, quantity=Decimal('0.09975')))
     assert market.get_balance('USD').available_amount == Decimal('995.00625')  # fee applied twice
     assert market.get_balance('BTC').available_amount == Decimal(0)
+
+
+def test_market_get_order_status():
+    market = MockMarket(CurrentUtcDateTimeFactory(), {})
+    status = market.get_order_status(create_order())
+    assert 'Order Id: "16fd2706-8baf-433b-82eb-8c7fada847da", OPEN, Closed at: "", Remaining quantity: "0"' \
+           == str(status)
+
+
+def test_get_tradable_pairs():
+    market = MockMarket(CurrentUtcDateTimeFactory(), {})
+    pairs = market.get_all_tradable_pairs()
+    assert len(pairs) > 0
 
 
 def create_order(
