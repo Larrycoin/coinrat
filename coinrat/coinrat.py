@@ -4,7 +4,7 @@ import logging
 import dateutil.parser
 import click
 import sys
-from typing import Tuple, Dict
+from typing import Tuple, Dict, NoReturn
 from os.path import join, dirname
 
 from click import Context
@@ -55,8 +55,7 @@ def market(market_name) -> None:
     try:
         market_obj: Market = di_container.market_plugins.get_market_class(market_name)
     except MarketNotProvidedByAnyPluginException as e:
-        click.echo('Error: ' + str(e), err=True)
-        sys.exit(1)
+        print_error_and_terminate(str(e))
 
     click.echo('Markets configuration structure:')
     print_structure_configuration(market_obj.get_configuration_structure())
@@ -96,11 +95,15 @@ def strategy(strategy_name) -> None:
     try:
         strategy_obj: Market = di_container.strategy_plugins.get_strategy_class(strategy_name)
     except StrategyNotProvidedByAnyPluginException as e:
-        click.echo('Error: ' + str(e), err=True)
-        sys.exit(1)
+        print_error_and_terminate(str(e))
 
     click.echo('Strategy configuration structure:')
     print_structure_configuration(strategy_obj.get_configuration_structure())
+    click.echo()
+    click.echo(click.style(
+        'You can provide this configuration via JSON file into `run_strategy` command using -c argument.\n',
+        fg="green"
+    ))
 
 
 @cli.command(help="""
@@ -210,8 +213,7 @@ def run_strategy(ctx: Context, strategy_name: str, pair: Tuple[str, str], market
         ]
         strategy.run(markers, pair)
     except ForEndUserException as e:
-        click.echo('ERROR: {}'.format(e), err=True)
-        sys.exit(1)
+        print_error_and_terminate(str(e))
 
 
 @cli.command()
@@ -241,6 +243,11 @@ def print_structure_configuration(structure: Dict) -> None:
         title = value['title'] if 'title' in value else ''
         description = ' - ' + value['description'] if 'description' in value else ''
         click.echo('    {:<40} {}{}'.format(key + ':' + value['type'], title, description))
+
+
+def print_error_and_terminate(error_message: str) -> NoReturn:
+    click.echo(click.style('ERROR: {}\n'.format(error_message), fg='red'), err=True)
+    sys.exit(1)
 
 
 def main():
