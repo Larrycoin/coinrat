@@ -17,10 +17,15 @@ def format_data_to_python_types(
 
         structure = configuration_structure[key]
 
-        if structure['type'] == CONFIGURATION_STRUCTURE_TYPE_INT:
+        is_nullable = structure['type'].startswith('?')
+
+        if is_nullable and value is None:
+            data[key] = None
+
+        elif structure['type'] == CONFIGURATION_STRUCTURE_TYPE_INT:
             data[key] = int(value)
 
-        if structure['type'] == CONFIGURATION_STRUCTURE_TYPE_DECIMAL:
+        elif structure['type'] == CONFIGURATION_STRUCTURE_TYPE_DECIMAL:
             data[key] = Decimal(value)
 
     return data

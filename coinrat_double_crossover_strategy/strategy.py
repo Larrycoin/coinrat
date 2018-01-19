@@ -22,6 +22,16 @@ STRATEGY_NAME = 'double_crossover'
 class DoubleCrossoverStrategy(Strategy):
     """
     @link http://www.financial-spread-betting.com/course/using-two-moving-averages.html
+
+    Configuration example:
+
+        {
+            'long_average_interval': 60 * 60,  # number of seconds for "long" moving average
+            'short_average_interval': 15 * 60,  # number of seconds for "short" moving average
+            'delay': 0,  # number of seconds between checks,
+            'number_of_runs': None,  # How many checks before termination. None for infinite lop. (Mostly for testing.)
+        }
+
     """
 
     def __init__(
@@ -87,6 +97,12 @@ class DoubleCrossoverStrategy(Strategy):
                 'default': 30,
                 'unit': 'seconds',
             },
+            'number_of_runs': {
+                'type': '?' + CONFIGURATION_STRUCTURE_TYPE_INT,
+                'title': 'Number of checks cycles',
+                'default': None,
+                'hidden': True,
+            }
         }
 
     @staticmethod

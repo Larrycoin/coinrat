@@ -1,5 +1,6 @@
 import pytest
 import requests
+from flexmock import flexmock
 from influxdb import InfluxDBClient
 
 from coinrat.domain import Pair
@@ -17,9 +18,12 @@ def influx_database():
 
 
 def test_candle_ticks_are_stored(influx_database: InfluxDBClient):
+    emitter_mock = flexmock()
+    emitter_mock.should_receive('emit_new_candles')
     synchronizer = CryptocompareSynchronizer(
         'bittrex',
         CandleInnoDbStorage(influx_database),
+        emitter_mock,
         requests.Session(),
         delay=0,
         number_of_runs=1

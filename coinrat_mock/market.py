@@ -13,6 +13,31 @@ DEFAULT_BASE_CURRENCY = 'USD'
 
 
 class MockMarket(Market):
+    """
+    Market class that imitates stock-market behaviour. And is mend for testing your strategies.
+
+    Configuration example:
+
+        {
+            'mocked_market_name': 'Bitfinex',  # Name of the market you are mocking,
+                                               # used for linking to the candle and order data in the storages
+
+            'mocked_base_currency_balance': '1000',  # Place 1000$ on the market at beginning
+            'mocked_base_currency': 'USD',  # Base currency can be changed different currency
+
+            # When you place a order that gets compeltely filled immediately
+            # (for example with market and stop orders) you are a “taker” and you pay a fee for this.
+
+            # Meanwhile, if an order takes a while to fill (such as with a limit order for a price the coin won’t
+            # hit immediately) you are a “maker” and you generally pay a reduced fee for this.
+
+            # For more, see: http://cryptocurrencyfacts.com/maker-vs-taker-cryptocurrency/
+
+            'mocked_transaction_taker_fee': Decimal('0.0025'),
+            'mocked_transaction_maker_fee': Decimal('0.001'),
+        }
+
+    """
 
     def __init__(self, datetime_factory: DateTimeFactory, configuration: Dict) -> None:
         self._name = configuration['mocked_market_name'] if 'mocked_market_name' in configuration else MARKET_NAME
@@ -26,7 +51,7 @@ class MockMarket(Market):
             else DEFAULT_BASE_CURRENCY
 
         self._transaction_maker_fee: Decimal = configuration['mocked_transaction_maker_fee'] \
-            if 'mocked_transaction_fee' in configuration \
+            if 'mocked_transaction_maker_fee' in configuration \
             else DEFAULT_TRANSACTION_FEE
 
         self._transaction_taker_fee: Decimal = configuration['mocked_transaction_taker_fee'] \

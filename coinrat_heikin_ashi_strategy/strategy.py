@@ -13,7 +13,7 @@ from coinrat.event.event_emitter import EventEmitter
 STRATEGY_NAME = 'heikin_ashi'
 
 
-class DoubleCrossoverStrategy(Strategy):
+class HeikinAshiStrategy(Strategy):
     """
     @link http://www.humbletraders.com/heikin-ashi-trading-strategy/
     """

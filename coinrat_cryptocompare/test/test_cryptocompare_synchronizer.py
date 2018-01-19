@@ -1,5 +1,3 @@
-import logging
-
 import pytest
 from flexmock import flexmock
 
@@ -31,7 +29,14 @@ DUMMY_CANDLE_DATA = [
 def test_synchronize_success():
     response = flexmock(status_code=200)
     response.should_receive('json').and_return({'Response': 'Success', 'Data': DUMMY_CANDLE_DATA})
-    synchronizer = CryptocompareSynchronizer('bittrex', mock_storage(1), mock_session(response), 0, 1)
+    synchronizer = CryptocompareSynchronizer(
+        'bittrex',
+        mock_storage(1),
+        flexmock().should_receive('emit_new_candles'),
+        mock_session(response),
+        delay=0,
+        number_of_runs=1
+    )
     synchronizer.synchronize(BTC_USD_PAIR)
 
 
@@ -44,7 +49,7 @@ def mock_session(response):
 def test_synchronize_invalid_response_code():
     response = flexmock(status_code=400)
     response.should_receive('text').and_return('')
-    synchronizer = CryptocompareSynchronizer('bittrex', mock_storage(0), mock_session(response), 0, 1, 0, 0)
+    synchronizer = create_synchronizer_with_no_retries(response)
 
     with pytest.raises(CryptocompareRequestException):
         synchronizer.synchronize(BTC_USD_PAIR)
@@ -54,10 +59,26 @@ def test_synchronize_response_field_indicates_error():
     response = flexmock(status_code=200)
     response.should_receive('json').and_return({'Response': 'Error', 'Data': []})
     response.should_receive('text').and_return('')
-    synchronizer = CryptocompareSynchronizer('bittrex', mock_storage(0), mock_session(response), 0, 1, 0, 0)
+    synchronizer = create_synchronizer_with_no_retries(response)
 
     with pytest.raises(CryptocompareRequestException):
         synchronizer.synchronize(BTC_USD_PAIR)
+
+
+def create_synchronizer_with_no_retries(response):
+    emitter_mock = flexmock()
+    emitter_mock.should_receive('emit_new_candles')
+    synchronizer = CryptocompareSynchronizer(
+        'bittrex',
+        mock_storage(0),
+        emitter_mock,
+        mock_session(response),
+        delay=0,
+        number_of_runs=1,
+        time_to_sleep_after_error=0,
+        max_number_of_retries=0
+    )
+    return synchronizer
 
 
 def mock_storage(write_candles_call_count: int):
