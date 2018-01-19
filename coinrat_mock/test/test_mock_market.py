@@ -29,7 +29,7 @@ def test_market():
     assert '0.00000000 LOL' == str(market.get_balance('LOL'))
     assert Decimal('0.001') == market.transaction_taker_fee
     assert Decimal('0.001') == market.transaction_maker_fee
-    order = create_order()
+    order = create_order(pair=Pair('WTF', 'BTC'), quantity=Decimal('0.1001'))
     assert order == market.place_order(order)
     assert market.cancel_order('xxx') is None
 
@@ -59,14 +59,15 @@ def test_market_processes_orders():
 def create_order(
     direction: str = DIRECTION_BUY,
     quantity: Decimal = Decimal(1),
-    rate: Decimal = Decimal(10000)
+    rate: Decimal = Decimal(10000),
+    pair: Pair = BTC_USD_PAIR
 ) -> Order:
     return Order(
         UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
         'dummy_market_name',
         direction,
         datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
-        BTC_USD_PAIR,
+        pair,
         ORDER_TYPE_LIMIT,
         quantity,
         rate
