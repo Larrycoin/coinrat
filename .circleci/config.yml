@@ -22,7 +22,7 @@ jobs:
          name: prepare structure (dirs and files)
          command: |
             mkdir logs
-            mv .env_example .env
+            cp .env_example .env
 
       - run:
          name: install influxdb
