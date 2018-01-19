@@ -11,7 +11,7 @@ __all__ = [
     'Balance', 'serialize_balance', 'serialize_balances',
     'ForEndUserException',
     'Market', 'PairMarketInfo', 'MarketOrderException',
-    'Pair', 'serialize_pair', 'deserialize_pair',
+    'Pair', 'MarketPairDoesNotExistsException', 'serialize_pair', 'deserialize_pair',
     'Strategy', 'StrategyConfigurationException',
     'MarketStateSynchronizer',
     'DateTimeFactory', 'CurrentUtcDateTimeFactory', 'FrozenDateTimeFactory',

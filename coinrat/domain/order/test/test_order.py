@@ -29,7 +29,7 @@ def test_open_order():
                + 'Created: "2017-01-02T03:04:05+00:00", ' \
                + 'Closed: "None", ' \
                + 'ID on market: "bbb-id-from-market", ' \
-               + 'Pair: [USD-BTC], ' \
+               + 'Pair: [USD_BTC], ' \
                + 'Type: "limit", ' \
                + 'Rate: "9000.00000000", ' \
                + 'Quantity: "2.00000000"'

@@ -1,3 +1,4 @@
+import datetime
 import pytest
 from flexmock import flexmock
 
@@ -16,9 +17,9 @@ def test_synchronizer_plugins():
     assert 'bittrex' in plugins.get_available_synchronizers()
     assert 'cryptocompare' in plugins.get_available_synchronizers()
 
-    assert isinstance(plugins.get_synchronizer('cryptocompare', flexmock()), MarketStateSynchronizer)
+    assert isinstance(plugins.get_synchronizer('cryptocompare', flexmock(), flexmock()), MarketStateSynchronizer)
     with pytest.raises(SynchronizerNotProvidedByAnyPluginException):
-        plugins.get_synchronizer('gandalf', flexmock())
+        plugins.get_synchronizer('gandalf', flexmock(), flexmock())
 
 
 def test_market_plugins():
@@ -26,9 +27,9 @@ def test_market_plugins():
     assert 'bittrex' in plugins.get_available_markets()
     assert 'mock' in plugins.get_available_markets()
 
-    assert isinstance(plugins.get_market('bittrex'), Market)
+    assert isinstance(plugins.get_market('bittrex', flexmock(), {}), Market)
     with pytest.raises(MarketNotProvidedByAnyPluginException):
-        plugins.get_market('gandalf')
+        plugins.get_market('gandalf', flexmock(), {})
 
 
 def test_candle_storage_plugins():
@@ -53,6 +54,9 @@ def test_strategy_plugins():
     plugins = StrategyPlugins()
     assert 'double_crossover' in plugins.get_available_strategies()
 
-    assert isinstance(plugins.get_strategy('double_crossover', flexmock(), flexmock()), Strategy)
+    assert isinstance(
+        plugins.get_strategy('double_crossover', flexmock(), flexmock(), flexmock(), flexmock(), {}),
+        Strategy
+    )
     with pytest.raises(StrategyNotProvidedByAnyPluginException):
-        plugins.get_strategy('gandalf', flexmock(), flexmock())
+        plugins.get_strategy('gandalf', flexmock(), flexmock(), flexmock(), flexmock(), {})

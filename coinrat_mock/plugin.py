@@ -24,7 +24,10 @@ class MarketPlugin(MarketPluginSpecification):
 
     @get_market_impl
     def get_market(self, name, datetime_factory, configuration):
-        return MockMarket(datetime_factory, configuration)
+        if name == MARKET_NAME:
+            return MockMarket(datetime_factory, configuration)
+
+        raise ValueError('Market "{}" not supported by this plugin.'.format(name))
 
     @get_market_class_impl
     def get_market_class(self, name):

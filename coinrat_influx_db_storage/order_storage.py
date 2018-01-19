@@ -8,12 +8,11 @@ import dateutil.parser
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
-from coinrat.domain import Pair, DateTimeInterval
+from coinrat.domain import Pair, DateTimeInterval, serialize_pair
 from coinrat.domain.order import OrderStorage, Order, POSSIBLE_ORDER_STATUSES
 from coinrat.domain.order import ORDER_FIELD_MARKET, ORDER_FIELD_PAIR, ORDER_FIELD_STATUS, \
     ORDER_FIELD_DIRECTION, ORDER_FIELD_ORDER_ID, ORDER_FIELD_QUANTITY, ORDER_FIELD_CANCELED_AT, \
     ORDER_FIELD_RATE, ORDER_FIELD_ID_ON_MARKET, ORDER_FIELD_TYPE, ORDER_FIELD_CLOSED_AT
-from .utils import create_pair_identifier
 
 ORDER_STORAGE_NAME = 'influx_db'
 
@@ -43,7 +42,7 @@ class OrderInnoDbStorage(OrderStorage):
 
         parameters = {
             ORDER_FIELD_MARKET: "= '{}'".format(market_name),
-            ORDER_FIELD_PAIR: "= '{}'".format(create_pair_identifier(pair)),
+            ORDER_FIELD_PAIR: "= '{}'".format(serialize_pair(pair)),
         }
 
         if status is not None:
@@ -68,7 +67,7 @@ class OrderInnoDbStorage(OrderStorage):
     def find_last_order(self, market_name: str, pair: Pair) -> Union[Order, None]:
         sql = '''
             SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' ORDER BY "time" DESC LIMIT 1
-        '''.format(MEASUREMENT_ORDERS_NAME, create_pair_identifier(pair), market_name)
+        '''.format(MEASUREMENT_ORDERS_NAME, serialize_pair(pair), market_name)
 
         result: ResultSet = self._client.query(sql)
         result = list(result.get_points())
@@ -89,7 +88,7 @@ class OrderInnoDbStorage(OrderStorage):
             'measurement': MEASUREMENT_ORDERS_NAME,
             'tags': {
                 ORDER_FIELD_MARKET: order.market_name,
-                ORDER_FIELD_PAIR: create_pair_identifier(order.pair),
+                ORDER_FIELD_PAIR: serialize_pair(order.pair),
                 ORDER_FIELD_ORDER_ID: str(order.order_id),
             },
             'time': order.created_at.isoformat(),

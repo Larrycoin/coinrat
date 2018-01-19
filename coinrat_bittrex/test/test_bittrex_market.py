@@ -50,7 +50,7 @@ def test_get_balance():
     assert 'bittrex' == balance.market_name
 
 
-def test_create_sell_order():
+def test_place_order():
     client_v1 = flexmock()
     client_v1 \
         .should_receive('sell_limit') \
@@ -68,31 +68,11 @@ def test_create_sell_order():
     assert 'abcd' == order.id_on_market
 
 
-def test_create_buy_order():
-    client_v1 = flexmock()
-    client_v1 \
-        .should_receive('buy_limit') \
-        .with_args('USDT-BTC', 1, 8000) \
-        .and_return({'success': True, 'result': {'uuid': 'abcd'}}) \
-        .once()
-    market = BittrexMarket(client_v1, mock_client_v2())
-
-    order = market.place_buy_order(DUMMY_LIMIT_BUY_ORDER)
-
-    assert '16fd2706-8baf-433b-82eb-8c7fada847da' == str(order.order_id)
-    assert 'abcd' == order.id_on_market
-
-
 def test_market_order_not_implemented():
     market = BittrexMarket(flexmock(), mock_client_v2())
 
     with pytest.raises(NotImplementedError):
-        market.place_buy_order(DUMMY_MARKET_BUY_ORDER)
-
-    with pytest.raises(NotImplementedError):
-        order = copy.deepcopy(DUMMY_MARKET_BUY_ORDER)
-        order._direction = DIRECTION_SELL
-        market.place_order(order)
+        market.place_order(DUMMY_MARKET_BUY_ORDER)
 
 
 def test_invalid_order():
@@ -102,10 +82,6 @@ def test_invalid_order():
     order._type = 'gandalf'
 
     with pytest.raises(ValueError):
-        market.place_buy_order(order)
-
-    with pytest.raises(ValueError):
-        order._direction = DIRECTION_SELL
         market.place_order(order)
 
 
@@ -115,10 +91,6 @@ def test_not_enough_balance():
 
     market = BittrexMarket(flexmock(), mock_client_v2())
     with pytest.raises(NotEnoughBalanceToPerformOrderException):
-        market.place_buy_order(order)
-
-    with pytest.raises(NotEnoughBalanceToPerformOrderException):
-        order._direction = DIRECTION_SELL
         market.place_order(order)
 
 
@@ -128,30 +100,6 @@ def test_cancel_order():
 
     market = BittrexMarket(client_v1, mock_client_v2())
     market.cancel_order('abcd')
-
-
-def test_buy_max_available():
-    client_v1 = flexmock()
-    client_v1 \
-        .should_receive('buy_limit') \
-        .with_args('USDT-BTC', 9975, 100) \
-        .and_return({'success': True, 'result': {'uuid': 'abcd'}}) \
-        .once()
-
-    market = BittrexMarket(client_v1, mock_client_v2())
-    market.buy_max_available(BTC_USD_PAIR)
-
-
-def test_sell_max_available():
-    client_v1 = flexmock()
-    client_v1 \
-        .should_receive('sell_limit') \
-        .with_args('USDT-BTC', MY_BTC_BALANCE, 100) \
-        .and_return({'success': True, 'result': {'uuid': 'abcd'}}) \
-        .once()
-
-    market = BittrexMarket(client_v1, mock_client_v2())
-    market.sell_max_available(BTC_USD_PAIR)
 
 
 @pytest.mark.parametrize(['expected_open', 'expected_closed_at', 'expected_quantity_amount', 'bittrex_response'],

@@ -6,11 +6,10 @@ from decimal import Decimal
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
-from coinrat.domain import Pair, DateTimeInterval
+from coinrat.domain import Pair, DateTimeInterval, serialize_pair
 from coinrat.domain.candle import MinuteCandle, CandleStorage, \
     CANDLE_STORAGE_FIELD_HIGH, CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
     NoCandlesForMarketInStorageException, CANDLE_STORAGE_FIELD_MARKET, CANDLE_STORAGE_FIELD_PAIR
-from .utils import create_pair_identifier
 
 CANDLE_STORAGE_NAME = 'influx_db'
 MEASUREMENT_CANDLES_NAME = 'candles'
@@ -41,7 +40,7 @@ class CandleInnoDbStorage(CandleStorage):
     ) -> List[MinuteCandle]:
         parameters = {
             CANDLE_STORAGE_FIELD_MARKET: "= '{}'".format(market_name),
-            CANDLE_STORAGE_FIELD_PAIR: "= '{}'".format(create_pair_identifier(pair)),
+            CANDLE_STORAGE_FIELD_PAIR: "= '{}'".format(serialize_pair(pair)),
         }
         if interval.since is not None:
             parameters['"time" >'] = "'{}'".format(interval.since.isoformat())
@@ -62,7 +61,7 @@ class CandleInnoDbStorage(CandleStorage):
     def get_last_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> MinuteCandle:
         sql = '''
             SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' AND "time" <= '{}' ORDER BY "time" DESC LIMIT 1
-        '''.format(MEASUREMENT_CANDLES_NAME, create_pair_identifier(pair), market_name, current_time.isoformat())
+        '''.format(MEASUREMENT_CANDLES_NAME, serialize_pair(pair), market_name, current_time.isoformat())
 
         result: ResultSet = self._client.query(sql)
         result = list(result.get_points())
@@ -86,7 +85,7 @@ class CandleInnoDbStorage(CandleStorage):
             MEASUREMENT_CANDLES_NAME,
             interval.since.isoformat(),
             interval.till.isoformat(),
-            create_pair_identifier(pair),
+            serialize_pair(pair),
             market_name,
             field
         )
@@ -108,7 +107,7 @@ class CandleInnoDbStorage(CandleStorage):
             'measurement': MEASUREMENT_CANDLES_NAME,
             'tags': {
                 'market': candle.market_name,
-                'pair': create_pair_identifier(candle.pair),
+                'pair': serialize_pair(candle.pair),
             },
             'time': candle.time.isoformat(),
             'fields': {

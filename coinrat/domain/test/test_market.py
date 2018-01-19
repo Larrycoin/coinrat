@@ -14,4 +14,4 @@ def test_market():
 def test_pair_market_info():
     info = PairMarketInfo(Pair('USD', 'BTC'), Decimal(0.0003))
 
-    assert 'Pair: [USD-BTC], minimal order size: 0.00030000000' == str(info)
+    assert 'Pair: [USD_BTC], minimal order size: 0.00030000000' == str(info)

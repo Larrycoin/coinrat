@@ -6,6 +6,7 @@ from flexmock import flexmock
 from coinrat_bittrex.synchronizer import BittrexSynchronizer
 from coinrat.domain import Pair
 from coinrat.domain.candle import MinuteCandle
+from coinrat.event.event_emitter import EventEmitter
 
 BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_CANDLE = MinuteCandle(
@@ -28,5 +29,12 @@ def test_synchronize_success():
     storage.should_receive('write_candle').once()
     storage.should_receive('write_candles').once()
 
-    synchronizer = BittrexSynchronizer(market, storage, 0, 1)
+    synchronizer = BittrexSynchronizer(market, storage, create_emitter_mock(), delay=0, number_of_runs=1)
     synchronizer.synchronize(BTC_USD_PAIR)
+
+
+def create_emitter_mock() -> EventEmitter:
+    emitter_mock = flexmock()
+    emitter_mock.should_receive('emit_new_candles')
+    emitter_mock.should_receive('emit_new_order')
+    return emitter_mock

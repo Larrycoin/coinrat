@@ -40,26 +40,35 @@ class MockMarket(Market):
     """
 
     def __init__(self, datetime_factory: DateTimeFactory, configuration: Dict) -> None:
-        self._name = configuration['mocked_market_name'] if 'mocked_market_name' in configuration else MARKET_NAME
+        self._datetime_factory = datetime_factory
+        self._name = MARKET_NAME
+        self._transaction_maker_fee: Decimal = DEFAULT_TRANSACTION_FEE
+        self._transaction_taker_fee: Decimal = DEFAULT_TRANSACTION_FEE
+        self._balances: Dict[str, Decimal] = {}
+
+        self.init_by_configuration(configuration)
+
+    def init_by_configuration(self, configuration: Dict) -> None:
+        if 'mocked_market_name' in configuration:
+            self._name = configuration['mocked_market_name']
 
         mocked_base_currency_balance: Decimal = configuration['mocked_base_currency_balance'] \
             if 'mocked_base_currency_balance' in configuration \
             else DEFAULT_BASE_BALANCE
+        assert isinstance(mocked_base_currency_balance, Decimal)
 
         mocked_base_currency: Decimal = configuration['mocked_base_currency'] \
             if 'mocked_base_currency' in configuration \
             else DEFAULT_BASE_CURRENCY
+        self._balances[mocked_base_currency] = mocked_base_currency_balance
 
-        self._transaction_maker_fee: Decimal = configuration['mocked_transaction_maker_fee'] \
-            if 'mocked_transaction_maker_fee' in configuration \
-            else DEFAULT_TRANSACTION_FEE
+        if 'mocked_transaction_maker_fee' in configuration:
+            assert isinstance(configuration['mocked_transaction_maker_fee'], Decimal)
+            self._transaction_maker_fee = configuration['mocked_transaction_maker_fee']
 
-        self._transaction_taker_fee: Decimal = configuration['mocked_transaction_taker_fee'] \
-            if 'mocked_transaction_taker_fee' in configuration \
-            else DEFAULT_TRANSACTION_FEE
-
-        self._datetime_factory = datetime_factory
-        self._balances: Dict[str, Decimal] = {mocked_base_currency: mocked_base_currency_balance}
+        if 'mocked_transaction_taker_fee' in configuration:
+            assert isinstance(configuration['mocked_transaction_taker_fee'], Decimal)
+            self._transaction_taker_fee = configuration['mocked_transaction_taker_fee']
 
     @staticmethod
     def get_configuration_structure() -> Dict[str, Dict[str, str]]:

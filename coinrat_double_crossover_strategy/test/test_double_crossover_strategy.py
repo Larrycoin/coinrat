@@ -11,6 +11,7 @@ from coinrat.domain import Pair, Market, StrategyConfigurationException, Current
 from coinrat.domain.order import ORDER_TYPE_LIMIT, Order, OrderMarketInfo, DIRECTION_BUY, DIRECTION_SELL, \
     NotEnoughBalanceToPerformOrderException, ORDER_STATUS_CLOSED, ORDER_STATUS_OPEN
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
+from coinrat.event.event_emitter import EventEmitter
 
 DUMMY_MARKET_NAME = 'dummy_market'
 BTC_USD_PAIR = Pair('USD', 'BTC')
@@ -57,11 +58,14 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
     strategy = DoubleCrossoverStrategy(
         candle_storage,
         mock_order_storage(),
+        create_event_emitter_mock(),
         CurrentUtcDateTimeFactory(),
-        60 * 60,
-        15 * 60,
-        0,
-        1
+        {
+            'long_average_interval': 60 * 60,
+            'short_average_interval': 15 * 60,
+            'delay': 0,
+            'number_of_runs': 1,
+        }
     )
     if error:
         with pytest.raises(StrategyConfigurationException):
@@ -154,11 +158,15 @@ def test_sending_signal(
     strategy = DoubleCrossoverStrategy(
         candle_storage,
         order_storage,
+        create_event_emitter_mock(),
         CurrentUtcDateTimeFactory(),
-        datetime.timedelta(hours=1),
-        datetime.timedelta(minutes=15),
-        0,
-        len(mean_evolution)
+        {
+            'long_average_interval': 60 * 60,
+            'short_average_interval': 15 * 60,
+            'delay': 0,
+            'number_of_runs': len(mean_evolution),
+        }
+
     )
     strategy.run([market], BTC_USD_PAIR)
 
@@ -174,11 +182,14 @@ def test_not_enough_balance_logs_warning():
     strategy = DoubleCrossoverStrategy(
         candle_storage,
         mock_order_storage(),
+        create_event_emitter_mock(),
         CurrentUtcDateTimeFactory(),
-        60 * 60,
-        15 * 60,
-        0,
-        2
+        {
+            'long_average_interval': 60 * 60,
+            'short_average_interval': 15 * 60,
+            'delay': 0,
+            'number_of_runs': 2,
+        }
     )
     flexmock(logging).should_receive('warning').once()
     strategy.run([market], BTC_USD_PAIR)
@@ -221,11 +232,14 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
     strategy = DoubleCrossoverStrategy(
         candle_storage,
         order_storage,
+        create_event_emitter_mock(),
         CurrentUtcDateTimeFactory(),
-        60 * 60,
-        15 * 60,
-        0,
-        1
+        {
+            'long_average_interval': 60 * 60,
+            'short_average_interval': 15 * 60,
+            'delay': 0,
+            'number_of_runs': 1,
+        }
     )
     strategy.run([market], BTC_USD_PAIR)
 
@@ -234,5 +248,10 @@ def mock_order_storage():
     mock = flexmock()
     mock.should_receive('find_by').and_return([])
     mock.should_receive('find_last_order').and_return(None)
-
     return mock
+
+
+def create_event_emitter_mock() -> EventEmitter:
+    emitter_mock = flexmock()
+    emitter_mock.should_receive('emit_new_order')
+    return emitter_mock

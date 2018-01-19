@@ -30,7 +30,7 @@ def test_get_pair_market_info_invalid_pair():
 def test_get_last_candle():
     now = datetime.datetime.now().astimezone(datetime.timezone.utc)
 
-    candle = bittrex_market_factory('', '').get_last_candle(BTC_USD_PAIR)
+    candle = bittrex_market_factory('', '').get_last_candles(BTC_USD_PAIR)[0]
     assert BTC_USD_PAIR == candle.pair
     assert now - datetime.timedelta(minutes=15) <= candle.time
     assert Decimal(0) < candle.open

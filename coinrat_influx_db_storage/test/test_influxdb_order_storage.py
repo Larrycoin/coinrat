@@ -47,7 +47,7 @@ def test_save_oder(influx_database: InfluxDBClient):
                + 'Created: "2017-11-26T10:11:12+00:00", ' \
                + 'Closed: "None", ' \
                + 'ID on market: "aaa-id-from-market", ' \
-               + 'Pair: [USD-BTC], ' \
+               + 'Pair: [USD_BTC], ' \
                + 'Type: "limit", ' \
                + 'Rate: "8000.00000000", ' \
                + 'Quantity: "1.00000000"'
