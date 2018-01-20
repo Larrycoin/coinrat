@@ -6,7 +6,8 @@ from decimal import Decimal
 from influxdb import InfluxDBClient
 
 from coinrat.domain import Pair, DateTimeInterval
-from coinrat.domain.candle import Candle, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
+from coinrat.domain.candle import Candle, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException, CandleSize, \
+    CANDLE_SIZE_UNIT_HOUR
 from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage
 
 DUMMY_MARKET = 'dummy_market'
@@ -20,6 +21,44 @@ def influx_database():
     influx._database = 'coinrat_test'
     yield influx
     influx.drop_database('coinrat_test')
+
+
+def test_find_by_for_bigger_candles(influx_database: InfluxDBClient):
+    storage = CandleInnoDbStorage(influx_database)
+
+    time1 = datetime.datetime(2017, 7, 2, 0, 1, 0, tzinfo=datetime.timezone.utc)
+    storage.write_candles([
+        Candle(DUMMY_MARKET, BTC_USD_PAIR, time1, Decimal(100), Decimal(220), Decimal(90), Decimal(200)),
+    ])
+
+    candle = storage.find_by(
+        market_name=DUMMY_MARKET,
+        pair=BTC_USD_PAIR,
+        candle_size=CandleSize(CANDLE_SIZE_UNIT_HOUR, 1)
+    )[0]
+
+    assert candle.open == Decimal(100)
+    assert candle.high == Decimal(220)
+    assert candle.low == Decimal(90)
+    assert candle.close == Decimal(200)
+    assert str(candle.candle_size) == 'CandleSize: 1-hour'
+
+    time2 = datetime.datetime(2017, 7, 2, 0, 2, 0, tzinfo=datetime.timezone.utc)
+    storage.write_candles([
+        Candle(DUMMY_MARKET, BTC_USD_PAIR, time2, Decimal(0), Decimal(320), Decimal(50), Decimal(400)),
+    ])
+
+    candle = storage.find_by(
+        market_name=DUMMY_MARKET,
+        pair=BTC_USD_PAIR,
+        candle_size=CandleSize(CANDLE_SIZE_UNIT_HOUR, 1)
+    )[0]
+
+    assert candle.open == Decimal(100)
+    assert candle.high == Decimal(320)
+    assert candle.low == Decimal(50)
+    assert candle.close == Decimal(400)
+    assert str(candle.candle_size) == 'CandleSize: 1-hour'
 
 
 def test_write_candle(influx_database: InfluxDBClient):

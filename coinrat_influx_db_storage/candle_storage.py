@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import List
+from typing import List, Dict
 from decimal import Decimal
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
@@ -9,10 +9,17 @@ from coinrat.domain import Pair, DateTimeInterval, serialize_pair
 from coinrat.domain.candle import Candle, CandleStorage, \
     CANDLE_STORAGE_FIELD_HIGH, CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
     NoCandlesForMarketInStorageException, CANDLE_STORAGE_FIELD_MARKET, CANDLE_STORAGE_FIELD_PAIR, CandleSize, \
-    CANDLE_SIZE_UNIT_MINUTE, serialize_candle_size, CANDLE_STORAGE_FIELD_SIZE, deserialize_candle
+    CANDLE_SIZE_UNIT_MINUTE, serialize_candle_size, CANDLE_STORAGE_FIELD_SIZE, deserialize_candle, \
+    CANDLE_SIZE_UNIT_DAY, CANDLE_SIZE_UNIT_HOUR
 
 CANDLE_STORAGE_NAME = 'influx_db'
 MEASUREMENT_CANDLES_NAME = 'candles'
+
+UNIT_MAP = {
+    CANDLE_SIZE_UNIT_MINUTE: 'm',
+    CANDLE_SIZE_UNIT_HOUR: 'h',
+    CANDLE_SIZE_UNIT_DAY: 'd',
+}
 
 
 class CandleInnoDbStorage(CandleStorage):
@@ -49,15 +56,60 @@ class CandleInnoDbStorage(CandleStorage):
         if interval.till is not None:
             parameters['"time" <'] = "'{}'".format(interval.till.isoformat())
 
-        sql = 'SELECT * FROM "{}" WHERE '.format(MEASUREMENT_CANDLES_NAME)
+        select = '*'
+        if not candle_size.is_one_minute():
+            select = 'FIRST("open") AS "open", MAX("high") AS "high", MIN("low") AS "low", LAST("close") AS "close"'
+
+        sql = 'SELECT {} FROM "{}" WHERE '.format(select, MEASUREMENT_CANDLES_NAME)
         where = []
         for key, value in parameters.items():
             where.append('{} {}'.format(key, value))
         sql += ' AND '.join(where)
+        sql += self._get_group_by(candle_size)
+
         result: ResultSet = self._client.query(sql)
         data = list(result.get_points())
 
-        return [deserialize_candle(row) for row in data]
+        return self._parse_db_result_into_candles(data, market_name, pair, candle_size)
+
+    @staticmethod
+    def _parse_db_result_into_candles(
+        data: List[Dict],
+        market_name: str,
+        pair: Pair,
+        candle_size: CandleSize
+    ) -> List[Candle]:
+        candles = []
+        for raw_candle in data:
+            if (raw_candle[CANDLE_STORAGE_FIELD_OPEN] is None
+                and raw_candle[CANDLE_STORAGE_FIELD_OPEN] is None
+                and raw_candle[CANDLE_STORAGE_FIELD_OPEN] is None
+                and raw_candle[CANDLE_STORAGE_FIELD_OPEN] is None
+            ):
+                continue
+
+            print(raw_candle)
+            raw_candle = CandleInnoDbStorage._fix_fields_in_raw_candle(raw_candle, market_name, pair, candle_size)
+            candles.append(deserialize_candle(raw_candle))
+
+        return candles
+
+    @staticmethod
+    def _fix_fields_in_raw_candle(raw_candle: Dict, market_name: str, pair: Pair, candle_size: CandleSize) -> Dict:
+        if CANDLE_STORAGE_FIELD_MARKET not in raw_candle:
+            raw_candle[CANDLE_STORAGE_FIELD_MARKET] = market_name
+        if CANDLE_STORAGE_FIELD_PAIR not in raw_candle:
+            raw_candle[CANDLE_STORAGE_FIELD_PAIR] = serialize_pair(pair)
+        if CANDLE_STORAGE_FIELD_SIZE not in raw_candle:
+            raw_candle[CANDLE_STORAGE_FIELD_SIZE] = serialize_candle_size(candle_size)
+
+        return raw_candle
+
+    @staticmethod
+    def _get_group_by(candle_size: CandleSize) -> str:
+        if candle_size.is_one_minute():
+            return ''
+        return 'GROUP BY time({}{})'.format(candle_size.size, UNIT_MAP[candle_size.unit])
 
     def get_last_minute_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> Candle:
         sql = '''

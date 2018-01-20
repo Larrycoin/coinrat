@@ -38,6 +38,9 @@ class CandleSize:
         if self.unit == CANDLE_SIZE_UNIT_DAY:
             assert time.hour == 0
 
+    def is_one_minute(self):
+        return self.unit == CANDLE_SIZE_UNIT_MINUTE and self.size == 1
+
     def __repr__(self):
         return 'CandleSize: ' + serialize_candle_size(self)
 
