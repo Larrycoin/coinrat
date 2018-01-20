@@ -7,7 +7,7 @@ setup(
     author='Petr Hejna',
     author_email='hejna.peter@gmail.com',
     keywords='crypto-currency,crypto,bitcoin,trading,auto-trading,trading-bot',
-    license='proprietary',
+    license='MIT',
     url='https://github.com/achse/coinrat',
     packages=find_packages(),
     classifiers=[
