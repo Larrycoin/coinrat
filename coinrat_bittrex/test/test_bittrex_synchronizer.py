@@ -23,7 +23,7 @@ DUMMY_CANDLE = Candle(
 def test_synchronize_success():
     market = flexmock(name='yolo_market')
     market.should_receive('get_candles').and_return([DUMMY_CANDLE, DUMMY_CANDLE])
-    market.should_receive('get_last_candles').and_return(DUMMY_CANDLE)
+    market.should_receive('get_last_minute_candles').and_return(DUMMY_CANDLE)
 
     storage = flexmock(name='yolo_storage')
     storage.should_receive('write_candles').times(2)

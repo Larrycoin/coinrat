@@ -2,10 +2,10 @@ import datetime
 from decimal import Decimal
 from typing import List
 
-from coinrat.domain.coinrat import ForEndUserException
-from coinrat.domain.pair import Pair
 from coinrat.domain import DateTimeInterval
-from .candle import Candle
+from coinrat.domain.candle import Candle, CandleSize, CANDLE_SIZE_UNIT_MINUTE
+from coinrat.domain.pair import Pair
+from coinrat.domain.coinrat import ForEndUserException
 
 
 class NoCandlesForMarketInStorageException(ForEndUserException):
@@ -23,7 +23,8 @@ class CandleStorage:
         self,
         market_name: str,
         pair: Pair,
-        interval: DateTimeInterval = DateTimeInterval(None, None)
+        interval: DateTimeInterval = DateTimeInterval(None, None),
+        candle_size: CandleSize = CandleSize(CANDLE_SIZE_UNIT_MINUTE, 1)
     ) -> List[Candle]:
         raise NotImplementedError()
 
@@ -36,7 +37,7 @@ class CandleStorage:
     ) -> Decimal:
         raise NotImplementedError()
 
-    def get_last_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> Candle:
+    def get_last_minute_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> Candle:
         raise NotImplementedError()
 
     @property

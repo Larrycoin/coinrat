@@ -12,6 +12,7 @@ CANDLE_STORAGE_FIELD_HIGH = 'high'
 CANDLE_STORAGE_FIELD_MARKET = 'market'
 CANDLE_STORAGE_FIELD_PAIR = 'pair'
 CANDLE_STORAGE_FIELD_SIZE = 'size'
+CANDLE_STORAGE_FIELD_TIME = 'time'
 
 CANDLE_SIZE_UNIT_MINUTE = 'minute'
 CANDLE_SIZE_UNIT_HOUR = 'hour'
@@ -31,7 +32,7 @@ class CandleSize:
             assert time.second == 0
             assert time.microsecond == 0
 
-        if self.unit in [CANDLE_SIZE_UNIT_MINUTE, CANDLE_SIZE_UNIT_HOUR]:
+        if self.unit in [CANDLE_SIZE_UNIT_HOUR, CANDLE_SIZE_UNIT_DAY]:
             assert time.minute == 0
 
         if self.unit == CANDLE_SIZE_UNIT_DAY:
@@ -123,19 +124,20 @@ class Candle:
         return self._candle_size
 
     def __repr__(self):
-        return '{0} O:{1:.8f} H:{2:.8f} L:{3:.8f} C:{4:.8f} | {}' \
+        return '{0} O:{1:.8f} H:{2:.8f} L:{3:.8f} C:{4:.8f} | {5}' \
             .format(self._time.isoformat(), self._open, self._high, self._low, self._close, self._candle_size)
 
 
 def serialize_candle(candle: Candle) -> Dict[str, str]:
     return {
-        'market': candle.market_name,
-        'pair': serialize_pair(candle.pair),
-        'time': candle.time.isoformat(),
+        CANDLE_STORAGE_FIELD_MARKET: candle.market_name,
+        CANDLE_STORAGE_FIELD_PAIR: serialize_pair(candle.pair),
+        CANDLE_STORAGE_FIELD_TIME: candle.time.isoformat(),
         CANDLE_STORAGE_FIELD_OPEN: str(candle.open),
         CANDLE_STORAGE_FIELD_HIGH: str(candle.high),
         CANDLE_STORAGE_FIELD_LOW: str(candle.low),
         CANDLE_STORAGE_FIELD_CLOSE: str(candle.close),
+        CANDLE_STORAGE_FIELD_SIZE: serialize_candle_size(candle.candle_size),
     }
 
 
@@ -144,14 +146,20 @@ def serialize_candles(candles: List[Candle]) -> List[Dict[str, str]]:
 
 
 def deserialize_candle(row: Dict) -> Candle:
+    if CANDLE_STORAGE_FIELD_SIZE in row:
+        candle_size = deserialize_candle_size(row[CANDLE_STORAGE_FIELD_SIZE])
+    else:
+        candle_size = CandleSize(CANDLE_SIZE_UNIT_MINUTE, 1)
+
     return Candle(
-        row['market'],
-        deserialize_pair(row['pair']),
-        dateutil.parser.parse(row['time']).replace(tzinfo=datetime.timezone.utc),
+        row[CANDLE_STORAGE_FIELD_MARKET],
+        deserialize_pair(row[CANDLE_STORAGE_FIELD_PAIR]),
+        dateutil.parser.parse(row[CANDLE_STORAGE_FIELD_TIME]).replace(tzinfo=datetime.timezone.utc),
         Decimal(row[CANDLE_STORAGE_FIELD_OPEN]),
         Decimal(row[CANDLE_STORAGE_FIELD_HIGH]),
         Decimal(row[CANDLE_STORAGE_FIELD_LOW]),
-        Decimal(row[CANDLE_STORAGE_FIELD_CLOSE])
+        Decimal(row[CANDLE_STORAGE_FIELD_CLOSE]),
+        candle_size
     )
 
 

@@ -56,7 +56,7 @@ class BittrexMarket(Market):
             result['result']
         ))
 
-    def get_last_candles(self, pair: Pair, count: int = 1) -> List[Candle]:
+    def get_last_minute_candles(self, pair: Pair, count: int = 1) -> List[Candle]:
         result = self._get_sorted_candles_from_api(pair)
         return [self._create_candle_from_raw_ticker_data(pair, candle_data) for candle_data in result[-count:]]
 

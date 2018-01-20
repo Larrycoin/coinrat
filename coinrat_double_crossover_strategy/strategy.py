@@ -190,7 +190,7 @@ class DoubleCrossoverStrategy(Strategy):
         return signal
 
     def get_current_average_price(self, market, pair):
-        candle = self._candle_storage.get_last_candle(market.name, pair, self._datetime_factory.now())
+        candle = self._candle_storage.get_last_minute_candle(market.name, pair, self._datetime_factory.now())
         current_average_price = candle.average_price
         return current_average_price
 

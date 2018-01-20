@@ -29,7 +29,8 @@ def test_write_candle(influx_database: InfluxDBClient):
 
     data = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR)
     assert len(data) == 1
-    assert str(data[0]) == '2017-07-02T00:00:00+00:00 O:8000.00000000 H:8100.00000000 L:8200.00000000 C:8300.00000000'
+    assert '2017-07-02T00:00:00+00:00 O:8000.00000000 H:8100.00000000 L:8200.00000000 C:8300.00000000 ' + \
+           '| CandleSize: 1-minute' == str(data[0])
 
 
 def test_write_candles(influx_database: InfluxDBClient):
@@ -81,18 +82,18 @@ def test_mean_no_data_raise_exception(influx_database: InfluxDBClient):
         storage.mean(DUMMY_MARKET, BTC_USD_PAIR, CANDLE_STORAGE_FIELD_CLOSE, interval)
 
 
-def test_get_last_candle(influx_database: InfluxDBClient):
+def test_get_last_minute_candle(influx_database: InfluxDBClient):
     storage = CandleInnoDbStorage(influx_database)
     storage.write_candles([_create_dummy_candle(1, 8300)])
 
     current_time = datetime.datetime(2017, 7, 2, 1, 0, 0, tzinfo=datetime.timezone.utc)
 
-    candle = storage.get_last_candle(DUMMY_MARKET, BTC_USD_PAIR, current_time)
+    candle = storage.get_last_minute_candle(DUMMY_MARKET, BTC_USD_PAIR, current_time)
     assert candle.time.minute == 1
 
     storage.write_candles([_create_dummy_candle(2, 8300)])
 
-    candle = storage.get_last_candle(DUMMY_MARKET, BTC_USD_PAIR, current_time)
+    candle = storage.get_last_minute_candle(DUMMY_MARKET, BTC_USD_PAIR, current_time)
     assert candle.time.minute == 2
 
 

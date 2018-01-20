@@ -52,7 +52,7 @@ DUMMY_OPEN_ORDER = Order(
 def test_number_of_markets_validation(error: bool, markets: List[Union[Market, Mock]]):
     candle_storage = flexmock()
     candle_storage.should_receive('mean').and_return(0).mock()
-    candle_storage.should_receive('get_last_candle').and_return(flexmock(average_price=Decimal(8000)))
+    candle_storage.should_receive('get_last_minute_candle').and_return(flexmock(average_price=Decimal(8000)))
 
     if len(markets) == 1:  # Flexmock is not working properly with @pytest.mark.parametrize (MethodSignatureError)
         markets = [markets[0].should_receive('name').and_return(DUMMY_MARKET_NAME).mock()]
@@ -127,7 +127,7 @@ def test_sending_signal(
     expectation = candle_storage.should_receive('mean')
     for mean in mean_evolution:
         expectation.and_return(mean[0]).and_return(mean[1])
-    candle_storage.should_receive('get_last_candle').and_return(
+    candle_storage.should_receive('get_last_minute_candle').and_return(
         flexmock(average_price=Decimal(current_candle_average_price))
     )
     market = create_market_mock()
@@ -193,7 +193,7 @@ def test_sending_signal(
 def test_not_enough_balance_logs_warning():
     candle_storage = flexmock()
     candle_storage.should_receive('mean').and_return(8000).and_return(7900).and_return(8000).and_return(8100)
-    candle_storage.should_receive('get_last_candle').and_return(flexmock(average_price=Decimal(Decimal(8000))))
+    candle_storage.should_receive('get_last_minute_candle').and_return(flexmock(average_price=Decimal(Decimal(8000))))
 
     market = create_market_mock()
     market.should_receive('place_order').and_raise(NotEnoughBalanceToPerformOrderException)
@@ -242,7 +242,7 @@ STILL_OPEN_ORDER_INFO = OrderMarketInfo(
 def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int, markets_order_info: OrderMarketInfo):
     candle_storage = flexmock()
     candle_storage.should_receive('mean').and_return(8000).and_return(7900)
-    candle_storage.should_receive('get_last_candle').and_return(flexmock(average_price=Decimal(Decimal(8000))))
+    candle_storage.should_receive('get_last_minute_candle').and_return(flexmock(average_price=Decimal(Decimal(8000))))
 
     order_storage = create_order_storage_mock()
     order_storage.should_receive('find_by').and_return([DUMMY_OPEN_ORDER])

@@ -37,6 +37,7 @@ def test_candle_export_import():
         'high': "2000",
         'low': "3000",
         'close': "4000",
+        'size': '1-minute',
     }]
 
     with open(file_name) as json_file:

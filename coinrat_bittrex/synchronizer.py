@@ -27,7 +27,7 @@ class BittrexSynchronizer(MarketStateSynchronizer):
 
         while self._number_of_runs is None or self._number_of_runs > 0:
 
-            candles = self._market.get_last_candles(pair, 3)
+            candles = self._market.get_last_minute_candles(pair, 3)
             self._storage.write_candles(candles)
             self._event_emitter.emit_new_candles(self._storage.name, candles)
 

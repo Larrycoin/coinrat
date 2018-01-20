@@ -1,7 +1,6 @@
 import datetime
 import logging
-import dateutil.parser
-from typing import List, Dict
+from typing import List
 from decimal import Decimal
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
@@ -9,7 +8,8 @@ from influxdb.resultset import ResultSet
 from coinrat.domain import Pair, DateTimeInterval, serialize_pair
 from coinrat.domain.candle import Candle, CandleStorage, \
     CANDLE_STORAGE_FIELD_HIGH, CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
-    NoCandlesForMarketInStorageException, CANDLE_STORAGE_FIELD_MARKET, CANDLE_STORAGE_FIELD_PAIR
+    NoCandlesForMarketInStorageException, CANDLE_STORAGE_FIELD_MARKET, CANDLE_STORAGE_FIELD_PAIR, CandleSize, \
+    CANDLE_SIZE_UNIT_MINUTE, serialize_candle_size, CANDLE_STORAGE_FIELD_SIZE, deserialize_candle
 
 CANDLE_STORAGE_NAME = 'influx_db'
 MEASUREMENT_CANDLES_NAME = 'candles'
@@ -29,7 +29,7 @@ class CandleInnoDbStorage(CandleStorage):
     def write_candles(self, candles: List[Candle]) -> None:
         if len(candles) == 0:
             return
-        self._client.write_points([self._transform_into_raw_data(candle) for candle in candles])
+        self._client.write_points([self._create_point_data(candle) for candle in candles])
         logging.debug('Into market "{}", {} candles inserted'.format(candles[0].market_name, len(candles)))
 
     def find_by(
@@ -37,7 +37,7 @@ class CandleInnoDbStorage(CandleStorage):
         market_name: str,
         pair: Pair,
         interval: DateTimeInterval = DateTimeInterval(None, None),
-        CandleSize
+        candle_size: CandleSize = CandleSize(CANDLE_SIZE_UNIT_MINUTE, 1)
     ) -> List[Candle]:
         parameters = {
             CANDLE_STORAGE_FIELD_MARKET: "= '{}'".format(market_name),
@@ -57,9 +57,9 @@ class CandleInnoDbStorage(CandleStorage):
         result: ResultSet = self._client.query(sql)
         data = list(result.get_points())
 
-        return [self._create_candle_from_serialized(row) for row in data]
+        return [deserialize_candle(row) for row in data]
 
-    def get_last_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> Candle:
+    def get_last_minute_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> Candle:
         sql = '''
             SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' AND "time" <= '{}' ORDER BY "time" DESC LIMIT 1
         '''.format(MEASUREMENT_CANDLES_NAME, serialize_pair(pair), market_name, current_time.isoformat())
@@ -68,7 +68,7 @@ class CandleInnoDbStorage(CandleStorage):
         result = list(result.get_points())
         self._validate_result_has_some_data(market_name, result)
 
-        return self._create_candle_from_serialized(result[0])
+        return deserialize_candle(result[0])
 
     def mean(
         self,
@@ -103,7 +103,7 @@ class CandleInnoDbStorage(CandleStorage):
             )
 
     @staticmethod
-    def _transform_into_raw_data(candle: Candle):
+    def _create_point_data(candle: Candle):
         return {
             'measurement': MEASUREMENT_CANDLES_NAME,
             'tags': {
@@ -117,19 +117,6 @@ class CandleInnoDbStorage(CandleStorage):
                 CANDLE_STORAGE_FIELD_CLOSE: float(candle.close),
                 CANDLE_STORAGE_FIELD_LOW: float(candle.low),
                 CANDLE_STORAGE_FIELD_HIGH: float(candle.high),
+                CANDLE_STORAGE_FIELD_SIZE: serialize_candle_size(candle.candle_size)
             }
         }
-
-    @staticmethod
-    def _create_candle_from_serialized(row: Dict) -> Candle:
-        pair_data = row[CANDLE_STORAGE_FIELD_PAIR].split('_')
-
-        return Candle(
-            row[CANDLE_STORAGE_FIELD_MARKET],
-            Pair(pair_data[0], pair_data[1]),
-            dateutil.parser.parse(row['time']).replace(tzinfo=datetime.timezone.utc),
-            Decimal(row[CANDLE_STORAGE_FIELD_OPEN]),
-            Decimal(row[CANDLE_STORAGE_FIELD_HIGH]),
-            Decimal(row[CANDLE_STORAGE_FIELD_LOW]),
-            Decimal(row[CANDLE_STORAGE_FIELD_CLOSE])
-        )
