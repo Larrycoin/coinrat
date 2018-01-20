@@ -37,7 +37,7 @@ class BittrexMarket(Market):
         return Decimal(0.0025)
 
     def get_balance(self, currency: str) -> Balance:
-        currency = self._fix_currency(currency)
+        currency = self._convert_currency_code_to_bittrex_format(currency)
         result = self._client_v2.get_balance(currency)
         self._validate_result(result)
 
@@ -50,7 +50,7 @@ class BittrexMarket(Market):
         return list(map(
             lambda data: Balance(
                 self.name,
-                self._fix_currency(data['Balance']['Currency']),
+                self._normalize_currency_code(data['Balance']['Currency']),
                 Decimal(data['Balance']['Available'])
             ),
             result['result']
@@ -65,7 +65,7 @@ class BittrexMarket(Market):
         return [self._create_candle_from_raw_ticker_data(pair, candle_data) for candle_data in result]
 
     def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:
-        market = self.format_market_pair(pair)
+        market = self._format_market_pair(pair)
         result = self._client_v1.get_markets()
         self._validate_result(result)
         for market_data in result['result']:
@@ -80,7 +80,7 @@ class BittrexMarket(Market):
         assert order.market_name == self.name
 
         logging.info('Placing order: {}'.format(order))
-        market = self.format_market_pair(order.pair)
+        market = self._format_market_pair(order.pair)
         self._validate_minimal_order(order)
 
         if order.type == ORDER_TYPE_MARKET:
@@ -121,15 +121,15 @@ class BittrexMarket(Market):
         result = []
         for raw_pair in raw_pairs:
             if raw_pair['IsActive']:
-                base_currency = self.normalize_currency_code(raw_pair['BaseCurrency'])
-                market_currency = self.normalize_currency_code(raw_pair['MarketCurrency'])
+                base_currency = self._normalize_currency_code(raw_pair['BaseCurrency'])
+                market_currency = self._normalize_currency_code(raw_pair['MarketCurrency'])
 
                 result.append(Pair(base_currency, market_currency))
 
         return result
 
     @staticmethod
-    def normalize_currency_code(currency_code: str) -> str:
+    def _normalize_currency_code(currency_code: str) -> str:
         if currency_code == 'USDT':
             currency_code = 'USD'
         return currency_code
@@ -153,7 +153,7 @@ class BittrexMarket(Market):
             )
 
     def _get_sorted_candles_from_api(self, pair: Pair):
-        market = self.format_market_pair(pair)
+        market = self._format_market_pair(pair)
         result = self._client_v2.get_candles(market, TICKINTERVAL_ONEMIN)
         self._validate_result(result)
         result = result['result']
@@ -172,10 +172,10 @@ class BittrexMarket(Market):
         )
 
     @staticmethod
-    def format_market_pair(pair: Pair):
+    def _format_market_pair(pair: Pair):
         return '{}-{}'.format(
-            BittrexMarket._fix_currency(pair.base_currency),
-            BittrexMarket._fix_currency(pair.market_currency)
+            BittrexMarket._convert_currency_code_to_bittrex_format(pair.base_currency),
+            BittrexMarket._convert_currency_code_to_bittrex_format(pair.market_currency)
         )
 
     @staticmethod
@@ -184,7 +184,7 @@ class BittrexMarket(Market):
             raise MarketOrderException(result['message'])
 
     @staticmethod
-    def _fix_currency(currency):
+    def _convert_currency_code_to_bittrex_format(currency):
         return 'USDT' if currency == 'USD' else currency
 
 
