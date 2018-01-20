@@ -5,7 +5,7 @@ from typing import List
 from coinrat.domain.coinrat import ForEndUserException
 from coinrat.domain.pair import Pair
 from coinrat.domain import DateTimeInterval
-from .candle import MinuteCandle
+from .candle import Candle
 
 
 class NoCandlesForMarketInStorageException(ForEndUserException):
@@ -13,10 +13,10 @@ class NoCandlesForMarketInStorageException(ForEndUserException):
 
 
 class CandleStorage:
-    def write_candle(self, candle: MinuteCandle) -> None:
+    def write_candle(self, candle: Candle) -> None:
         raise NotImplementedError()
 
-    def write_candles(self, candles: List[MinuteCandle]) -> None:
+    def write_candles(self, candles: List[Candle]) -> None:
         raise NotImplementedError()
 
     def find_by(
@@ -24,7 +24,7 @@ class CandleStorage:
         market_name: str,
         pair: Pair,
         interval: DateTimeInterval = DateTimeInterval(None, None)
-    ) -> List[MinuteCandle]:
+    ) -> List[Candle]:
         raise NotImplementedError()
 
     def mean(
@@ -36,7 +36,7 @@ class CandleStorage:
     ) -> Decimal:
         raise NotImplementedError()
 
-    def get_last_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> MinuteCandle:
+    def get_last_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> Candle:
         raise NotImplementedError()
 
     @property

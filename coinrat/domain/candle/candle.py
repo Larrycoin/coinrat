@@ -11,9 +11,46 @@ CANDLE_STORAGE_FIELD_LOW = 'low'
 CANDLE_STORAGE_FIELD_HIGH = 'high'
 CANDLE_STORAGE_FIELD_MARKET = 'market'
 CANDLE_STORAGE_FIELD_PAIR = 'pair'
+CANDLE_STORAGE_FIELD_SIZE = 'size'
+
+CANDLE_SIZE_UNIT_MINUTE = 'minute'
+CANDLE_SIZE_UNIT_HOUR = 'hour'
+CANDLE_SIZE_UNIT_DAY = 'day'
 
 
-class MinuteCandle:
+class CandleSize:
+    def __init__(self, unit: str, size: int) -> None:
+        self.size = size
+        self.unit = unit
+
+    def assert_candle_time(self, time: datetime.datetime):
+        assert '+00:00' in time.isoformat()[-6:], \
+            ('Time must be in UTC and aware of its timezone ({})'.format(time.isoformat()))
+
+        if self.unit in [CANDLE_SIZE_UNIT_MINUTE, CANDLE_SIZE_UNIT_HOUR, CANDLE_SIZE_UNIT_DAY]:
+            assert time.second == 0
+            assert time.microsecond == 0
+
+        if self.unit in [CANDLE_SIZE_UNIT_MINUTE, CANDLE_SIZE_UNIT_HOUR]:
+            assert time.minute == 0
+
+        if self.unit == CANDLE_SIZE_UNIT_DAY:
+            assert time.hour == 0
+
+    def __repr__(self):
+        return 'CandleSize: ' + serialize_candle_size(self)
+
+
+def serialize_candle_size(candle_size: CandleSize) -> str:
+    return '{}-{}'.format(candle_size.size, candle_size.unit)
+
+
+def deserialize_candle_size(serialized_candle_size: str) -> CandleSize:
+    split_data = serialized_candle_size.split('-')
+    return CandleSize(split_data[1], int(split_data[0]))
+
+
+class Candle:
     """
     OPEN, CLOSE: The open and close prices are the first and last transaction prices for that time period (minute).
 
@@ -30,18 +67,15 @@ class MinuteCandle:
         open_price: Decimal,
         high_price: Decimal,
         low_price: Decimal,
-        close_price: Decimal
+        close_price: Decimal,
+        candle_size: CandleSize = CandleSize(CANDLE_SIZE_UNIT_MINUTE, 1)
     ) -> None:
         assert isinstance(open_price, Decimal)
         assert isinstance(high_price, Decimal)
         assert isinstance(low_price, Decimal)
         assert isinstance(close_price, Decimal)
 
-        assert time.second == 0
-        assert time.microsecond == 0
-
-        assert '+00:00' in time.isoformat()[-6:], \
-            ('Time must be in UTC and aware of its timezone ({})'.format(time.isoformat()))
+        candle_size.assert_candle_time(time)
 
         self._market_name = market_name
         self._pair = pair
@@ -50,6 +84,7 @@ class MinuteCandle:
         self._high = high_price
         self._low = low_price
         self._close = close_price
+        self._candle_size = candle_size
 
     @property
     def pair(self) -> Pair:
@@ -83,12 +118,16 @@ class MinuteCandle:
     def average_price(self) -> Decimal:
         return (self._low + self._high) / 2
 
+    @property
+    def candle_size(self) -> CandleSize:
+        return self._candle_size
+
     def __repr__(self):
-        return '{0} O:{1:.8f} H:{2:.8f} L:{3:.8f} C:{4:.8f}' \
-            .format(self._time.isoformat(), self._open, self._high, self._low, self._close)
+        return '{0} O:{1:.8f} H:{2:.8f} L:{3:.8f} C:{4:.8f} | {}' \
+            .format(self._time.isoformat(), self._open, self._high, self._low, self._close, self._candle_size)
 
 
-def serialize_candle(candle: MinuteCandle) -> Dict[str, str]:
+def serialize_candle(candle: Candle) -> Dict[str, str]:
     return {
         'market': candle.market_name,
         'pair': serialize_pair(candle.pair),
@@ -100,12 +139,12 @@ def serialize_candle(candle: MinuteCandle) -> Dict[str, str]:
     }
 
 
-def serialize_candles(candles: List[MinuteCandle]) -> List[Dict[str, str]]:
+def serialize_candles(candles: List[Candle]) -> List[Dict[str, str]]:
     return list(map(serialize_candle, candles))
 
 
-def deserialize_candle(row: Dict) -> MinuteCandle:
-    return MinuteCandle(
+def deserialize_candle(row: Dict) -> Candle:
+    return Candle(
         row['market'],
         deserialize_pair(row['pair']),
         dateutil.parser.parse(row['time']).replace(tzinfo=datetime.timezone.utc),
@@ -116,5 +155,5 @@ def deserialize_candle(row: Dict) -> MinuteCandle:
     )
 
 
-def deserialize_candles(serialized_candles: List[Dict[str, str]]) -> List[MinuteCandle]:
+def deserialize_candles(serialized_candles: List[Dict[str, str]]) -> List[Candle]:
     return list(map(deserialize_candle, serialized_candles))

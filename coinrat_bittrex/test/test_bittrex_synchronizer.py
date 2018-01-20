@@ -5,11 +5,11 @@ from flexmock import flexmock
 
 from coinrat_bittrex.synchronizer import BittrexSynchronizer
 from coinrat.domain import Pair
-from coinrat.domain.candle import MinuteCandle
+from coinrat.domain.candle import Candle
 from coinrat.event.event_emitter import EventEmitter
 
 BTC_USD_PAIR = Pair('USD', 'BTC')
-DUMMY_CANDLE = MinuteCandle(
+DUMMY_CANDLE = Candle(
     '',
     BTC_USD_PAIR,
     datetime.datetime(2017, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),

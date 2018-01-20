@@ -1,12 +1,12 @@
 import datetime
 from decimal import Decimal
 
-from coinrat.domain.candle import MinuteCandle
+from coinrat.domain.candle import Candle
 from coinrat.domain import Pair
 
 
 def test_candle():
-    candle = MinuteCandle(
+    candle = Candle(
         '',
         Pair('USD', 'BTC'),
         datetime.datetime(2017, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),

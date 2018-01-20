@@ -9,7 +9,7 @@ from flask import Flask
 from coinrat.domain import DateTimeFactory, deserialize_pair, serialize_balances, serialize_pair, \
     deserialize_datetime_interval
 from coinrat.domain.order import Order, serialize_order, serialize_orders
-from coinrat.domain.candle import serialize_candles, MinuteCandle, serialize_candle
+from coinrat.domain.candle import serialize_candles, Candle, serialize_candle
 from coinrat.order_storage_plugins import OrderStoragePlugins
 from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.server.event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, EVENT_GET_ORDERS, \
@@ -182,7 +182,7 @@ class SocketServer(threading.Thread):
 
         self._socket = socket
 
-    def emit_new_candle(self, candle: MinuteCandle):
+    def emit_new_candle(self, candle: Candle):
         data = serialize_candle(candle)
         logging.info('EMITTING: {}, {}'.format(EVENT_NEW_CANDLES, data))
         self._socket.emit(EVENT_NEW_CANDLES, data)

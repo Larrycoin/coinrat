@@ -4,7 +4,7 @@ from typing import Dict, List, Union
 from decimal import Decimal
 
 from requests import Session, RequestException, TooManyRedirects
-from coinrat.domain.candle import MinuteCandle, CandleStorage
+from coinrat.domain.candle import Candle, CandleStorage
 from coinrat.domain import MarketStateSynchronizer, Pair
 from coinrat.event.event_emitter import EventEmitter
 
@@ -80,8 +80,8 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
                 time.sleep(self._time_to_sleep_after_error)
                 self._count_connection_error_retry()
 
-    def _create_candle_from_raw(self, pair: Pair, candles_data: Dict) -> MinuteCandle:
-        return MinuteCandle(
+    def _create_candle_from_raw(self, pair: Pair, candles_data: Dict) -> Candle:
+        return Candle(
             self._market_name,
             pair,
             datetime.fromtimestamp(candles_data['time']).astimezone(timezone.utc),

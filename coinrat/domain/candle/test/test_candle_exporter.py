@@ -5,13 +5,13 @@ import os
 from flexmock import flexmock
 from decimal import Decimal
 
-from coinrat.domain.candle import CandleExporter, MinuteCandle
+from coinrat.domain.candle import CandleExporter, Candle
 from coinrat.domain import Pair
 
 
 def test_candle_export_import():
     pair = Pair('USD', 'BTC')
-    candle = MinuteCandle(
+    candle = Candle(
         'dummy_market',
         pair,
         datetime.datetime(2017, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),

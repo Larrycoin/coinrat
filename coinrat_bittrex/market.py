@@ -7,10 +7,10 @@ from typing import Dict, List
 from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, TICKINTERVAL_ONEMIN
 
 from decimal import Decimal
-from coinrat.domain.candle import MinuteCandle
+from coinrat.domain.candle import Candle
 from coinrat.domain import Market, Balance, Pair, PairMarketInfo, MarketPairDoesNotExistsException, MarketOrderException
 from coinrat.domain.order import Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, \
-    NotEnoughBalanceToPerformOrderException, OrderMarketInfo, DIRECTION_BUY, DIRECTION_SELL
+    NotEnoughBalanceToPerformOrderException, OrderMarketInfo
 
 MARKET_NAME = 'bittrex'
 
@@ -56,11 +56,11 @@ class BittrexMarket(Market):
             result['result']
         ))
 
-    def get_last_candles(self, pair: Pair, count: int = 1) -> List[MinuteCandle]:
+    def get_last_candles(self, pair: Pair, count: int = 1) -> List[Candle]:
         result = self._get_sorted_candles_from_api(pair)
         return [self._create_candle_from_raw_ticker_data(pair, candle_data) for candle_data in result[-count:]]
 
-    def get_candles(self, pair: Pair) -> List[MinuteCandle]:
+    def get_candles(self, pair: Pair) -> List[Candle]:
         result = self._get_sorted_candles_from_api(pair)
         return [self._create_candle_from_raw_ticker_data(pair, candle_data) for candle_data in result]
 
@@ -160,8 +160,8 @@ class BittrexMarket(Market):
         result.sort(key=lambda candle: candle['T'])
         return result
 
-    def _create_candle_from_raw_ticker_data(self, pair: Pair, candle: Dict[str, str]) -> MinuteCandle:
-        return MinuteCandle(
+    def _create_candle_from_raw_ticker_data(self, pair: Pair, candle: Dict[str, str]) -> Candle:
+        return Candle(
             self.name,
             pair,
             dateutil.parser.parse(candle['T']).replace(tzinfo=datetime.timezone.utc),

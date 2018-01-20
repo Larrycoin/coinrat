@@ -6,7 +6,7 @@ from decimal import Decimal
 from influxdb import InfluxDBClient
 
 from coinrat.domain import Pair, DateTimeInterval
-from coinrat.domain.candle import MinuteCandle, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
+from coinrat.domain.candle import Candle, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
 from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage
 
 DUMMY_MARKET = 'dummy_market'
@@ -96,8 +96,8 @@ def test_get_last_candle(influx_database: InfluxDBClient):
     assert candle.time.minute == 2
 
 
-def _create_dummy_candle(minute: int = 0, close: int = 8300) -> MinuteCandle:
-    return MinuteCandle(
+def _create_dummy_candle(minute: int = 0, close: int = 8300) -> Candle:
+    return Candle(
         DUMMY_MARKET,
         BTC_USD_PAIR,
         datetime.datetime(2017, 7, 2, 0, minute, 0, tzinfo=datetime.timezone.utc),

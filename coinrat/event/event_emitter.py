@@ -3,7 +3,7 @@ from typing import List
 
 import pika
 
-from coinrat.domain.candle import MinuteCandle, serialize_candle
+from coinrat.domain.candle import Candle, serialize_candle
 from coinrat.domain.order import Order
 from coinrat.domain.order import serialize_order
 from .event_types import EVENT_NEW_CANDLE, EVENT_NEW_ORDER
@@ -15,7 +15,7 @@ class EventEmitter:
         self.channel = rabbit_connection.channel()
         self.channel.queue_declare(queue='events')
 
-    def emit_new_candles(self, candle_storage: str, candles: List[MinuteCandle]) -> None:
+    def emit_new_candles(self, candle_storage: str, candles: List[Candle]) -> None:
         for candle in candles:
             self.channel.basic_publish(exchange='', routing_key='events', body=json.dumps({
                 'event': EVENT_NEW_CANDLE,

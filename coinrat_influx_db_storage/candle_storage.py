@@ -7,7 +7,7 @@ from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
 from coinrat.domain import Pair, DateTimeInterval, serialize_pair
-from coinrat.domain.candle import MinuteCandle, CandleStorage, \
+from coinrat.domain.candle import Candle, CandleStorage, \
     CANDLE_STORAGE_FIELD_HIGH, CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
     NoCandlesForMarketInStorageException, CANDLE_STORAGE_FIELD_MARKET, CANDLE_STORAGE_FIELD_PAIR
 
@@ -23,10 +23,10 @@ class CandleInnoDbStorage(CandleStorage):
     def name(self) -> str:
         return CANDLE_STORAGE_NAME
 
-    def write_candle(self, candle: MinuteCandle) -> None:
+    def write_candle(self, candle: Candle) -> None:
         self.write_candles([candle])
 
-    def write_candles(self, candles: List[MinuteCandle]) -> None:
+    def write_candles(self, candles: List[Candle]) -> None:
         if len(candles) == 0:
             return
         self._client.write_points([self._transform_into_raw_data(candle) for candle in candles])
@@ -36,8 +36,9 @@ class CandleInnoDbStorage(CandleStorage):
         self,
         market_name: str,
         pair: Pair,
-        interval: DateTimeInterval = DateTimeInterval(None, None)
-    ) -> List[MinuteCandle]:
+        interval: DateTimeInterval = DateTimeInterval(None, None),
+        CandleSize
+    ) -> List[Candle]:
         parameters = {
             CANDLE_STORAGE_FIELD_MARKET: "= '{}'".format(market_name),
             CANDLE_STORAGE_FIELD_PAIR: "= '{}'".format(serialize_pair(pair)),
@@ -58,7 +59,7 @@ class CandleInnoDbStorage(CandleStorage):
 
         return [self._create_candle_from_serialized(row) for row in data]
 
-    def get_last_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> MinuteCandle:
+    def get_last_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> Candle:
         sql = '''
             SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' AND "time" <= '{}' ORDER BY "time" DESC LIMIT 1
         '''.format(MEASUREMENT_CANDLES_NAME, serialize_pair(pair), market_name, current_time.isoformat())
@@ -102,7 +103,7 @@ class CandleInnoDbStorage(CandleStorage):
             )
 
     @staticmethod
-    def _transform_into_raw_data(candle: MinuteCandle):
+    def _transform_into_raw_data(candle: Candle):
         return {
             'measurement': MEASUREMENT_CANDLES_NAME,
             'tags': {
@@ -120,10 +121,10 @@ class CandleInnoDbStorage(CandleStorage):
         }
 
     @staticmethod
-    def _create_candle_from_serialized(row: Dict) -> MinuteCandle:
+    def _create_candle_from_serialized(row: Dict) -> Candle:
         pair_data = row[CANDLE_STORAGE_FIELD_PAIR].split('_')
 
-        return MinuteCandle(
+        return Candle(
             row[CANDLE_STORAGE_FIELD_MARKET],
             Pair(pair_data[0], pair_data[1]),
             dateutil.parser.parse(row['time']).replace(tzinfo=datetime.timezone.utc),
