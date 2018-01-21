@@ -76,7 +76,8 @@ class DiContainer:
                     self.rabbit_connection,
                     self.socket_server,
                     self.subscription_storage,
-                    self.candle_storage_plugins
+                    self.candle_storage_plugins,
+                    self.datetime_factory
                 )
             },
             'strategy_replayer': {

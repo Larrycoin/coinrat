@@ -4,6 +4,7 @@ from typing import Dict, List
 import dateutil.parser
 
 from coinrat.domain.pair import Pair, serialize_pair, deserialize_pair
+from .candle_size import CandleSize, CANDLE_SIZE_UNIT_MINUTE, serialize_candle_size, deserialize_candle_size
 
 CANDLE_STORAGE_FIELD_OPEN = 'open'
 CANDLE_STORAGE_FIELD_CLOSE = 'close'
@@ -13,45 +14,6 @@ CANDLE_STORAGE_FIELD_MARKET = 'market'
 CANDLE_STORAGE_FIELD_PAIR = 'pair'
 CANDLE_STORAGE_FIELD_SIZE = 'size'
 CANDLE_STORAGE_FIELD_TIME = 'time'
-
-CANDLE_SIZE_UNIT_MINUTE = 'minute'
-CANDLE_SIZE_UNIT_HOUR = 'hour'
-CANDLE_SIZE_UNIT_DAY = 'day'
-
-
-class CandleSize:
-    def __init__(self, unit: str, size: int) -> None:
-        self.size = size
-        self.unit = unit
-
-    def assert_candle_time(self, time: datetime.datetime):
-        assert '+00:00' in time.isoformat()[-6:], \
-            ('Time must be in UTC and aware of its timezone ({})'.format(time.isoformat()))
-
-        if self.unit in [CANDLE_SIZE_UNIT_MINUTE, CANDLE_SIZE_UNIT_HOUR, CANDLE_SIZE_UNIT_DAY]:
-            assert time.second == 0
-            assert time.microsecond == 0
-
-        if self.unit in [CANDLE_SIZE_UNIT_HOUR, CANDLE_SIZE_UNIT_DAY]:
-            assert time.minute == 0
-
-        if self.unit == CANDLE_SIZE_UNIT_DAY:
-            assert time.hour == 0
-
-    def is_one_minute(self):
-        return self.unit == CANDLE_SIZE_UNIT_MINUTE and self.size == 1
-
-    def __repr__(self):
-        return 'CandleSize: ' + serialize_candle_size(self)
-
-
-def serialize_candle_size(candle_size: CandleSize) -> str:
-    return '{}-{}'.format(candle_size.size, candle_size.unit)
-
-
-def deserialize_candle_size(serialized_candle_size: str) -> CandleSize:
-    split_data = serialized_candle_size.split('-')
-    return CandleSize(split_data[1], int(split_data[0]))
 
 
 class Candle:

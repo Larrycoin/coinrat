@@ -1,15 +1,12 @@
-import datetime
 import json
 import logging
 import threading
 import pika
 
-from typing import Dict
-
 from coinrat.candle_storage_plugins import CandleStoragePlugins
-from coinrat.domain import deserialize_datetime_interval, deserialize_pair
-from coinrat.domain.candle import deserialize_candle
+from coinrat.domain import deserialize_datetime_interval, deserialize_pair, DateTimeInterval, DateTimeFactory
 from coinrat.domain.order import deserialize_order
+from coinrat.domain.candle import deserialize_candle_size
 from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER
 from coinrat.server.subscription_storage import SubscriptionStorage, LastCandleSubscription, NewOrderSubscription
 from coinrat.server.socket_server import SocketServer
@@ -21,10 +18,12 @@ class RabbitEventConsumer(threading.Thread):
         rabbit_connection: pika.BlockingConnection,
         socket_server: SocketServer,
         subscription_storage: SubscriptionStorage,
-        candle_storage_plugins: CandleStoragePlugins
+        candle_storage_plugins: CandleStoragePlugins,
+        datetime_factory: DateTimeFactory
     ):
         super().__init__()
 
+        self._datetime_factory = datetime_factory
         self._candle_storage_plugins = candle_storage_plugins
         self._subscription_storage = subscription_storage
         self._socket_server = socket_server
@@ -37,7 +36,8 @@ class RabbitEventConsumer(threading.Thread):
                     session_id,
                     data['storage'],
                     data['market'],
-                    deserialize_pair(data['pair'])
+                    deserialize_pair(data['pair']),
+                    deserialize_candle_size(data['candle_size'])
                 )
             elif data['event'] == EVENT_NEW_ORDER:
                 subscription = NewOrderSubscription(
@@ -65,8 +65,14 @@ class RabbitEventConsumer(threading.Thread):
 
             if event_name == EVENT_LAST_CANDLE_UPDATED:
                 candle_storage = self._candle_storage_plugins.get_candle_storage(event_data['storage'])
-                for subscription in subscriptions:
-                    candle = candle_storage.find_by()[0]  # Todo: implemnt getting correctly sized last candle
+                for subscription in subscriptions:  # type: LastCandleSubscription
+                    current_time = self._datetime_factory.now()
+                    candle = candle_storage.find_by(
+                        market_name=subscription.market_name,
+                        pair=subscription.pair,
+                        interval=subscription.candle_size.get_interval_for_datetime(current_time),
+                        candle_size=subscription.candle_size
+                    )[0]
                     self._socket_server.emit_last_candle(subscription.session_id, candle)
 
             if event_name == EVENT_NEW_ORDER:
