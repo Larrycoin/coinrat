@@ -62,6 +62,10 @@ class LastCandleSubscription(Subscription):
 
         return True
 
+    def __repr__(self) -> str:
+        return 'LastCandleSubscription({}, {}, {}, {}, {})' \
+            .format(self.session_id, self.storage_name, self.market_name, self.pair, self.candle_size)
+
 
 class NewOrderSubscription(Subscription):
     def __init__(
@@ -105,6 +109,10 @@ class NewOrderSubscription(Subscription):
                 return False
 
         return True
+
+    def __repr__(self) -> str:
+        return 'NewOrderSubscription({}, {}, {}, {}, {})' \
+            .format(self.session_id, self.storage_name, self.market_name, self.pair, self.interval)
 
 
 class SubscriptionStorage:

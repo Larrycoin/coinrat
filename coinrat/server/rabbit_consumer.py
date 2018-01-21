@@ -51,9 +51,11 @@ class RabbitEventConsumer(threading.Thread):
                 raise ValueError('Event "{}" not supported'.format(data['event']))
 
             self._subscription_storage.subscribe(subscription)
+            return 'OK'
 
         def on_unsubscribe(session_id, data):
             self._subscription_storage.unsubscribe(session_id, data['event'])
+            return 'OK'
 
         socket_server.register_subscribes(on_subscribe, on_unsubscribe)
 
@@ -69,13 +71,13 @@ class RabbitEventConsumer(threading.Thread):
                     candle = self._find_last_candle_for_subscription(candle_storage, subscription)
                     self._socket_server.emit_last_candle(subscription.session_id, candle)
 
-            if event_name == EVENT_NEW_ORDER:
+            elif event_name == EVENT_NEW_ORDER:
                 for subscription in subscriptions:
                     order = deserialize_order(event_data['order'])
                     self._socket_server.emit_new_order(subscription.session_id, order)
 
             else:
-                logging.info("[Rabbit] Event received -> not supported | %r", event_data)
+                logging.info('[Rabbit] Event "%s", received -> not supported | %r', event_name, event_data)
 
         self._channel.basic_consume(rabbit_message_callback, queue='events', no_ack=True)
 
