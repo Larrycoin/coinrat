@@ -88,7 +88,6 @@ class CandleInnoDbStorage(CandleStorage):
             ):
                 continue
 
-            print(raw_candle)
             raw_candle = CandleInnoDbStorage._fix_fields_in_raw_candle(raw_candle, market_name, pair, candle_size)
             candles.append(deserialize_candle(raw_candle))
 
@@ -164,7 +163,6 @@ class CandleInnoDbStorage(CandleStorage):
             },
             'time': candle.time.isoformat(),
             'fields': {
-                # Todo: figure out how to store decimals in influx (maybe int -> *100000)
                 CANDLE_STORAGE_FIELD_OPEN: float(candle.open),
                 CANDLE_STORAGE_FIELD_CLOSE: float(candle.close),
                 CANDLE_STORAGE_FIELD_LOW: float(candle.low),

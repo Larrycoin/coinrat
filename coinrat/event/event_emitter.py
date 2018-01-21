@@ -6,7 +6,7 @@ import pika
 from coinrat.domain.candle import Candle, serialize_candle
 from coinrat.domain.order import Order
 from coinrat.domain.order import serialize_order
-from .event_types import EVENT_NEW_CANDLE, EVENT_NEW_ORDER
+from .event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER
 
 
 class EventEmitter:
@@ -18,7 +18,7 @@ class EventEmitter:
     def emit_new_candles(self, candle_storage: str, candles: List[Candle]) -> None:
         for candle in candles:
             self.channel.basic_publish(exchange='', routing_key='events', body=json.dumps({
-                'event': EVENT_NEW_CANDLE,
+                'event': EVENT_LAST_CANDLE_UPDATED,
                 'candle': serialize_candle(candle),
                 'storage': candle_storage
             }))

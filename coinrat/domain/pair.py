@@ -26,6 +26,9 @@ class Pair:
     def __repr__(self):
         return serialize_pair(self)
 
+    def is_equal(self, other_pair: 'Pair'):
+        return self._base_currency == other_pair.base_currency and self._market_currency == other_pair.market_currency
+
 
 def serialize_pair(pair: Pair) -> str:
     return '{}_{}'.format(pair.base_currency, pair.market_currency)

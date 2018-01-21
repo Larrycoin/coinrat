@@ -13,7 +13,8 @@ from coinrat.domain.candle import serialize_candles, Candle, serialize_candle
 from coinrat.order_storage_plugins import OrderStoragePlugins
 from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.server.event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, EVENT_GET_ORDERS, \
-    EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_NEW_CANDLES, EVENT_NEW_ORDERS, EVENT_CLEAR_ORDERS, \
+    EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDERS, \
+    EVENT_CLEAR_ORDERS, \
     EVENT_GET_MARKETS, EVENT_GET_PAIRS, EVENT_GET_CANDLE_STORAGES, EVENT_GET_ORDER_STORAGES, EVENT_GET_STRATEGIES, \
     SOCKET_EVENT_GET_BALANCE
 from coinrat.task.task_planner import TaskPlanner
@@ -182,15 +183,15 @@ class SocketServer(threading.Thread):
 
         self._socket = socket
 
-    def emit_new_candle(self, candle: Candle):
+    def emit_last_candle(self, session_id: str, candle: Candle):
         data = serialize_candle(candle)
-        logging.info('EMITTING: {}, {}'.format(EVENT_NEW_CANDLES, data))
-        self._socket.emit(EVENT_NEW_CANDLES, data)
+        logging.info('EMITTING: {}, {}'.format(EVENT_LAST_CANDLE_UPDATED, data))
+        self._socket.emit(EVENT_LAST_CANDLE_UPDATED, data, room=session_id)
 
-    def emit_new_order(self, order: Order):
+    def emit_new_order(self, session_id: str, order: Order):
         data = serialize_order(order)
         logging.info('EMITTING: {}, {}'.format(EVENT_NEW_ORDERS, data))
-        self._socket.emit(EVENT_NEW_ORDERS, data)
+        self._socket.emit(EVENT_NEW_ORDERS, data, room=session_id)
 
     def run(self):
         app = Flask(__name__)
