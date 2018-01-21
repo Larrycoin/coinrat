@@ -1,7 +1,7 @@
-EVENT_NEW_CANDLE = 'new_candle'
+EVENT_LAST_CANDLE_UPDATED = 'last_candle_updated'
 EVENT_NEW_ORDER = 'new_order'
 
 ALL_RABBIT_EVENTS = [
-    EVENT_NEW_CANDLE,
+    EVENT_LAST_CANDLE_UPDATED,
     EVENT_NEW_ORDER,
 ]

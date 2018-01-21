@@ -13,6 +13,7 @@ from coinrat.domain import CurrentUtcDateTimeFactory, DateTimeFactory
 from coinrat.task.task_planner import TaskPlanner
 from coinrat.task.task_consumer import TaskConsumer
 from coinrat.strategy_replayer import StrategyReplayer
+from coinrat.server.subscription_storage import SubscriptionStorage
 
 
 class DiContainer:
@@ -71,7 +72,13 @@ class DiContainer:
             },
             'rabbit_event_consumer': {
                 'instance': None,
-                'factory': lambda: RabbitEventConsumer(self.rabbit_connection, self.socket_server)
+                'factory': lambda: RabbitEventConsumer(
+                    self.rabbit_connection,
+                    self.socket_server,
+                    self.subscription_storage,
+                    self.candle_storage_plugins,
+                    self.datetime_factory
+                )
             },
             'strategy_replayer': {
                 'instance': None,
@@ -87,6 +94,10 @@ class DiContainer:
                     self.market_plugins,
                     self.strategy_replayer
                 ),
+            },
+            'subscription_storage': {
+                'instance': None,
+                'factory': lambda: SubscriptionStorage(),
             }
         }
 
@@ -147,3 +158,7 @@ class DiContainer:
     @property
     def strategy_replayer(self) -> StrategyReplayer:
         return self._get('strategy_replayer')
+
+    @property
+    def subscription_storage(self) -> SubscriptionStorage:
+        return self._get('subscription_storage')
