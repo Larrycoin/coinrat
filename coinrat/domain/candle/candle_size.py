@@ -18,6 +18,13 @@ UNIT_RANGES = {
 class CandleSize:
     def __init__(self, unit: str, size: int) -> None:
         assert unit in [CANDLE_SIZE_UNIT_MINUTE, CANDLE_SIZE_UNIT_HOUR, CANDLE_SIZE_UNIT_DAY]
+
+        if unit in [CANDLE_SIZE_UNIT_MINUTE, CANDLE_SIZE_UNIT_HOUR]:
+            number_of_buckets = UNIT_RANGES[unit] / size
+            assert number_of_buckets.is_integer(), \
+                'For minute and hour candle-sizes, the whole range must be divisible to whole number!' \
+                + ' But is: {}'.format(number_of_buckets)
+
         self.size = size
         self.unit = unit
 
