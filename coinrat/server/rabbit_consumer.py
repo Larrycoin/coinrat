@@ -4,9 +4,9 @@ import threading
 import pika
 
 from coinrat.candle_storage_plugins import CandleStoragePlugins
-from coinrat.domain import deserialize_datetime_interval, deserialize_pair, DateTimeInterval, DateTimeFactory
+from coinrat.domain import deserialize_datetime_interval, deserialize_pair, DateTimeFactory
 from coinrat.domain.order import deserialize_order
-from coinrat.domain.candle import deserialize_candle_size
+from coinrat.domain.candle import deserialize_candle_size, Candle, CandleStorage
 from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER
 from coinrat.server.subscription_storage import SubscriptionStorage, LastCandleSubscription, NewOrderSubscription
 from coinrat.server.socket_server import SocketServer
@@ -66,13 +66,7 @@ class RabbitEventConsumer(threading.Thread):
             if event_name == EVENT_LAST_CANDLE_UPDATED:
                 candle_storage = self._candle_storage_plugins.get_candle_storage(event_data['storage'])
                 for subscription in subscriptions:  # type: LastCandleSubscription
-                    current_time = self._datetime_factory.now()
-                    candle = candle_storage.find_by(
-                        market_name=subscription.market_name,
-                        pair=subscription.pair,
-                        interval=subscription.candle_size.get_interval_for_datetime(current_time),
-                        candle_size=subscription.candle_size
-                    )[0]
+                    candle = self._find_last_candle_for_subscription(candle_storage, subscription)
                     self._socket_server.emit_last_candle(subscription.session_id, candle)
 
             if event_name == EVENT_NEW_ORDER:
@@ -84,6 +78,19 @@ class RabbitEventConsumer(threading.Thread):
                 logging.info("[Rabbit] Event received -> not supported | %r", event_data)
 
         self._channel.basic_consume(rabbit_message_callback, queue='events', no_ack=True)
+
+    def _find_last_candle_for_subscription(
+        self,
+        candle_storage: CandleStorage,
+        subscription: LastCandleSubscription
+    ) -> Candle:
+        current_time = self._datetime_factory.now()
+        return candle_storage.find_by(
+            market_name=subscription.market_name,
+            pair=subscription.pair,
+            interval=subscription.candle_size.get_interval_for_datetime(current_time),
+            candle_size=subscription.candle_size
+        )[0]
 
     def run(self):
         self._channel.start_consuming()
