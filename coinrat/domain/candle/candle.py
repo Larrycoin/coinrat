@@ -111,7 +111,7 @@ def serialize_candles(candles: List[Candle]) -> List[Dict[str, str]]:
 
 
 def deserialize_candle(row: Dict) -> Candle:
-    if CANDLE_STORAGE_FIELD_SIZE in row:
+    if CANDLE_STORAGE_FIELD_SIZE in row and row[CANDLE_STORAGE_FIELD_SIZE] is not None:
         candle_size = deserialize_candle_size(row[CANDLE_STORAGE_FIELD_SIZE])
     else:
         candle_size = CandleSize(CANDLE_SIZE_UNIT_MINUTE, 1)
