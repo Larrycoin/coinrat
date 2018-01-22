@@ -5,7 +5,7 @@ from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.event.event_emitter import EventEmitter
 from coinrat.market_plugins import MarketPlugins
 from coinrat.order_storage_plugins import OrderStoragePlugins
-from coinrat.server.rabbit_consumer import RabbitEventConsumer
+from coinrat.event.rabbit_event_consumer import RabbitEventConsumer
 from coinrat.server.socket_server import SocketServer
 from coinrat.strategy_plugins import StrategyPlugins
 from coinrat.synchronizer_plugins import SynchronizerPlugins

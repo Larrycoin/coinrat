@@ -20,6 +20,8 @@ from coinrat.thread_watcher import ThreadWatcher
 # you probably need to fix synchronizer, because data from it are to much delayed.
 SAFETY_MULTIPLIER = 10
 
+logger = logging.getLogger('rabbit_consumer')
+
 
 class RabbitEventConsumer(threading.Thread):
     def __init__(
@@ -86,14 +88,16 @@ class RabbitEventConsumer(threading.Thread):
 
         self._socket_server.register_subscribes(on_subscribe, on_unsubscribe)
 
+    def run(self):
+        self._channel.start_consuming()
+
     def _find_last_candle_for_subscription(
         self,
         candle_storage: CandleStorage,
         subscription: LastCandleSubscription
     ) -> Candle:
-        current_time = self._datetime_factory.now()
-        interval = DateTimeInterval(current_time - SAFETY_MULTIPLIER * subscription.candle_size.get_as_time_delta(),
-            None)
+        since = self._datetime_factory.now() - SAFETY_MULTIPLIER * subscription.candle_size.get_as_time_delta()
+        interval = DateTimeInterval(since, None)
         candles = candle_storage.find_by(
             market_name=subscription.market_name,
             pair=subscription.pair,
@@ -104,9 +108,6 @@ class RabbitEventConsumer(threading.Thread):
 
         return candles[-1]
 
-    def run(self):
-        self._channel.start_consuming()
-
     def _process_event_message(self, message_body):
         event_data = json.loads(message_body.decode("utf-8"))
 
@@ -114,7 +115,7 @@ class RabbitEventConsumer(threading.Thread):
         subscriptions = self._subscription_storage.find_subscriptions_for_event(event_name, event_data=event_data)
 
         if not subscriptions:
-            logging.info('[Rabbit] Event "%s", received -> NO SUBSCRIPTIONS | %r', event_name, event_data)
+            logger.info('[Rabbit] Event "%s", received -> NO SUBSCRIPTIONS | %r', event_name, event_data)
             return
 
         if event_name == EVENT_LAST_CANDLE_UPDATED:
@@ -129,4 +130,4 @@ class RabbitEventConsumer(threading.Thread):
                 self._socket_server.emit_new_order(subscription.session_id, order)
 
         else:
-            logging.info('[Rabbit] Event "%s", received -> NOT SUPPORTED | %r', event_name, event_data)
+            logger.info('[Rabbit] Event "%s", received -> NOT SUPPORTED | %r', event_name, event_data)

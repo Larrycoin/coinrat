@@ -12,11 +12,10 @@ from coinrat.domain.order import Order, serialize_order, serialize_orders
 from coinrat.domain.candle import serialize_candles, Candle, serialize_candle, deserialize_candle_size
 from coinrat.order_storage_plugins import OrderStoragePlugins
 from coinrat.candle_storage_plugins import CandleStoragePlugins
-from coinrat.server.event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, EVENT_GET_ORDERS, \
-    EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDERS, \
-    EVENT_CLEAR_ORDERS, \
-    EVENT_GET_MARKETS, EVENT_GET_PAIRS, EVENT_GET_CANDLE_STORAGES, EVENT_GET_ORDER_STORAGES, EVENT_GET_STRATEGIES, \
-    SOCKET_EVENT_GET_BALANCE
+from coinrat.server.socket_event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, \
+    EVENT_GET_ORDERS, EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_LAST_CANDLE_UPDATED, \
+    EVENT_NEW_ORDERS, EVENT_CLEAR_ORDERS, EVENT_GET_MARKETS, EVENT_GET_PAIRS, EVENT_GET_CANDLE_STORAGES, \
+    EVENT_GET_ORDER_STORAGES, EVENT_GET_STRATEGIES, SOCKET_EVENT_GET_BALANCE
 from coinrat.task.task_planner import TaskPlanner
 from coinrat.market_plugins import MarketPlugins
 from coinrat.strategy_plugins import StrategyPlugins

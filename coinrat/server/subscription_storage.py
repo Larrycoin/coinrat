@@ -6,6 +6,8 @@ from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER
 from coinrat.domain.candle import deserialize_candle, CandleSize
 from coinrat.domain.order import deserialize_order
 
+logger = logging.getLogger('socket_subscription')
+
 
 class Subscription:
     def __init__(self, session_id: str) -> None:
@@ -100,7 +102,7 @@ class SubscriptionStorage:
 
     def subscribe(self, subscription: Subscription) -> None:
         self._subscriptions.append(subscription)
-        logging.info('[EVENT] Subscribed: {}.'.format(subscription))
+        logger.info('[EVENT] Subscribed: {}.'.format(subscription))
 
     def find_subscriptions_for_event(self, event_name: str, event_data: Union[Dict, None] = None) -> List[Subscription]:
         result: List[Subscription] = []
@@ -114,4 +116,4 @@ class SubscriptionStorage:
         for subscription in self._subscriptions:
             if subscription.is_subscribed_for(event_name) and subscription.session_id == session_id:
                 self._subscriptions.remove(subscription)
-                logging.info('[EVENT] For session: "{}", event "{}" unsubscribed.'.format(session_id, event_name))
+                logger.info('[EVENT] For session: %s, unsubscribed: %r.', session_id, subscription)
