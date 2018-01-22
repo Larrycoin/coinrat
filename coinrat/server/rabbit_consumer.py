@@ -14,6 +14,12 @@ from coinrat.server.subscription_storage import SubscriptionStorage, LastCandleS
 from coinrat.server.socket_server import SocketServer
 from coinrat.thread_watcher import ThreadWatcher
 
+# Some synchronizers are not good enough to provide real-time data, therefore candles are missing
+# This constant should be enough. If RabbitConsumer keeps crashing on:
+#       AssertionError: Its expected to found candles after getting candle-added event. But none found.
+# you probably need to fix synchronizer, because data from it are to much delayed.
+SAFETY_MULTIPLIER = 10
+
 
 class RabbitEventConsumer(threading.Thread):
     def __init__(
@@ -75,7 +81,7 @@ class RabbitEventConsumer(threading.Thread):
             return 'OK'
 
         def on_unsubscribe(session_id, data):
-            self._subscription_storage.unsubscribe(session_id, data['event'])
+            self._subscription_storage.unsubscribe(data['event'], session_id)
             return 'OK'
 
         self._socket_server.register_subscribes(on_subscribe, on_unsubscribe)
@@ -86,7 +92,8 @@ class RabbitEventConsumer(threading.Thread):
         subscription: LastCandleSubscription
     ) -> Candle:
         current_time = self._datetime_factory.now()
-        interval = DateTimeInterval(current_time - 4 * subscription.candle_size.get_as_time_delta(), None)
+        interval = DateTimeInterval(current_time - SAFETY_MULTIPLIER * subscription.candle_size.get_as_time_delta(),
+            None)
         candles = candle_storage.find_by(
             market_name=subscription.market_name,
             pair=subscription.pair,
