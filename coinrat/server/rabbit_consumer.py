@@ -4,7 +4,7 @@ import threading
 import pika
 
 from coinrat.candle_storage_plugins import CandleStoragePlugins
-from coinrat.domain import deserialize_datetime_interval, deserialize_pair, DateTimeFactory
+from coinrat.domain import deserialize_datetime_interval, deserialize_pair, DateTimeFactory, DateTimeInterval
 from coinrat.domain.order import deserialize_order
 from coinrat.domain.candle import deserialize_candle_size, Candle, CandleStorage
 from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER
@@ -41,7 +41,7 @@ class RabbitEventConsumer(threading.Thread):
             subscriptions = self._subscription_storage.find_subscriptions_for_event(event_name, event_data=event_data)
 
             if not subscriptions:
-                logging.info('[Rabbit] Event "%s", received -> NO SUBSCRIPTIONS', event_name, event_data)
+                logging.info('[Rabbit] Event "%s", received -> NO SUBSCRIPTIONS | %r', event_name, event_data)
                 return
 
             if event_name == EVENT_LAST_CANDLE_UPDATED:
@@ -56,7 +56,7 @@ class RabbitEventConsumer(threading.Thread):
                     self._socket_server.emit_new_order(subscription.session_id, order)
 
             else:
-                logging.info('[Rabbit] Event "%s", received -> not supported | %r', event_name, event_data)
+                logging.info('[Rabbit] Event "%s", received -> NOT SUPPORTED | %r', event_name, event_data)
 
         self._channel.basic_consume(rabbit_message_callback, queue='events', no_ack=True)
 
@@ -96,16 +96,16 @@ class RabbitEventConsumer(threading.Thread):
         subscription: LastCandleSubscription
     ) -> Candle:
         current_time = self._datetime_factory.now()
-        interval = subscription.candle_size.get_interval_for_datetime(current_time)
-        if interval.till > current_time:
-            interval = interval.with_till(None)
-
-        return candle_storage.find_by(
+        interval = DateTimeInterval(current_time - 2 * subscription.candle_size.get_as_time_delta(), None)
+        candles = candle_storage.find_by(
             market_name=subscription.market_name,
             pair=subscription.pair,
             interval=interval,
             candle_size=subscription.candle_size
-        )[0]
+        )
+        assert candles != [], 'Its expected to found candles after getting candle-added event. But none found.'
+
+        return candles[-1]
 
     def run(self):
         self._channel.start_consuming()

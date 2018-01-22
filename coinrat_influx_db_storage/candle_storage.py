@@ -67,8 +67,6 @@ class CandleInnoDbStorage(CandleStorage):
         sql += ' AND '.join(where)
         sql += self._get_group_by(candle_size)
 
-        print(sql)
-
         result: ResultSet = self._client.query(sql)
         data = list(result.get_points())
 

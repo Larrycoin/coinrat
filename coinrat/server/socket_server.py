@@ -186,12 +186,12 @@ class SocketServer(threading.Thread):
 
     def emit_last_candle(self, session_id: str, candle: Candle):
         data = serialize_candle(candle)
-        logging.info('EMITTING: {}, {}'.format(EVENT_LAST_CANDLE_UPDATED, data))
+        logging.info('EMITTING [session={}]: {}, {}'.format(session_id, EVENT_LAST_CANDLE_UPDATED, data))
         self._socket.emit(EVENT_LAST_CANDLE_UPDATED, data, room=session_id)
 
     def emit_new_order(self, session_id: str, order: Order):
         data = serialize_order(order)
-        logging.info('EMITTING: {}, {}'.format(EVENT_NEW_ORDERS, data))
+        logging.info('EMITTING [session={}]: {}, {}'.format(session_id, EVENT_NEW_ORDERS, data))
         self._socket.emit(EVENT_NEW_ORDERS, data, room=session_id)
 
     def run(self):
