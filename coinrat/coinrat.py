@@ -20,18 +20,20 @@ from coinrat.domain.order import OrderExporter
 from coinrat.market_plugins import MarketNotProvidedByAnyPluginException
 from coinrat.strategy_plugins import StrategyNotProvidedByAnyPluginException
 from coinrat.domain.configuration_structure import format_data_to_python_types
+from coinrat.thread_watcher import ThreadWatcher
 
 dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
 
-root = logging.getLogger()
-root.setLevel(logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("werkzeug").setLevel(logging.WARNING)
+logging.getLogger("pika").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("engineio").setLevel(logging.WARNING)
+logging.getLogger("socketio").setLevel(logging.WARNING)
 
-# Todo: solve proper logging configuration
-# logs_file = join(dirname(__file__), '../logs/log.log')
-# logger = logging.getLogger()
-# logger.addHandler(RotatingFileHandler(logs_file, maxBytes=200000, backupCount=5))
-# logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 di_container = DiContainer()
 
@@ -255,7 +257,12 @@ def load_configuration_from_file(configuration_file: str, structure: Dict) -> Di
 @click.pass_context
 def start_server(ctx: Context):
     di_container.socket_server.start()
-    di_container.rabbit_event_consumer.start()
+
+    def on_exception(exception: Exception):
+        logger.critical('RABBIT CONSUMER RESTART: Got exception %r', exception)
+        di_container.create_rabbit_consumer(ThreadWatcher(on_exception)).start()
+
+    di_container.create_rabbit_consumer(ThreadWatcher(on_exception)).start()
 
 
 @cli.command(help="Runs consumer of planned tasks.")
