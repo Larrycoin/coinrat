@@ -12,14 +12,14 @@ from coinrat.event.event_types import EVENT_NEW_ORDER, EVENT_LAST_CANDLE_UPDATED
 
 def test_subscription_can_be_found():
     storage = SubscriptionStorage()
-    last_order_subscription = LastCandleSubscription(
+    last_candle_subscription = LastCandleSubscription(
         '1',
         'foo_storage',
         'bar_market',
         Pair('USD', 'BTC'),
         CandleSize(CANDLE_SIZE_UNIT_MINUTE, 1)
     )
-    storage.subscribe(last_order_subscription)
+    storage.subscribe(last_candle_subscription)
     subscription_interval = DateTimeInterval(
         datetime.datetime(2018, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
         datetime.datetime(2018, 1, 2, 0, 0, 0, tzinfo=datetime.timezone.utc)
@@ -35,7 +35,7 @@ def test_subscription_can_be_found():
     )
     storage.subscribe(new_order_subscription)
 
-    assert storage.find_subscriptions_for_event('unknown_event_name', '1') == []
+    assert storage.find_subscriptions_for_event('unknown_event_name') == []
 
     candle_suitable_for_subscription = Candle(
         'bar_market',
@@ -47,21 +47,17 @@ def test_subscription_can_be_found():
         Decimal(11000)
     )
 
-    assert storage.find_subscriptions_for_event(EVENT_LAST_CANDLE_UPDATED, '1')[0] == last_order_subscription
+    assert storage.find_subscriptions_for_event(EVENT_LAST_CANDLE_UPDATED)[0] == last_candle_subscription
     assert storage.find_subscriptions_for_event(
         EVENT_LAST_CANDLE_UPDATED,
-        '1',
         {'storage': 'foo_storage', 'candle': serialize_candle(candle_suitable_for_subscription)}
-    )[0] == last_order_subscription
+    )[0] == last_candle_subscription
     assert storage.find_subscriptions_for_event(
         EVENT_LAST_CANDLE_UPDATED,
-        '1',
         {'storage': 'gandalf', 'candle': serialize_candle(candle_suitable_for_subscription)}
     ) == []
-    assert storage.find_subscriptions_for_event(EVENT_NEW_ORDER, '2') == []
     assert storage.find_subscriptions_for_event(
         EVENT_LAST_CANDLE_UPDATED,
-        '1',
         {
             'storage': 'foo_storage',
             'candle': serialize_candle(
@@ -79,7 +75,6 @@ def test_subscription_can_be_found():
     ) == []
     assert storage.find_subscriptions_for_event(
         EVENT_LAST_CANDLE_UPDATED,
-        '1',
         {
             'storage': 'foo_storage',
             'candle': serialize_candle(
@@ -98,21 +93,17 @@ def test_subscription_can_be_found():
 
     order_suitable_for_subscription = _crate_serialized_order(Pair('USD', 'BTC'), 'bar_market', date_in_interval)
 
-    assert storage.find_subscriptions_for_event(EVENT_NEW_ORDER, '1')[0] == new_order_subscription
+    assert storage.find_subscriptions_for_event(EVENT_NEW_ORDER)[0] == new_order_subscription
     assert storage.find_subscriptions_for_event(
         EVENT_NEW_ORDER,
-        '1',
         {'storage': 'foo_storage', 'order': order_suitable_for_subscription}
     )[0] == new_order_subscription
     assert storage.find_subscriptions_for_event(
         EVENT_NEW_ORDER,
-        '1',
         {'storage': 'gandalf', 'order': order_suitable_for_subscription}
     ) == []
-    assert storage.find_subscriptions_for_event(EVENT_NEW_ORDER, '2') == []
     assert storage.find_subscriptions_for_event(
         EVENT_NEW_ORDER,
-        '1',
         {
             'storage': 'foo_storage',
             'order': _crate_serialized_order(Pair('USD', 'BTC'), 'bar_market', date_outside_interval)
@@ -120,7 +111,6 @@ def test_subscription_can_be_found():
     ) == []
     assert storage.find_subscriptions_for_event(
         EVENT_NEW_ORDER,
-        '1',
         {
             'storage': 'foo_storage',
             'order': _crate_serialized_order(Pair('OMG', 'WTF'), 'bar_market', date_in_interval)
@@ -128,18 +118,21 @@ def test_subscription_can_be_found():
     ) == []
     assert storage.find_subscriptions_for_event(
         EVENT_NEW_ORDER,
-        '1',
         {
             'storage': 'foo_storage',
             'order': _crate_serialized_order(Pair('USD', 'BTC'), 'wtf_market', date_in_interval)
         }
     ) == []
 
+    storage.unsubscribe(EVENT_NEW_ORDER, '2')
+    assert storage.find_subscriptions_for_event(EVENT_NEW_ORDER)[0] == new_order_subscription
     storage.unsubscribe(EVENT_NEW_ORDER, '1')
-    assert storage.find_subscriptions_for_event(EVENT_NEW_ORDER, '1') == []
+    assert storage.find_subscriptions_for_event(EVENT_NEW_ORDER) == []
 
+    storage.unsubscribe(EVENT_LAST_CANDLE_UPDATED, '2')
+    assert storage.find_subscriptions_for_event(EVENT_LAST_CANDLE_UPDATED)[0] == last_candle_subscription
     storage.unsubscribe(EVENT_LAST_CANDLE_UPDATED, '1')
-    assert storage.find_subscriptions_for_event(EVENT_LAST_CANDLE_UPDATED, '1') == []
+    assert storage.find_subscriptions_for_event(EVENT_LAST_CANDLE_UPDATED) == []
 
 
 def _crate_serialized_order(pair: Pair, market_name: str, created_at: datetime.datetime):

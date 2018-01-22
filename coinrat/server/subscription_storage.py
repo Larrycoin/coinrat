@@ -11,12 +11,7 @@ class Subscription:
     def __init__(self, session_id: str) -> None:
         self.session_id = session_id
 
-    def is_subscribed_for(
-        self,
-        session_id: str,
-        event_name: Union[str, None] = None,
-        event_data: Union[Dict, None] = None
-    ) -> bool:
+    def is_subscribed_for(self, event_name: Union[str, None] = None, event_data: Union[Dict, None] = None) -> bool:
         raise NotImplementedError()
 
 
@@ -36,15 +31,7 @@ class LastCandleSubscription(Subscription):
         self.pair = pair
         self.candle_size = candle_size
 
-    def is_subscribed_for(
-        self,
-        session_id: str,
-        event_name: Union[str, None] = None,
-        event_data: Union[Dict, None] = None
-    ) -> bool:
-        if self.session_id != session_id:
-            return False
-
+    def is_subscribed_for(self, event_name: Union[str, None] = None, event_data: Union[Dict, None] = None) -> bool:
         if event_name is not None and event_name != EVENT_LAST_CANDLE_UPDATED:
             return False
 
@@ -83,15 +70,7 @@ class NewOrderSubscription(Subscription):
         self.pair = pair
         self.interval = interval
 
-    def is_subscribed_for(
-        self,
-        session_id: str,
-        event_name: Union[str, None] = None,
-        event_data: Union[Dict, None] = None
-    ) -> bool:
-        if self.session_id != session_id:
-            return False
-
+    def is_subscribed_for(self, event_name: Union[str, None] = None, event_data: Union[Dict, None] = None) -> bool:
         if event_name is not None and event_name != EVENT_NEW_ORDER:
             return False
 
@@ -123,21 +102,16 @@ class SubscriptionStorage:
         self._subscriptions.append(subscription)
         logging.info('[EVENT] Subscribed: {}.'.format(subscription))
 
-    def find_subscriptions_for_event(
-        self,
-        event_name: str,
-        session_id: Union[str, None] = None,
-        event_data: Union[Dict, None] = None
-    ) -> List[Subscription]:
+    def find_subscriptions_for_event(self, event_name: str, event_data: Union[Dict, None] = None) -> List[Subscription]:
         result: List[Subscription] = []
         for subscription in self._subscriptions:
-            if subscription.is_subscribed_for(session_id, event_name, event_data):
+            if subscription.is_subscribed_for(event_name, event_data):
                 result.append(subscription)
 
         return result
 
     def unsubscribe(self, event_name: str, session_id: str) -> None:
-        subscriptions = self.find_subscriptions_for_event(event_name, session_id)
-        for subscription in subscriptions:
-            self._subscriptions.remove(subscription)
-            logging.info('[EVENT] For session: "{}", event "{}" unsubscribed.'.format(session_id, event_name))
+        for subscription in self._subscriptions:
+            if subscription.is_subscribed_for(event_name) and subscription.session_id == session_id:
+                self._subscriptions.remove(subscription)
+                logging.info('[EVENT] For session: "{}", event "{}" unsubscribed.'.format(session_id, event_name))
