@@ -14,6 +14,8 @@ from coinrat.order_storage_plugins import OrderStoragePlugins
 from coinrat.strategy_plugins import StrategyPlugins
 from .task_types import TASK_REPLY_STRATEGY
 
+logger = logging.getLogger(__name__)
+
 
 class TaskConsumer:
     def __init__(
@@ -37,19 +39,17 @@ class TaskConsumer:
 
         def rabbit_message_callback(ch, method, properties, body) -> None:
             decoded_body = json.loads(body.decode("utf-8"))
-            print(decoded_body)
-
             task = decoded_body['task']
             if task == TASK_REPLY_STRATEGY:
                 self.process_reply_strategy(decoded_body['data'])
 
             else:
-                logging.info("[Rabbit] Task received -> not supported | %r", decoded_body)
+                logger.info("[Rabbit] Task received -> not supported | %r", decoded_body)
 
         self._channel.basic_consume(rabbit_message_callback, queue='tasks', no_ack=True)
 
     def process_reply_strategy(self, data: Dict) -> None:
-        logging.info("[Rabbit] Task %s -> not supported | %r", TASK_REPLY_STRATEGY, data)
+        logger.info("[Rabbit] Task %s -> not supported | %r", TASK_REPLY_STRATEGY, data)
 
         start = dateutil.parser.parse(data['start']).replace(tzinfo=datetime.timezone.utc)
         end = dateutil.parser.parse(data['stop']).replace(tzinfo=datetime.timezone.utc)

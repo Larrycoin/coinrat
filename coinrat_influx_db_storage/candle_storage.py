@@ -21,6 +21,8 @@ UNIT_MAP = {
     CANDLE_SIZE_UNIT_DAY: 'd',
 }
 
+logger = logging.getLogger(__name__)
+
 
 class CandleInnoDbStorage(CandleStorage):
     def __init__(self, influx_db_client: InfluxDBClient):
@@ -37,7 +39,7 @@ class CandleInnoDbStorage(CandleStorage):
         if len(candles) == 0:
             return
         self._client.write_points([self._create_point_data(candle) for candle in candles])
-        logging.debug('Into market "{}", {} candles inserted'.format(candles[0].market_name, len(candles)))
+        logger.debug('Into market "{}", {} candles inserted'.format(candles[0].market_name, len(candles)))
 
     def find_by(
         self,

@@ -20,6 +20,8 @@ from coinrat.task.task_planner import TaskPlanner
 from coinrat.market_plugins import MarketPlugins
 from coinrat.strategy_plugins import StrategyPlugins
 
+logger = logging.getLogger(__name__)
+
 
 class SocketServer(threading.Thread):
     def __init__(
@@ -37,18 +39,18 @@ class SocketServer(threading.Thread):
 
         @socket.on('connect')
         def connect(sid, environ):
-            logging.info('Socket %s connected ', sid)
+            logger.info('Socket %s connected ', sid)
 
         @socket.on(EVENT_PING_REQUEST)
         def ping_request(sid, data):
-            logging.info('RECEIVED: {}, {}'.format(EVENT_PING_REQUEST, data))
+            logger.info('RECEIVED: {}, {}'.format(EVENT_PING_REQUEST, data))
 
             data['response_timestamp'] = datetime_factory.now().timestamp()
             socket.emit(EVENT_PING_RESPONSE, data)
 
         @socket.on(SOCKET_EVENT_GET_BALANCE)
         def balances(sid, data):
-            logging.info('RECEIVED: {}, {}'.format(SOCKET_EVENT_GET_BALANCE, data))
+            logger.info('RECEIVED: {}, {}'.format(SOCKET_EVENT_GET_BALANCE, data))
 
             if 'market_name' not in data:
                 return 'ERROR', {'message': 'Missing "market_name" field in request.'}
@@ -59,7 +61,7 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_GET_CANDLES)
         def candles(sid, data):
-            logging.info('RECEIVED: {}, {}'.format(EVENT_GET_CANDLES, data))
+            logger.info('RECEIVED: {}, {}'.format(EVENT_GET_CANDLES, data))
 
             if 'candle_storage' not in data:
                 return 'ERROR', {'message': 'Missing "candle_storage" field in request.'}
@@ -76,7 +78,7 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_GET_MARKETS)
         def markets(sid, data):
-            logging.info('RECEIVED: {}, {}'.format(EVENT_GET_MARKETS, data))
+            logger.info('RECEIVED: {}, {}'.format(EVENT_GET_MARKETS, data))
 
             result = []
             for market_name in market_plugins.get_available_markets():
@@ -90,7 +92,7 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_GET_PAIRS)
         def pairs(sid, data):
-            logging.info('RECEIVED: {}, {}'.format(EVENT_GET_PAIRS, data))
+            logger.info('RECEIVED: {}, {}'.format(EVENT_GET_PAIRS, data))
 
             if 'market_name' not in data:
                 return 'ERROR', {'message': 'Missing "market_name" field in request.'}
@@ -108,7 +110,7 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_GET_CANDLE_STORAGES)
         def candle_storages(sid, data):
-            logging.info('RECEIVED: {}, {}'.format(EVENT_GET_CANDLE_STORAGES, data))
+            logger.info('RECEIVED: {}, {}'.format(EVENT_GET_CANDLE_STORAGES, data))
 
             return 'OK', list(map(
                 lambda storage_name: {'name': storage_name},
@@ -117,7 +119,7 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_GET_ORDER_STORAGES)
         def order_storages(sid, data):
-            logging.info('RECEIVED: {}, {}'.format(EVENT_GET_ORDER_STORAGES, data))
+            logger.info('RECEIVED: {}, {}'.format(EVENT_GET_ORDER_STORAGES, data))
 
             return 'OK', list(map(
                 lambda storage_name: {'name': storage_name},
@@ -126,7 +128,7 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_GET_STRATEGIES)
         def strategies(sid, data):
-            logging.info('RECEIVED: {}, {}'.format(EVENT_GET_STRATEGIES, data))
+            logger.info('RECEIVED: {}, {}'.format(EVENT_GET_STRATEGIES, data))
 
             result = []
             for market_name in strategy_plugins.get_available_strategies():
@@ -140,7 +142,7 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_GET_ORDERS)
         def orders(sid, data):
-            logging.info('RECEIVED: {}, {}'.format(EVENT_GET_ORDERS, data))
+            logger.info('RECEIVED: {}, {}'.format(EVENT_GET_ORDERS, data))
 
             if 'order_storage' not in data:
                 return 'ERROR', {'message': 'Missing "order_storage" field in request.'}
@@ -156,7 +158,7 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_CLEAR_ORDERS)
         def clear_orders(sid, data):
-            logging.info('RECEIVED: {}, {}'.format(EVENT_CLEAR_ORDERS, data))
+            logger.info('RECEIVED: {}, {}'.format(EVENT_CLEAR_ORDERS, data))
 
             if 'order_storage' not in data:
                 return 'ERROR', {'message': 'Missing "order_storage" field in request.'}
@@ -172,25 +174,25 @@ class SocketServer(threading.Thread):
 
         @socket.on(EVENT_RUN_REPLY)
         def reply(sid, data):
-            logging.info('Received Strategy REPLAY request: ' + json.dumps(data))
+            logger.info('Received Strategy REPLAY request: ' + json.dumps(data))
             self.task_planner.plan_replay_strategy(data)
 
             return 'OK'
 
         @socket.on('disconnect')
         def disconnect(sid):
-            logging.info('Socket %s disconnect ', sid)
+            logger.info('Socket %s disconnect ', sid)
 
         self._socket = socket
 
     def emit_last_candle(self, session_id: str, candle: Candle):
         data = serialize_candle(candle)
-        logging.info('EMITTING [session={}]: {}, {}'.format(session_id, EVENT_LAST_CANDLE_UPDATED, data))
+        logger.info('EMITTING [session={}]: {}, {}'.format(session_id, EVENT_LAST_CANDLE_UPDATED, data))
         self._socket.emit(EVENT_LAST_CANDLE_UPDATED, data, room=session_id)
 
     def emit_new_order(self, session_id: str, order: Order):
         data = serialize_order(order)
-        logging.info('EMITTING [session={}]: {}, {}'.format(session_id, EVENT_NEW_ORDERS, data))
+        logger.info('EMITTING [session={}]: {}, {}'.format(session_id, EVENT_NEW_ORDERS, data))
         self._socket.emit(EVENT_NEW_ORDERS, data, room=session_id)
 
     def run(self):

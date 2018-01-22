@@ -20,7 +20,7 @@ from coinrat.thread_watcher import ThreadWatcher
 # you probably need to fix synchronizer, because data from it are to much delayed.
 SAFETY_MULTIPLIER = 10
 
-logger = logging.getLogger('rabbit_consumer')
+logger = logging.getLogger(__name__)
 
 
 class RabbitEventConsumer(threading.Thread):
@@ -105,7 +105,6 @@ class RabbitEventConsumer(threading.Thread):
             candle_size=subscription.candle_size
         )
         assert candles != [], 'Its expected to found candles after getting candle-added event. But none found.'
-
         return candles[-1]
 
     def _process_event_message(self, message_body):

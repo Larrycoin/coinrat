@@ -9,7 +9,7 @@ from coinrat.domain.order import Order
 from coinrat.domain.order import serialize_order
 from .event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER
 
-logger = logging.getLogger('event_emitter')
+logger = logging.getLogger(__name__)
 
 
 class EventEmitter:

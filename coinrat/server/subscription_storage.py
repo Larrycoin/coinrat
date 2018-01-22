@@ -6,7 +6,7 @@ from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER
 from coinrat.domain.candle import deserialize_candle, CandleSize
 from coinrat.domain.order import deserialize_order
 
-logger = logging.getLogger('socket_subscription')
+logger = logging.getLogger(__name__)
 
 
 class Subscription:

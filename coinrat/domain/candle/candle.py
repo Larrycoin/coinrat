@@ -98,10 +98,10 @@ def serialize_candle(candle: Candle) -> Dict[str, str]:
         CANDLE_STORAGE_FIELD_MARKET: candle.market_name,
         CANDLE_STORAGE_FIELD_PAIR: serialize_pair(candle.pair),
         CANDLE_STORAGE_FIELD_TIME: candle.time.isoformat(),
-        CANDLE_STORAGE_FIELD_OPEN: str(candle.open),
-        CANDLE_STORAGE_FIELD_HIGH: str(candle.high),
-        CANDLE_STORAGE_FIELD_LOW: str(candle.low),
-        CANDLE_STORAGE_FIELD_CLOSE: str(candle.close),
+        CANDLE_STORAGE_FIELD_OPEN: '{0:.8f}'.format(candle.open),
+        CANDLE_STORAGE_FIELD_HIGH: '{0:.8f}'.format(candle.high),
+        CANDLE_STORAGE_FIELD_LOW: '{0:.8f}'.format(candle.low),
+        CANDLE_STORAGE_FIELD_CLOSE: '{0:.8f}'.format(candle.close),
         CANDLE_STORAGE_FIELD_SIZE: serialize_candle_size(candle.candle_size),
     }
 
