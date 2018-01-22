@@ -178,7 +178,7 @@ class MockMarket(Market):
 
     def _process_buy(self, fee: Decimal, order: Order) -> None:
         max_to_buy = self.calculate_maximal_amount_to_buy(order.pair, order.rate)
-        if max_to_buy < order.quantity:
+        if max_to_buy == Decimal(0) or max_to_buy < order.quantity:
             raise NotEnoughBalanceToPerformOrderException(
                 'Max to buy is {}, you want to buy {}'.format(max_to_buy, order.quantity)
             )
@@ -187,7 +187,7 @@ class MockMarket(Market):
 
     def _process_sell(self, fee: Decimal, order: Order) -> None:
         max_to_sell = self.calculate_maximal_amount_to_sell(order.pair)
-        if max_to_sell < order.quantity:
+        if max_to_sell == Decimal(0) or max_to_sell < order.quantity:
             raise NotEnoughBalanceToPerformOrderException(
                 'Max to sell is {}, you want to sell {}'.format(max_to_sell, order.quantity)
             )
