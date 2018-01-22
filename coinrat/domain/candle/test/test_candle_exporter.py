@@ -33,10 +33,10 @@ def test_candle_export_import():
         'market': 'dummy_market',
         'pair': 'USD_BTC',
         'time': '2017-01-01T00:00:00+00:00',
-        'open': "1000",
-        'high': "2000",
-        'low': "3000",
-        'close': "4000",
+        'open': "1000.00000000",
+        'high': "2000.00000000",
+        'low': "3000.00000000",
+        'close': "4000.00000000",
         'size': '1-minute',
     }]
 
