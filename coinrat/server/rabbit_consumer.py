@@ -96,10 +96,14 @@ class RabbitEventConsumer(threading.Thread):
         subscription: LastCandleSubscription
     ) -> Candle:
         current_time = self._datetime_factory.now()
+        interval = subscription.candle_size.get_interval_for_datetime(current_time)
+        if interval.till > current_time:
+            interval = interval.with_till(None)
+
         return candle_storage.find_by(
             market_name=subscription.market_name,
             pair=subscription.pair,
-            interval=subscription.candle_size.get_interval_for_datetime(current_time),
+            interval=interval,
             candle_size=subscription.candle_size
         )[0]
 

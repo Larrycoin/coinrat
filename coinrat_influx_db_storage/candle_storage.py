@@ -67,6 +67,8 @@ class CandleInnoDbStorage(CandleStorage):
         sql += ' AND '.join(where)
         sql += self._get_group_by(candle_size)
 
+        print(sql)
+
         result: ResultSet = self._client.query(sql)
         data = list(result.get_points())
 
@@ -108,7 +110,7 @@ class CandleInnoDbStorage(CandleStorage):
     def _get_group_by(candle_size: CandleSize) -> str:
         if candle_size.is_one_minute():
             return ''
-        return 'GROUP BY time({}{})'.format(candle_size.size, UNIT_MAP[candle_size.unit])
+        return ' GROUP BY time({}{})'.format(candle_size.size, UNIT_MAP[candle_size.unit])
 
     def get_last_minute_candle(self, market_name: str, pair: Pair, current_time: datetime.datetime) -> Candle:
         sql = '''
