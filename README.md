@@ -84,6 +84,8 @@ Run one of default strategies with this command: `python -m coinrat run_strategy
     * Make sure you have synchronizer running. 
     * Or, that you have data in the storage for given time period in case you are attempting to run simulation.
     * Or, your time interval somewhere is too small.   
+* In UI-App (1-minute view) every second candle is missing.
+    * You are using `bittrex` synchronizer that uses native Bittrex API. This is known issue, see [#29](https://github.com/Achse/coinrat/issues/29) for more info and workaround.
 
 ## Additional tips & tricks
 * There is visualization tool for Influx DB called [Chronograf](https://github.com/influxdata/chronograf), it can be usefull for visualizing data too.
