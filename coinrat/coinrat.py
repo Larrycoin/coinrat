@@ -31,6 +31,7 @@ root.setLevel(logging.DEBUG)
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("werkzeug").setLevel(logging.WARNING)
 logging.getLogger("pika").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 # Todo: solve proper logging configuration
 # logs_file = join(dirname(__file__), '../logs/log.log')
