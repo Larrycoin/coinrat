@@ -1,6 +1,8 @@
 import json
 import logging
 import threading
+import traceback
+
 import pika
 
 from coinrat.candle_storage_plugins import CandleStoragePlugins
@@ -10,11 +12,13 @@ from coinrat.domain.candle import deserialize_candle_size, Candle, CandleStorage
 from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER
 from coinrat.server.subscription_storage import SubscriptionStorage, LastCandleSubscription, NewOrderSubscription
 from coinrat.server.socket_server import SocketServer
+from coinrat.thread_watcher import ThreadWatcher
 
 
 class RabbitEventConsumer(threading.Thread):
     def __init__(
         self,
+        thread_watcher: ThreadWatcher,
         rabbit_connection: pika.BlockingConnection,
         socket_server: SocketServer,
         subscription_storage: SubscriptionStorage,
@@ -23,6 +27,7 @@ class RabbitEventConsumer(threading.Thread):
     ):
         super().__init__()
 
+        self._thread_watcher = thread_watcher
         self._datetime_factory = datetime_factory
         self._candle_storage_plugins = candle_storage_plugins
         self._subscription_storage = subscription_storage
@@ -35,28 +40,13 @@ class RabbitEventConsumer(threading.Thread):
 
     def register_callback_for_rabbit(self):
         def rabbit_message_callback(ch, method, properties, body) -> None:
-            event_data = json.loads(body.decode("utf-8"))
-
-            event_name = event_data['event']
-            subscriptions = self._subscription_storage.find_subscriptions_for_event(event_name, event_data=event_data)
-
-            if not subscriptions:
-                logging.info('[Rabbit] Event "%s", received -> NO SUBSCRIPTIONS | %r', event_name, event_data)
-                return
-
-            if event_name == EVENT_LAST_CANDLE_UPDATED:
-                candle_storage = self._candle_storage_plugins.get_candle_storage(event_data['storage'])
-                for subscription in subscriptions:  # type: LastCandleSubscription
-                    candle = self._find_last_candle_for_subscription(candle_storage, subscription)
-                    self._socket_server.emit_last_candle(subscription.session_id, candle)
-
-            elif event_name == EVENT_NEW_ORDER:
-                for subscription in subscriptions:
-                    order = deserialize_order(event_data['order'])
-                    self._socket_server.emit_new_order(subscription.session_id, order)
-
-            else:
-                logging.info('[Rabbit] Event "%s", received -> NOT SUPPORTED | %r', event_name, event_data)
+            try:
+                return self._process_event_message(body)
+            except Exception as e:
+                self._channel.stop_consuming()
+                self._channel.close()
+                traceback.print_exc()
+                self._thread_watcher.notify_exception(e)
 
         self._channel.basic_consume(rabbit_message_callback, queue='events', no_ack=True)
 
@@ -109,3 +99,27 @@ class RabbitEventConsumer(threading.Thread):
 
     def run(self):
         self._channel.start_consuming()
+
+    def _process_event_message(self, message_body):
+        event_data = json.loads(message_body.decode("utf-8"))
+
+        event_name = event_data['event']
+        subscriptions = self._subscription_storage.find_subscriptions_for_event(event_name, event_data=event_data)
+
+        if not subscriptions:
+            logging.info('[Rabbit] Event "%s", received -> NO SUBSCRIPTIONS | %r', event_name, event_data)
+            return
+
+        if event_name == EVENT_LAST_CANDLE_UPDATED:
+            candle_storage = self._candle_storage_plugins.get_candle_storage(event_data['storage'])
+            for subscription in subscriptions:  # type: LastCandleSubscription
+                candle = self._find_last_candle_for_subscription(candle_storage, subscription)
+                self._socket_server.emit_last_candle(subscription.session_id, candle)
+
+        elif event_name == EVENT_NEW_ORDER:
+            for subscription in subscriptions:
+                order = deserialize_order(event_data['order'])
+                self._socket_server.emit_new_order(subscription.session_id, order)
+
+        else:
+            logging.info('[Rabbit] Event "%s", received -> NOT SUPPORTED | %r', event_name, event_data)

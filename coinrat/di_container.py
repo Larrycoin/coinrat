@@ -14,6 +14,7 @@ from coinrat.task.task_planner import TaskPlanner
 from coinrat.task.task_consumer import TaskConsumer
 from coinrat.strategy_replayer import StrategyReplayer
 from coinrat.server.subscription_storage import SubscriptionStorage
+from coinrat.thread_watcher import ThreadWatcher
 
 
 class DiContainer:
@@ -45,7 +46,7 @@ class DiContainer:
                 'instance': None,
                 'factory': lambda: pika.BlockingConnection(
                     pika.ConnectionParameters(os.environ.get('RABBITMQ_SERVER_HOST')),
-                )
+                ),
             },
             'event_emitter': {
                 'instance': None,
@@ -70,16 +71,6 @@ class DiContainer:
                     self.strategy_plugins
                 ),
             },
-            'rabbit_event_consumer': {
-                'instance': None,
-                'factory': lambda: RabbitEventConsumer(
-                    self.rabbit_connection,
-                    self.socket_server,
-                    self.subscription_storage,
-                    self.candle_storage_plugins,
-                    self.datetime_factory
-                )
-            },
             'strategy_replayer': {
                 'instance': None,
                 'factory': lambda: StrategyReplayer(self.strategy_plugins, self.market_plugins, self.event_emitter)
@@ -103,9 +94,12 @@ class DiContainer:
 
     def _get(self, name: str):
         if self._storage[name]['instance'] is None:
-            self._storage[name]['instance'] = self._storage[name]['factory']()
+            self._storage[name]['instance'] = self.create_service(name)
 
         return self._storage[name]['instance']
+
+    def create_service(self, name: str) -> object:
+        return self._storage[name]['factory']()
 
     @property
     def candle_storage_plugins(self) -> CandleStoragePlugins:
@@ -147,9 +141,16 @@ class DiContainer:
     def datetime_factory(self) -> DateTimeFactory:
         return self._get('datetime_factory')
 
-    @property
-    def rabbit_event_consumer(self) -> RabbitEventConsumer:
-        return self._get('rabbit_event_consumer')
+    def create_rabbit_consumer(self, thread_watcher: ThreadWatcher) -> RabbitEventConsumer:
+        connection: pika.BlockingConnection = self.create_service('rabbit_connection')
+        return RabbitEventConsumer(
+            thread_watcher,
+            connection,
+            self.socket_server,
+            self.subscription_storage,
+            self.candle_storage_plugins,
+            self.datetime_factory
+        )
 
     @property
     def task_consumer(self) -> TaskConsumer:

@@ -20,6 +20,7 @@ from coinrat.domain.order import OrderExporter
 from coinrat.market_plugins import MarketNotProvidedByAnyPluginException
 from coinrat.strategy_plugins import StrategyNotProvidedByAnyPluginException
 from coinrat.domain.configuration_structure import format_data_to_python_types
+from coinrat.thread_watcher import ThreadWatcher
 
 dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
@@ -255,7 +256,12 @@ def load_configuration_from_file(configuration_file: str, structure: Dict) -> Di
 @click.pass_context
 def start_server(ctx: Context):
     di_container.socket_server.start()
-    di_container.rabbit_event_consumer.start()
+
+    def on_exception(exception: Exception):
+        logging.critical('RABBIT CONSUMER RESTART: Got exception %r', exception)
+        di_container.create_rabbit_consumer(ThreadWatcher(on_exception)).start()
+
+    di_container.create_rabbit_consumer(ThreadWatcher(on_exception)).start()
 
 
 @cli.command(help="Runs consumer of planned tasks.")
