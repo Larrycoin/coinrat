@@ -18,11 +18,11 @@ get_order_storage_impl = pluggy.HookimplMarker('storage_plugins')
 PACKAGE_NAME = 'coinrat_influx_db_storage'
 
 influxdb_client = InfluxDBClient(
-    os.environ.get('STORAGE_INFLUXFB_HOST'),
-    os.environ.get('STORAGE_INFLUXFB_PORT'),
-    os.environ.get('STORAGE_INFLUXFB_USER'),
-    os.environ.get('STORAGE_INFLUXFB_PASSWORD'),
-    os.environ.get('STORAGE_INFLUXFB_DATABASE'),
+    os.environ.get('STORAGE_INFLUX_DB_HOST'),
+    os.environ.get('STORAGE_INFLUX_DB_PORT'),
+    os.environ.get('STORAGE_INFLUX_DB_USER'),
+    os.environ.get('STORAGE_INFLUX_DB_PASSWORD'),
+    os.environ.get('STORAGE_INFLUX_DB_DATABASE'),
 )
 candle_storage = CandleInnoDbStorage(influxdb_client)
 order_storage = OrderInnoDbStorage(influxdb_client)
