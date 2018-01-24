@@ -43,9 +43,9 @@ def test_candle_storage_plugins():
 
 def test_order_storage_plugins():
     plugins = OrderStoragePlugins()
-    assert 'influx_db' in plugins.get_available_order_storages()
+    assert 'influx_db_orders-A' in plugins.get_available_order_storages()
 
-    assert isinstance(plugins.get_order_storage('influx_db'), OrderStorage)
+    assert isinstance(plugins.get_order_storage('influx_db_orders-A'), OrderStorage)
     with pytest.raises(OrderStorageNotProvidedByAnyPluginException):
         plugins.get_order_storage('gandalf')
 

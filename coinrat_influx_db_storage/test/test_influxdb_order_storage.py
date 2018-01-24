@@ -35,7 +35,7 @@ def influx_database():
 
 
 def test_save_oder(influx_database: InfluxDBClient):
-    storage = OrderInnoDbStorage(influx_database)
+    storage = OrderInnoDbStorage(influx_database, 'test_orders')
 
     storage.save_order(DUMMY_ORDER)
 
@@ -55,7 +55,7 @@ def test_save_oder(influx_database: InfluxDBClient):
 
 
 def test_find_by(influx_database: InfluxDBClient):
-    storage = OrderInnoDbStorage(influx_database)
+    storage = OrderInnoDbStorage(influx_database, 'test_orders')
 
     orders = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR)
     assert orders == []
@@ -92,7 +92,7 @@ def test_find_by(influx_database: InfluxDBClient):
 
 
 def test_delete_order(influx_database: InfluxDBClient):
-    storage = OrderInnoDbStorage(influx_database)
+    storage = OrderInnoDbStorage(influx_database, 'test_orders')
     create_dummy_data(influx_database)
 
     orders = storage.find_by(market_name=DUMMY_MARKET, pair=BTC_USD_PAIR)
@@ -107,7 +107,7 @@ def test_delete_order(influx_database: InfluxDBClient):
 
 
 def test_find_last_order(influx_database: InfluxDBClient):
-    storage = OrderInnoDbStorage(influx_database)
+    storage = OrderInnoDbStorage(influx_database, 'test_orders')
 
     order = storage.find_last_order(DUMMY_MARKET, BTC_USD_PAIR)
     assert order is None
@@ -135,7 +135,7 @@ def test_find_last_order(influx_database: InfluxDBClient):
 
 
 def create_dummy_data(influx_database: InfluxDBClient):
-    storage = OrderInnoDbStorage(influx_database)
+    storage = OrderInnoDbStorage(influx_database, 'test_orders')
     storage.save_order(Order(
         UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
         DUMMY_MARKET,

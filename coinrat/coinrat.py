@@ -13,7 +13,6 @@ from dotenv import load_dotenv
 
 from coinrat.domain import Market
 from coinrat.domain.candle import CandleExporter
-from coinrat.di_container import DiContainer
 from coinrat.domain import CurrentUtcDateTimeFactory
 from coinrat.domain import Pair, ForEndUserException, DateTimeInterval
 from coinrat.domain.order import OrderExporter
@@ -21,6 +20,7 @@ from coinrat.market_plugins import MarketNotProvidedByAnyPluginException
 from coinrat.strategy_plugins import StrategyNotProvidedByAnyPluginException
 from coinrat.domain.configuration_structure import format_data_to_python_types
 from coinrat.thread_watcher import ThreadWatcher
+from .di_container_coinrat import DiContainerCoinrat
 
 dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
@@ -35,7 +35,7 @@ logging.getLogger("socketio").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
-di_container = DiContainer()
+di_container = DiContainerCoinrat()
 
 
 @click.group('coinrat')

@@ -47,6 +47,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
             url = MINUTE_CANDLE_URL.format(pair.market_currency, pair.base_currency, MARKET_MAP[self._market_name])
 
             data = self.get_data_from_cryptocompare(url)
+            print(data)
 
             candles_data: List[Dict] = data['Data']
             candles = [self._create_candle_from_raw(pair, candle) for candle in candles_data]

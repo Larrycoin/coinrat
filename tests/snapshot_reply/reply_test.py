@@ -57,7 +57,7 @@ def test_candle_ticks_are_stored(
     dataset_path = os.path.dirname(__file__) + '/' + dataset
     candle_storage = CandleInnoDbStorage(influx_database)
     import_candles_into_storage(dataset_path, candle_storage)
-    order_storage = OrderInnoDbStorage(influx_database)
+    order_storage = OrderInnoDbStorage(influx_database, 'test_orders')
     datetime_factory = FrozenDateTimeFactory(start)
     emitter_mock = create_emitter_mock()
 

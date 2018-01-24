@@ -1,9 +1,8 @@
-import os, pluggy
+import pluggy
 
-from influxdb import InfluxDBClient
-
-from .candle_storage import CandleInnoDbStorage, CANDLE_STORAGE_NAME
-from .order_storage import OrderInnoDbStorage, ORDER_STORAGE_NAME
+from .di_container_influx_db_storage import DiContainerInfluxDbStorage
+from .candle_storage import CANDLE_STORAGE_NAME
+from .order_storage import ORDER_STORAGE_NAME, MEASUREMENT_ORDERS_NAMES
 from coinrat.candle_storage_plugins import CandleStoragePluginSpecification
 from coinrat.order_storage_plugins import OrderStoragePluginSpecification
 
@@ -17,15 +16,7 @@ get_order_storage_impl = pluggy.HookimplMarker('storage_plugins')
 
 PACKAGE_NAME = 'coinrat_influx_db_storage'
 
-influxdb_client = InfluxDBClient(
-    os.environ.get('STORAGE_INFLUX_DB_HOST'),
-    os.environ.get('STORAGE_INFLUX_DB_PORT'),
-    os.environ.get('STORAGE_INFLUX_DB_USER'),
-    os.environ.get('STORAGE_INFLUX_DB_PASSWORD'),
-    os.environ.get('STORAGE_INFLUX_DB_DATABASE'),
-)
-candle_storage = CandleInnoDbStorage(influxdb_client)
-order_storage = OrderInnoDbStorage(influxdb_client)
+di_container = DiContainerInfluxDbStorage()
 
 
 class CandleStoragePlugin(CandleStoragePluginSpecification):
@@ -39,10 +30,7 @@ class CandleStoragePlugin(CandleStoragePluginSpecification):
 
     @get_candle_storage_impl
     def get_candle_storage(self, name):
-        if name == CANDLE_STORAGE_NAME:
-            return candle_storage
-
-        raise ValueError('Candle storage "{}" not supported by this plugin.'.format(name))
+        return di_container.get_candle_storage(name)
 
 
 class OrderStoragePlugin(OrderStoragePluginSpecification):
@@ -52,14 +40,14 @@ class OrderStoragePlugin(OrderStoragePluginSpecification):
 
     @get_available_order_storages_impl
     def get_available_order_storages(self):
-        return [ORDER_STORAGE_NAME]
+        return list(map(
+            lambda measurement_name: '{}_{}'.format(ORDER_STORAGE_NAME, measurement_name),
+            MEASUREMENT_ORDERS_NAMES
+        ))
 
     @get_order_storage_impl
     def get_order_storage(self, name):
-        if name == ORDER_STORAGE_NAME:
-            return order_storage
-
-        raise ValueError('Order storage "{}" not supported by this plugin.'.format(name))
+        return di_container.get_order_storage(name)
 
 
 candle_storage_plugin = CandleStoragePlugin()

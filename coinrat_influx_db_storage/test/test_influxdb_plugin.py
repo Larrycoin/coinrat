@@ -15,7 +15,13 @@ def test_candle_plugin():
 
 def test_order_plugin():
     assert 'coinrat_influx_db_storage' == order_storage_plugin.get_name()
-    assert ['influx_db'] == order_storage_plugin.get_available_order_storages()
+    assert order_storage_plugin.get_available_order_storages() == [
+        'influx_db_orders-A',
+        'influx_db_orders-B',
+        'influx_db_orders-C',
+        'influx_db_orders-D',
+        'influx_db_orders-E',
+    ]
     assert isinstance(order_storage_plugin.get_order_storage('influx_db'), OrderInnoDbStorage)
     with pytest.raises(ValueError):
         order_storage_plugin.get_order_storage('gandalf')

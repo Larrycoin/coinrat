@@ -16,16 +16,23 @@ from coinrat.domain.order import ORDER_FIELD_MARKET, ORDER_FIELD_PAIR, ORDER_FIE
 
 ORDER_STORAGE_NAME = 'influx_db'
 
-MEASUREMENT_ORDERS_NAME = 'orders'
+MEASUREMENT_ORDERS_NAMES = [
+    'orders-A',
+    'orders-B',
+    'orders-C',
+    'orders-D',
+    'orders-E',
+]
 
 
 class OrderInnoDbStorage(OrderStorage):
-    def __init__(self, influx_db_client: InfluxDBClient):
+    def __init__(self, influx_db_client: InfluxDBClient, measurement_name: str):
+        self._measurement_name = measurement_name
         self._client = influx_db_client
 
     @property
     def name(self) -> str:
-        return ORDER_STORAGE_NAME
+        return '{}_{}'.format(ORDER_STORAGE_NAME, self._measurement_name)
 
     def save_order(self, order: Order) -> None:
         self._client.write_points([self._get_serialized_order(order)])
@@ -54,7 +61,7 @@ class OrderInnoDbStorage(OrderStorage):
         if interval.till is not None:
             parameters['"time" <'] = "'{}'".format(interval.till.isoformat())
 
-        sql = 'SELECT * FROM "{}" WHERE '.format(MEASUREMENT_ORDERS_NAME)
+        sql = 'SELECT * FROM "{}" WHERE '.format(self._measurement_name)
         where = []
         for key, value in parameters.items():
             where.append('{} {}'.format(key, value))
@@ -67,7 +74,7 @@ class OrderInnoDbStorage(OrderStorage):
     def find_last_order(self, market_name: str, pair: Pair) -> Union[Order, None]:
         sql = '''
             SELECT * FROM "{}" WHERE "pair"='{}' AND "market"='{}' ORDER BY "time" DESC LIMIT 1
-        '''.format(MEASUREMENT_ORDERS_NAME, serialize_pair(pair), market_name)
+        '''.format(self._measurement_name, serialize_pair(pair), market_name)
 
         result: ResultSet = self._client.query(sql)
         result = list(result.get_points())
@@ -79,13 +86,12 @@ class OrderInnoDbStorage(OrderStorage):
     def delete(self, order_id) -> None:
         sql = '''
             DELETE FROM "{}" WHERE "order_id" = '{}'
-        '''.format(MEASUREMENT_ORDERS_NAME, order_id)
+        '''.format(self._measurement_name, order_id)
         self._client.query(sql)
 
-    @staticmethod
-    def _get_serialized_order(order: Order) -> Dict:
+    def _get_serialized_order(self, order: Order) -> Dict:
         return {
-            'measurement': MEASUREMENT_ORDERS_NAME,
+            'measurement': self._measurement_name,
             'tags': {
                 ORDER_FIELD_MARKET: order.market_name,
                 ORDER_FIELD_PAIR: serialize_pair(order.pair),
