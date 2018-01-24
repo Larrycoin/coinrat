@@ -34,5 +34,5 @@ class EventEmitter:
         })
 
     def emit_event(self, event: Dict) -> None:
-        logger.info('Emitting event: %s', event)
+        logger.debug('Emitting event: %s', event)
         self.channel.basic_publish(exchange='', routing_key='events', body=json.dumps(event))

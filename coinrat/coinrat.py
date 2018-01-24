@@ -25,7 +25,7 @@ from coinrat.thread_watcher import ThreadWatcher
 dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("werkzeug").setLevel(logging.WARNING)
 logging.getLogger("pika").setLevel(logging.WARNING)
