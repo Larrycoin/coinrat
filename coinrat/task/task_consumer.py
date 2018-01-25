@@ -49,7 +49,7 @@ class TaskConsumer:
         self._channel.basic_consume(rabbit_message_callback, queue='tasks', no_ack=True)
 
     def process_reply_strategy(self, data: Dict) -> None:
-        logger.info("[Rabbit] Task %s -> not supported | %r", TASK_REPLY_STRATEGY, data)
+        logger.info("[Rabbit] Proceessing task: %s | %r", TASK_REPLY_STRATEGY, data)
 
         start = dateutil.parser.parse(data['start']).replace(tzinfo=datetime.timezone.utc)
         end = dateutil.parser.parse(data['stop']).replace(tzinfo=datetime.timezone.utc)

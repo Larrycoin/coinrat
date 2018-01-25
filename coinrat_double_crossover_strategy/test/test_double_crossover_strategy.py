@@ -69,15 +69,13 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
         {
             'long_average_interval': 60 * 60,
             'short_average_interval': 15 * 60,
-            'delay': 0,
-            'number_of_runs': 1,
         }
     )
     if error:
         with pytest.raises(StrategyConfigurationException):
-            strategy.run(markets, BTC_USD_PAIR)
+            strategy.tick(markets, BTC_USD_PAIR)
     else:
-        strategy.run(markets, BTC_USD_PAIR)
+        strategy.tick(markets, BTC_USD_PAIR)
 
 
 @pytest.mark.parametrize(
@@ -182,12 +180,10 @@ def test_sending_signal(
         {
             'long_average_interval': 60 * 60,
             'short_average_interval': 15 * 60,
-            'delay': 0,
-            'number_of_runs': len(mean_evolution),
         }
-
     )
-    strategy.run([market], BTC_USD_PAIR)
+    for x in range(0, len(mean_evolution)):
+        strategy.tick([market], BTC_USD_PAIR)
 
 
 def test_not_enough_balance_logs_warning():
@@ -210,12 +206,11 @@ def test_not_enough_balance_logs_warning():
         {
             'long_average_interval': 60 * 60,
             'short_average_interval': 15 * 60,
-            'delay': 0,
-            'number_of_runs': 2,
         }
     )
     flexmock(logging).should_receive('warning').once()
-    strategy.run([market], BTC_USD_PAIR)
+    strategy.tick([market], BTC_USD_PAIR)
+    strategy.tick([market], BTC_USD_PAIR)
 
 
 CLOSED_ORDER_INFO = OrderMarketInfo(
@@ -260,11 +255,9 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
         {
             'long_average_interval': 60 * 60,
             'short_average_interval': 15 * 60,
-            'delay': 0,
-            'number_of_runs': 1,
         }
     )
-    strategy.run([market], BTC_USD_PAIR)
+    strategy.tick([market], BTC_USD_PAIR)
 
 
 def create_market_mock() -> Union[Market, Mock]:

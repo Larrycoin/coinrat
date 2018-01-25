@@ -1,4 +1,5 @@
 import datetime
+import time
 import json
 import logging
 
@@ -248,7 +249,11 @@ def run_strategy(
             di_container.market_plugins.get_market(marker_name, CurrentUtcDateTimeFactory(), {})
             for marker_name in market_names
         ]
-        strategy_obj.run(markers, pair)
+
+        while True:
+            strategy_obj.tick(markers, pair)
+            time.sleep(int(strategy_obj.get_seconds_delay_between_runs()))
+
     except ForEndUserException as e:
         print_error_and_terminate(str(e))
 

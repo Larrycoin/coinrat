@@ -10,10 +10,10 @@ class StrategyConfigurationException(ForEndUserException):
 
 
 class Strategy:
-    def run(self, markets: List[Market], pair: Pair) -> None:
+    def tick(self, markets: List[Market], pair: Pair) -> None:
         raise NotImplementedError()
 
-    def tick(self, markets: List[Market], pair: Pair) -> None:
+    def get_seconds_delay_between_runs(self) -> float:
         raise NotImplementedError()
 
     @staticmethod

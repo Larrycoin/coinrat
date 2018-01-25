@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Union
 
 from decimal import Decimal
@@ -6,6 +7,8 @@ CONFIGURATION_STRUCTURE_TYPE_STRING = 'string'
 CONFIGURATION_STRUCTURE_TYPE_INT = 'int'
 CONFIGURATION_STRUCTURE_TYPE_DECIMAL = 'Decimal'
 
+logger = logging.getLogger(__name__)
+
 
 def format_data_to_python_types(
     data: Dict[str, str],
@@ -13,7 +16,8 @@ def format_data_to_python_types(
 ) -> Dict[str, Union[str, int, Decimal]]:
     for key, value in data.items():
         if key not in configuration_structure:
-            raise ValueError('{} not expected by configuration structure definition'.format(key))
+            logger.warning('{} not expected by configuration structure definition'.format(key))
+            continue
 
         structure = configuration_structure[key]
 

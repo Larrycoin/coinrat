@@ -54,4 +54,4 @@ class StrategyReplayer:
 
         while datetime_factory.now() < end:
             strategy.tick([market], pair)
-            datetime_factory.move(datetime.timedelta(seconds=30))
+            datetime_factory.move(datetime.timedelta(seconds=strategy.get_seconds_delay_between_runs()))

@@ -26,8 +26,7 @@ class Candle:
 
     def __init__(
         self,
-        market_name:
-        str,
+        market_name: str,
         pair: Pair,
         time: datetime.datetime,
         open_price: Decimal,

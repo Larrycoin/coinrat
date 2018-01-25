@@ -1,4 +1,4 @@
-import datetime, time
+import datetime
 import logging
 import uuid
 from typing import Union, Tuple, List, Dict
@@ -69,21 +69,14 @@ class DoubleCrossoverStrategy(Strategy):
         if 'delay' in configuration:
             self._delay = configuration['delay']
 
-        if 'number_of_runs' in configuration:
-            self._number_of_runs = configuration['number_of_runs']
-
-    def run(self, markets: List[Market], pair: Pair) -> None:
-        while self._should_run():
-            self.tick(markets, pair)
+    def get_seconds_delay_between_runs(self) -> float:
+        return self._delay
 
     def tick(self, markets: List[Market], pair: Pair) -> None:
         market = self._get_one_market(markets)
-
         self._check_and_process_open_orders(market, pair)
         self._check_for_signal_and_trade(market, pair)
-
-        self._increment_tick_counter()
-        time.sleep(self._delay)
+        self._strategy_ticker += 1
 
     @staticmethod
     def get_configuration_structure() -> Dict[str, Dict[str, str]]:
@@ -106,12 +99,6 @@ class DoubleCrossoverStrategy(Strategy):
                 'default': 30,
                 'unit': 'seconds',
             },
-            'number_of_runs': {
-                'type': '?' + CONFIGURATION_STRUCTURE_TYPE_INT,
-                'title': 'Number of checks cycles',
-                'default': None,
-                'hidden': True,
-            }
         }
 
     @staticmethod
@@ -122,11 +109,6 @@ class DoubleCrossoverStrategy(Strategy):
             configuration['number_of_runs'] = None
 
         return configuration
-
-    def _increment_tick_counter(self):
-        if self._number_of_runs is not None:  # pragma: no cover
-            self._number_of_runs -= 1
-        self._strategy_ticker += 1
 
     def _check_and_process_open_orders(self, market: Market, pair: Pair):
         orders = self._order_storage.find_by(market_name=market.name, pair=pair, status=ORDER_STATUS_OPEN)
@@ -227,7 +209,6 @@ class DoubleCrossoverStrategy(Strategy):
         return long_average, short_average
 
     def _trade_on_signal(self, market: Market, pair: Pair) -> Union[Order, None]:
-        order = None
         logging.info('Checking trade on signal: "{}".'.format(self._last_signal))
         try:
             if self._last_signal.is_buy():
@@ -298,6 +279,3 @@ class DoubleCrossoverStrategy(Strategy):
             message = 'This strategy works only with one market, {} given.'.format(len(markets))
             raise StrategyConfigurationException(message)
         return markets[0]
-
-    def _should_run(self) -> bool:
-        return self._number_of_runs is None or self._number_of_runs > 0
