@@ -119,15 +119,17 @@ Exports candles into JSON file. Interval must be in UTC. \n\nExample: \n\n
 @click.argument('pair', nargs=2)
 @click.argument('interval', nargs=2)
 @click.argument('output_file', nargs=1)
+@click.option('--candle_storage', help='Specify candle storage to be exported from.', required=True)
 @click.pass_context
 def export_candles(
     ctx: Context,
     market_name,
     pair: Tuple[str, str],
     interval: Tuple[str, str],
-    output_file: str
+    output_file: str,
+    candle_storage: str
 ) -> None:
-    storage = di_container.candle_storage_plugins.get_candle_storage('influx_db')
+    storage = di_container.candle_storage_plugins.get_candle_storage(candle_storage)
     pair = Pair(pair[0], pair[1])
     interval = DateTimeInterval(
         dateutil.parser.parse(interval[0]).replace(tzinfo=datetime.timezone.utc),
@@ -141,21 +143,23 @@ def export_candles(
 Exports orders into JSON file. Interval must be in UTC.
 
 Example:
-    "python -m coinrat export_orders bittrex USD BTC \'2017-12-02T00:00:00\' \'2017-12-03T00:00:00\' output.json"
+    "python -m coinrat export_orders bittrex USD BTC \'2017-12-02T00:00:00\' \'2017-12-03T00:00:00\' output.json --order_storage influx_db_orders-A"
 """)
 @click.argument('market_name', nargs=1)
 @click.argument('pair', nargs=2)
 @click.argument('interval', nargs=2)
 @click.argument('output_file', nargs=1)
+@click.option('--order_storage', help='Specify order storage to be exported from.', required=True)
 @click.pass_context
 def export_orders(
     ctx: Context,
     market_name,
     pair: Tuple[str, str],
     interval: Tuple[str, str],
-    output_file: str
+    output_file: str,
+    order_storage: str
 ) -> None:
-    storage = di_container.order_storage_plugins.get_order_storage('influx_db')
+    storage = di_container.order_storage_plugins.get_order_storage(order_storage)
     pair = Pair(pair[0], pair[1])
     interval = DateTimeInterval(
         dateutil.parser.parse(interval[0]).replace(tzinfo=datetime.timezone.utc),
@@ -173,13 +177,14 @@ Example:
 """)
 @click.argument('synchronizer_name', nargs=1)
 @click.argument('pair', nargs=2)
+@click.option('--candle_storage', help='Specify candle storage to be synced into.', required=True)
 @click.pass_context
-def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str]) -> None:
+def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str], candle_storage: str) -> None:
     pair = Pair(pair[0], pair[1])
 
     synchronizer = di_container.synchronizer_plugins.get_synchronizer(
         synchronizer_name,
-        di_container.candle_storage_plugins.get_candle_storage('influx_db'),
+        di_container.candle_storage_plugins.get_candle_storage(candle_storage),
         di_container.event_emitter
     )
     synchronizer.synchronize(pair)
@@ -202,8 +207,8 @@ Example:
          + 'You can check if strategy module has `example_configuration.json` bundled.',
     default=None
 )
-@click.option('--candle_storage', help='Specify candle storage to be used in this run.', default='influx_db')
-@click.option('--order_storage', help='Specify order storage to be used in this run.', default='influx_db')
+@click.option('--candle_storage', help='Specify candle storage to be used in this run.', required=True)
+@click.option('--order_storage', help='Specify order storage to be used in this run.', required=True)
 @click.pass_context
 def run_strategy(
     ctx: Context,

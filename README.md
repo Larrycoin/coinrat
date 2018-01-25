@@ -76,7 +76,7 @@ Once we have data you can see them in the UI-App.
 ## Basic usage against real market
 > :bangbang: **This will execute strategy against real market!** One good option for testing (if market does not provide test account) is to create separate account on the stock-market with **very** limited resources on it.
 
-Run one of default strategies with this command: `python -m coinrat run_strategy double_crossover USD BTC bittrex` 
+Run one of default strategies with this command: `python -m coinrat run_strategy double_crossover USD BTC bittrex --candle_storage influx_db --order_storage influx_db_orders-A` 
 
 ## Troubleshooting
 * `ERROR: For market "bittrex" no candles in storage "influx_db".` 
