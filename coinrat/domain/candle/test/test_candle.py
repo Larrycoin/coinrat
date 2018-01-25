@@ -28,3 +28,24 @@ def test_bearish_bullish():
     candle = Candle('', Pair('USD', 'BTC'), DUMMY_DATE, Decimal(8000), Decimal(10000), Decimal(5000), Decimal(8000))
     assert candle.is_bearish() is False
     assert candle.is_bullish() is False
+
+
+def test_candle_body_size():
+    candle = Candle('', Pair('USD', 'BTC'), DUMMY_DATE, Decimal(1000), Decimal(2000), Decimal(3000), Decimal(4000))
+    assert candle.body_size() == Decimal('3000')
+
+    candle = Candle('', Pair('USD', 'BTC'), DUMMY_DATE, Decimal(8000), Decimal(2000), Decimal(3000), Decimal(4000))
+    assert candle.body_size() == Decimal('4000')
+
+    candle = Candle('', Pair('USD', 'BTC'), DUMMY_DATE, Decimal(8000), Decimal(10000), Decimal(5000), Decimal(8000))
+    assert candle.body_size() == Decimal('0')
+
+
+def test_candle_wicks():
+    candle = Candle('', Pair('USD', 'BTC'), DUMMY_DATE, Decimal(8000), Decimal(10000), Decimal(5000), Decimal(8000))
+    assert candle.has_upper_wick() is True
+    assert candle.has_lower_wick() is True
+
+    candle = Candle('', Pair('USD', 'BTC'), DUMMY_DATE, Decimal(8000), Decimal(8000), Decimal(8000), Decimal(8000))
+    assert candle.has_upper_wick() is False
+    assert candle.has_lower_wick() is False

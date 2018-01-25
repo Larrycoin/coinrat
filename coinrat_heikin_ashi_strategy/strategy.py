@@ -94,30 +94,55 @@ class HeikinAshiStrategy(Strategy):
         if len(candles) == 3:  # First and last candle can be cut in half, we dont need the first half-candle.
             candles.pop(0)
 
-        print('current', self._current_unfinished_candle)
-        print('len: ', len(candles))
-        print(candles[0])
-        print(candles[1])
-        print('------------------------')
+        # print('current', self._current_unfinished_candle)
+        # print('len: ', len(candles))
+        # print(candles[0])
+        # print(candles[1])
+        # print('------------------------')
 
         if candles[0].time == self._current_unfinished_candle.time:
-            print('test for trade')
-
             self._second_previous_candle = self._first_previous_candle
             self._first_previous_candle = self.candle_to_heikin_ashi(candles[0], self._first_previous_candle)
             self._current_unfinished_candle = self.candle_to_heikin_ashi(candles[1], self._first_previous_candle)
 
+            # print(self._second_previous_candle)
+            # print(self._first_previous_candle)
+            # print(self._first_previous_candle.has_upper_wick())
+
+            if (
+                self._first_previous_candle.is_bearish()
+                and self._second_previous_candle.is_bearish()
+                and self._first_previous_candle.body_size() > self._second_previous_candle.body_size()
+                and not self._first_previous_candle.has_upper_wick()
+            ):
+                print('BUY !!!')
+
+            if (
+                self._first_previous_candle.is_bullish()
+                and self._second_previous_candle.is_bullish()
+                and self._first_previous_candle.body_size() > self._second_previous_candle.body_size()
+                and not self._first_previous_candle.has_lower_wick()
+            ):
+                print('SELL !!!')
+
     @staticmethod
-    def get_market(markets):
+    def get_market(markets: List[Market]):
         if len(markets) != 1:
             raise ValueError('HeikinAshiStrategy expects exactly one market. But {} given.'.format(len(markets)))
         return markets[0]
 
     @staticmethod
     def initial_candle_to_heikin_ashi(candle: Candle) -> HeikinAshiCandle:
-        heikin_close = (candle.open + candle.high + candle.low + candle.close) / 4
-        heikin_open = (candle.open + candle.close) / 2
-        return HeikinAshiCandle(candle.time, heikin_close, candle.high, candle.low, heikin_open, candle.candle_size)
+        return HeikinAshiCandle(
+            candle.market_name,
+            candle.pair,
+            candle.time,
+            open_price=(candle.open + candle.high + candle.low + candle.close) / 4,
+            high_price=candle.high,
+            low_price=candle.low,
+            close_price=(candle.open + candle.close) / 2,
+            candle_size=candle.candle_size
+        )
 
     @staticmethod
     def candle_to_heikin_ashi(candle: Candle, previous: HeikinAshiCandle) -> HeikinAshiCandle:
@@ -126,7 +151,17 @@ class HeikinAshiStrategy(Strategy):
         elements = numpy.array([candle.high, candle.low, heikin_open, heikin_close])
         heikin_high = elements.max(0)
         heikin_low = elements.min(0)
-        return HeikinAshiCandle(candle.time, heikin_close, heikin_high, heikin_low, heikin_open, candle.candle_size)
+
+        return HeikinAshiCandle(
+            candle.market_name,
+            candle.pair,
+            candle.time,
+            heikin_close,
+            heikin_high,
+            heikin_low,
+            heikin_open,
+            candle.candle_size
+        )
 
     @staticmethod
     def get_configuration_structure() -> Dict[str, Dict[str, str]]:

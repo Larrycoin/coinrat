@@ -87,11 +87,32 @@ class Candle:
     def candle_size(self) -> CandleSize:
         return self._candle_size
 
-    def is_bearish(self):
-        return self._open > self.close
+    def is_bearish(self) -> bool:
+        return self._open > self._close
 
-    def is_bullish(self):
+    def is_bullish(self) -> bool:
         return self._close > self._open
+
+    def body_size(self) -> Decimal:
+        return abs(self._close - self._open)
+
+    def has_upper_wick(self) -> bool:
+        """
+        A shadow, or a wick, is a line found on a candle in a candlestick chart that is used to indicate where
+        the price of a stock has fluctuated relative to the opening and closing prices.
+
+        @link https://www.investopedia.com/terms/s/shadow.asp
+        """
+        return self._high > self._close
+
+    def has_lower_wick(self) -> bool:
+        """
+        A shadow, or a wick, is a line found on a candle in a candlestick chart that is used to indicate where
+        the price of a stock has fluctuated relative to the opening and closing prices.
+
+        @link https://www.investopedia.com/terms/s/shadow.asp
+        """
+        return self._low < self._close
 
     def __repr__(self):
         return '{0} O:{1:.8f} H:{2:.8f} L:{3:.8f} C:{4:.8f} | {5}' \
