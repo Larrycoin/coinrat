@@ -87,6 +87,12 @@ class Candle:
     def candle_size(self) -> CandleSize:
         return self._candle_size
 
+    def is_bearish(self):
+        return self._open > self.close
+
+    def is_bullish(self):
+        return self._close > self._open
+
     def __repr__(self):
         return '{0} O:{1:.8f} H:{2:.8f} L:{3:.8f} C:{4:.8f} | {5}' \
             .format(self._time.isoformat(), self._open, self._high, self._low, self._close, self._candle_size)
