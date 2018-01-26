@@ -88,7 +88,7 @@ class Candle:
         return self._candle_size
 
     def is_bearish(self) -> bool:
-        return self._open > self._close
+        return self._close < self._open
 
     def is_bullish(self) -> bool:
         return self._close > self._open

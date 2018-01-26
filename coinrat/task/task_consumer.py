@@ -55,7 +55,6 @@ class TaskConsumer:
         end = dateutil.parser.parse(data['stop']).replace(tzinfo=datetime.timezone.utc)
 
         strategy_configuration: Dict[str, Union[str, int]] = data['strategy_configuration']
-        strategy_configuration['delay'] = 0
 
         orders_storage = self._orders_storage_plugins.get_order_storage(data['orders_storage'])
         candle_storage = self._candle_storage_plugins.get_candle_storage(data['candles_storage'])

@@ -13,7 +13,7 @@ class BittrexSynchronizer(MarketStateSynchronizer):
         market: BittrexMarket,
         storage: CandleStorage,
         event_emitter: EventEmitter,
-        delay: int = 15,
+        delay: int = 60,
         number_of_runs: Union[int, None] = None
     ):
         self._market = market

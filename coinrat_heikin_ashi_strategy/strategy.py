@@ -45,6 +45,7 @@ class HeikinAshiStrategy(Strategy):
         self._first_previous_candle: Union[HeikinAshiCandle, None] = None
         self._second_previous_candle: Union[HeikinAshiCandle, None] = None
         self._current_unfinished_candle: Union[HeikinAshiCandle, None] = None
+        self._trend = 0
 
     def tick(self, markets: List[Market], pair: Pair) -> None:
         if self._strategy_ticker == 0:
@@ -94,11 +95,20 @@ class HeikinAshiStrategy(Strategy):
         if len(candles) == 3:  # First and last candle can be cut in half, we dont need the first half-candle.
             candles.pop(0)
 
-        # print('current', self._current_unfinished_candle)
+        print('------------------------')
+        print('current', self._current_unfinished_candle)
         # print('len: ', len(candles))
         # print(candles[0])
         # print(candles[1])
-        # print('------------------------')
+
+        print(self._second_previous_candle)
+
+        if self._second_previous_candle.is_bearish() and self._trend > -5:
+            self._trend -= 1
+        if self._second_previous_candle.is_bullish() and self._trend < 5:
+            self._trend += 1
+
+        print('Trend: ', self._trend)
 
         if candles[0].time == self._current_unfinished_candle.time:
             self._second_previous_candle = self._first_previous_candle
@@ -110,20 +120,18 @@ class HeikinAshiStrategy(Strategy):
             # print(self._first_previous_candle.has_upper_wick())
 
             if (
-                self._first_previous_candle.is_bearish()
+                self._trend > 0
+                and self._first_previous_candle.is_bearish()
                 and self._second_previous_candle.is_bearish()
-                and self._first_previous_candle.body_size() > self._second_previous_candle.body_size()
-                and not self._first_previous_candle.has_upper_wick()
-            ):
-                print('BUY !!!')
-
-            if (
-                self._first_previous_candle.is_bullish()
-                and self._second_previous_candle.is_bullish()
-                and self._first_previous_candle.body_size() > self._second_previous_candle.body_size()
-                and not self._first_previous_candle.has_lower_wick()
             ):
                 print('SELL !!!')
+
+            if (
+                self._trend < 0
+                and self._first_previous_candle.is_bullish()
+                and self._second_previous_candle.is_bullish()
+            ):
+                print('BUY !!!')
 
     @staticmethod
     def get_market(markets: List[Market]):
