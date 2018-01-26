@@ -58,6 +58,18 @@ def test_market_processes_orders():
     assert market.get_balance('BTC').available_amount == Decimal(0)
 
 
+def test_mock_market_raises_not_enough_balances():
+    market = MockMarket(
+        CurrentUtcDateTimeFactory(),
+        {
+            'mocked_base_currency_balance': Decimal('0.000000000001'),
+            'mocked_base_currency': 'USD',
+        }
+    )
+    with pytest.raises(NotEnoughBalanceToPerformOrderException):
+        market.place_order(create_order(direction=DIRECTION_BUY, quantity=Decimal('1E-16')))
+
+
 def test_market_get_order_status():
     market = MockMarket(CurrentUtcDateTimeFactory(), {})
     status = market.get_order_status(create_order())

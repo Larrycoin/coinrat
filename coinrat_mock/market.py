@@ -184,8 +184,8 @@ class MockMarket(Market):
             self._balances[pair.market_currency] = Decimal(0)
 
     def _process_buy(self, fee: Decimal, order: Order) -> None:
-        max_to_buy = self.calculate_maximal_amount_to_buy(order.pair, order.rate)
-        if max_to_buy == Decimal(0) or max_to_buy < order.quantity:
+        max_to_buy = round(self.calculate_maximal_amount_to_buy(order.pair, order.rate), 8)
+        if max_to_buy < order.quantity:
             raise NotEnoughBalanceToPerformOrderException(
                 'Max to buy is {}, you want to buy {}'.format(max_to_buy, order.quantity)
             )
@@ -193,8 +193,8 @@ class MockMarket(Market):
         self._balances[order.pair.market_currency] += order.quantity * (1 - fee)
 
     def _process_sell(self, fee: Decimal, order: Order) -> None:
-        max_to_sell = self.calculate_maximal_amount_to_sell(order.pair)
-        if max_to_sell == Decimal(0) or max_to_sell < order.quantity:
+        max_to_sell = round(self.calculate_maximal_amount_to_sell(order.pair), 8)
+        if max_to_sell < order.quantity:
             raise NotEnoughBalanceToPerformOrderException(
                 'Max to sell is {}, you want to sell {}'.format(max_to_sell, order.quantity)
             )
