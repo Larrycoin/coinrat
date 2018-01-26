@@ -48,7 +48,8 @@ class DiContainerCoinrat(DiContainer):
             'rabbit_connection': {
                 'instance': None,
                 'factory': lambda: pika.BlockingConnection(
-                    pika.ConnectionParameters(os.environ.get('RABBITMQ_SERVER_HOST')),
+                    pika.ConnectionParameters(host=os.environ.get('RABBITMQ_SERVER_HOST')),
+
                 ),
             },
             'event_emitter': {
@@ -57,7 +58,7 @@ class DiContainerCoinrat(DiContainer):
             },
             'task_planner': {
                 'instance': None,
-                'factory': lambda: TaskPlanner(self.rabbit_connection),
+                'factory': lambda: TaskPlanner(self._get_factory('rabbit_connection')),
             },
             'datetime_factory': {
                 'instance': None,
@@ -94,6 +95,9 @@ class DiContainerCoinrat(DiContainer):
                 'factory': lambda: SubscriptionStorage(),
             }
         }
+
+    def _get_factory(self, name: str) -> callable:
+        return self._storage[name]['factory']
 
     @property
     def candle_storage_plugins(self) -> CandleStoragePlugins:
