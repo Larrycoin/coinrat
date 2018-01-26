@@ -45,9 +45,9 @@ def candle_to_heikin_ashi(candle: Candle, previous: HeikinAshiCandle) -> HeikinA
         candle.market_name,
         candle.pair,
         candle.time,
-        heikin_close,
-        heikin_high,
-        heikin_low,
-        heikin_open,
-        candle.candle_size
+        open_price=heikin_open,
+        high_price=heikin_high,
+        low_price=heikin_low,
+        close_price=heikin_close,
+        candle_size=candle.candle_size
     )

@@ -24,4 +24,4 @@ def test_candle_to_heikin_ashi():
     candle = Candle('', Pair('USD', 'BTC'), DUMMY_DATE, Decimal(3000), Decimal(3500), Decimal(2500), Decimal(4000))
     current_ha_candle = candle_to_heikin_ashi(candle, previous_ha_candle)
     assert str(current_ha_candle) == '2017-01-01T00:00:00+00:00 ' \
-           + 'O:3250.00000000 H:3500.00000000 L:2500.00000000 C:2500.00000000 | CandleSize: 1-minute (Heikin-Ashi)'
+           + 'O:2500.00000000 H:3500.00000000 L:2500.00000000 C:3250.00000000 | CandleSize: 1-minute (Heikin-Ashi)'
