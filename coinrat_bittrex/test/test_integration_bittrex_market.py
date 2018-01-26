@@ -39,6 +39,11 @@ def test_get_last_minute_candle():
     assert Decimal(0) < candle.close
 
 
+def test_bittrex_get_current_price():
+    price = bittrex_market_factory('', '').get_current_price(BTC_USD_PAIR)
+    assert Decimal(0) < price
+
+
 def test_get_candles():
     candles = bittrex_market_factory('', '').get_candles(BTC_USD_PAIR)
     assert 1000 < len(candles)

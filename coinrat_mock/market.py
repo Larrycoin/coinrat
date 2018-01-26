@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Dict, List
 
-from coinrat.domain import Market, Balance, Pair, PairMarketInfo, DateTimeFactory
+from coinrat.domain import Market, Balance, Pair, PairMarketInfo, DateTimeFactory, serialize_pair
 from coinrat.domain.order import ORDER_TYPE_LIMIT, Order, OrderMarketInfo, ORDER_TYPE_MARKET, \
     NotEnoughBalanceToPerformOrderException
 from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_STRING, \
@@ -46,6 +46,7 @@ class MockMarket(Market):
         self._transaction_maker_fee: Decimal = DEFAULT_TRANSACTION_FEE
         self._transaction_taker_fee: Decimal = DEFAULT_TRANSACTION_FEE
         self._balances: Dict[str, Decimal] = {}
+        self._current_prices: Dict[str, Decimal] = {}
 
         self.init_by_configuration(configuration)
 
@@ -141,6 +142,12 @@ class MockMarket(Market):
             result.append(Balance(self.name, currency, available_amount))
 
         return result
+
+    def mock_current_price(self, pair: Pair, value: Decimal) -> None:
+        self._current_prices[serialize_pair(pair)] = value
+
+    def get_current_price(self, pair: Pair) -> Decimal:
+        return self._current_prices[serialize_pair(pair)]
 
     def place_order(self, order: Order) -> Order:
         fee = self._calculate_fee(order)

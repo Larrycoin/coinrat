@@ -53,5 +53,7 @@ class StrategyReplayer:
         )
 
         while datetime_factory.now() < end:
+            current_candle = candle_storage.get_last_minute_candle(market.name, pair, datetime_factory.now())
+            market.mock_current_price(pair, current_candle.average_price)
             strategy.tick([market], pair)
             datetime_factory.move(datetime.timedelta(seconds=strategy.get_seconds_delay_between_runs()))

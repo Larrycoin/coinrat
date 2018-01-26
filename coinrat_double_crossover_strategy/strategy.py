@@ -16,6 +16,8 @@ from coinrat_double_crossover_strategy.utils import absolute_possible_percentage
 from coinrat.event.event_emitter import EventEmitter
 from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_INT
 
+logger = logging.getLogger(__name__)
+
 STRATEGY_NAME = 'double_crossover'
 
 
@@ -118,7 +120,7 @@ class DoubleCrossoverStrategy(Strategy):
                 order.close(status.closed_at)
                 self._order_storage.delete(order.order_id)  # todo: update
                 self._order_storage.save_order(order)
-                logging.info('Order "{}" has been successfully CLOSED.'.format(order.order_id))
+                logger.info('Order "{}" has been successfully CLOSED.'.format(order.order_id))
 
     def _check_for_signal_and_trade(self, market: Market, pair: Pair):
         signal = self._check_for_signal(market, pair)
@@ -140,7 +142,7 @@ class DoubleCrossoverStrategy(Strategy):
 
         does_worth_it = absolute_possible_percentage_gain(last_order.rate, current_price) > market.transaction_taker_fee
         if not does_worth_it:
-            logging.info('Skipping trade at current price: "{0:.8f}" (last order at: "{1:.8f}")'.format(
+            logger.info('Skipping trade at current price: "{0:.8f}" (last order at: "{1:.8f}")'.format(
                 current_price, last_order.rate
             ))
 
@@ -151,7 +153,7 @@ class DoubleCrossoverStrategy(Strategy):
         current_sign = self._calculate_sign_of_change(long_average, short_average)
         current_average_price = self.get_current_average_price(market, pair)
 
-        logging.info(
+        logger.info(
             '[{0}] Previous_sign: {1}, Current-sign: {2:.8f}, Long-now: {3:.8f}, Short-now: {4:.8f}'.format(
                 self._strategy_ticker,
                 self._previous_sign,
@@ -209,7 +211,7 @@ class DoubleCrossoverStrategy(Strategy):
         return long_average, short_average
 
     def _trade_on_signal(self, market: Market, pair: Pair) -> Union[Order, None]:
-        logging.info('Checking trade on signal: "{}".'.format(self._last_signal))
+        logger.info('Checking trade on signal: "{}".'.format(self._last_signal))
         try:
             if self._last_signal.is_buy():
                 self._cancel_open_order(market, pair, DIRECTION_SELL)
@@ -252,7 +254,7 @@ class DoubleCrossoverStrategy(Strategy):
         except NotEnoughBalanceToPerformOrderException as e:
             # Intentionally, this strategy does not need state of order,
             # just ignores buy/sell and waits for next signal.
-            logging.warning(e)
+            logger.warning(e)
             self._last_signal = None
 
     def _cancel_open_order(self, market: Market, pair: Pair, direction: str):
@@ -266,12 +268,12 @@ class DoubleCrossoverStrategy(Strategy):
             try:
                 market.cancel_order(order.id_on_market)
             except MarketOrderException as e:
-                logging.error('Order "{}" cancelling failed: Error: "{}"!'.format(order.order_id, e))
+                logger.error('Order "{}" cancelling failed: Error: "{}"!'.format(order.order_id, e))
                 return
 
             order.cancel(self._datetime_factory.now())
             self._order_storage.save_order(order)
-            logging.info('Order "{}" has been CANCELED!'.format(order.order_id))
+            logger.info('Order "{}" has been CANCELED!'.format(order.order_id))
 
     @staticmethod
     def _get_one_market(markets: List[Market]) -> Market:

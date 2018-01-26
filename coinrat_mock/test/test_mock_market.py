@@ -87,3 +87,11 @@ def create_order(
         quantity,
         rate
     )
+
+
+def test_mock_market_current_price():
+    market = MockMarket(CurrentUtcDateTimeFactory(), {})
+    with pytest.raises(KeyError):
+        market.get_current_price(BTC_USD_PAIR)
+    market.mock_current_price(BTC_USD_PAIR, Decimal('9854.458'))
+    assert market.get_current_price(BTC_USD_PAIR) == Decimal('9854.458')

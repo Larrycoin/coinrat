@@ -1,16 +1,18 @@
+import logging
+import uuid
 from typing import Union, Tuple, List, Dict
-
-import numpy
 
 from coinrat.domain import Strategy, Pair, Market, MarketOrderException, StrategyConfigurationException, \
     DateTimeFactory, DateTimeInterval
 from coinrat.domain.candle import Candle, CandleStorage, deserialize_candle_size, CandleSize
 from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, \
-    NotEnoughBalanceToPerformOrderException
+    NotEnoughBalanceToPerformOrderException, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET
 from coinrat.event.event_emitter import EventEmitter
 from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_STRING, CONFIGURATION_STRUCTURE_TYPE_INT
 from coinrat_heikin_ashi_strategy.heikin_ashi_candle import HeikinAshiCandle, candle_to_heikin_ashi, \
     create_initial_heikin_ashi_candle
+
+logger = logging.getLogger(__name__)
 
 STRATEGY_NAME = 'heikin_ashi'
 DEFAULT_CANDLE_SIZE_CONFIGURATION = '1-day'
@@ -49,15 +51,12 @@ class HeikinAshiStrategy(Strategy):
         self._trend = 0
 
     def tick(self, markets: List[Market], pair: Pair) -> None:
-        print(self._strategy_ticker)
-        print('------------------------')
         if self._strategy_ticker == 0:
             self.first_tick(markets, pair)
         else:
             self._tick(markets, pair)
 
         self._strategy_ticker += 1
-        print('------------------------\n')
 
     def first_tick(self, markets: List[Market], pair: Pair) -> None:
         market = self.get_market(markets)
@@ -79,27 +78,16 @@ class HeikinAshiStrategy(Strategy):
         if len(candles) == 5:  # First and last candle can be cut in half, we dont need the first half-candle.
             candles.pop(0)
 
-        for c in candles:
-            print(c)
-
         first_candle = create_initial_heikin_ashi_candle(candles[0])
         self._second_previous_candle = candle_to_heikin_ashi(candles[1], first_candle)
         self._first_previous_candle = candle_to_heikin_ashi(candles[2], self._second_previous_candle)
         self._current_unfinished_candle = candle_to_heikin_ashi(candles[3], self._first_previous_candle)
-
-        print('\n')
-        print(first_candle)
-        print(self._first_previous_candle)
-        print(self._second_previous_candle)
-        print(self._current_unfinished_candle)
-        print('\n')
 
     def _tick(self, markets: List[Market], pair: Pair) -> None:
 
         market = self.get_market(markets)
         current_time = self._datetime_factory.now()
         interval = DateTimeInterval(current_time - 2 * self._candle_size.get_as_time_delta(), current_time)
-        print('Current time: ', current_time, 'interval', interval)
 
         candles = self._candle_storage.find_by(
             market_name=market.name,
@@ -114,30 +102,42 @@ class HeikinAshiStrategy(Strategy):
         if len(candles) == 3:  # First and last candle can be cut in half, we dont need the first half-candle.
             candles.pop(0)
 
-        print('current', self._current_unfinished_candle)
-
-        print(self._second_previous_candle)
-
         if self._second_previous_candle.is_bearish() and self._trend > -5:
-            print('BEARISH', self._second_previous_candle)
             self._trend -= 1
         if self._second_previous_candle.is_bullish() and self._trend < 5:
-            print('BULLISH', self._second_previous_candle)
             self._trend += 1
-
-        print('Trend: ', self._trend)
 
         if candles[0].time == self._current_unfinished_candle.time:
             self._second_previous_candle = self._first_previous_candle
             self._first_previous_candle = candle_to_heikin_ashi(candles[0], self._first_previous_candle)
             self._current_unfinished_candle = candle_to_heikin_ashi(candles[1], self._first_previous_candle)
 
+            logger.info(
+                '[{0}] Trend: {1}, HA_Candle(-1): {2}, HA_Candle(0): {3}`, '.format(
+                    self._strategy_ticker,
+                    self._trend,
+                    'BEAR' if self._first_previous_candle.is_bearish() else 'BULL',
+                    'BEAR' if self._second_previous_candle.is_bearish() else 'BULL'
+                )
+            )
+
             if (
                 self._trend > 0
                 and self._first_previous_candle.is_bearish()
                 and self._second_previous_candle.is_bearish()
             ):
-                print('SELL !!!')
+                order = Order(
+                    uuid.uuid4(),
+                    market.name,
+                    DIRECTION_BUY,
+                    self._datetime_factory.now(),
+                    pair,
+                    ORDER_TYPE_LIMIT,
+                    market.calculate_maximal_amount_to_buy(pair, self._last_signal.average_price),
+                    self._last_signal.average_price
+                )
+
+                market.place_order(order)
 
             if (
                 self._trend < 0
