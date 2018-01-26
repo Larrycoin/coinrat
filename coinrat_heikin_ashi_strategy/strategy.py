@@ -9,7 +9,8 @@ from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_
     NotEnoughBalanceToPerformOrderException
 from coinrat.event.event_emitter import EventEmitter
 from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_STRING, CONFIGURATION_STRUCTURE_TYPE_INT
-from .heikin_ashi_candle import HeikinAshiCandle
+from coinrat_heikin_ashi_strategy.heikin_ashi_candle import HeikinAshiCandle, candle_to_heikin_ashi, \
+    create_initial_heikin_ashi_candle
 
 STRATEGY_NAME = 'heikin_ashi'
 DEFAULT_CANDLE_SIZE_CONFIGURATION = '1-day'
@@ -74,10 +75,10 @@ class HeikinAshiStrategy(Strategy):
         if len(candles) == 5:  # First and last candle can be cut in half, we dont need the first half-candle.
             candles.pop(0)
 
-        first_candle = self.initial_candle_to_heikin_ashi(candles[0])
-        self._second_previous_candle = self.candle_to_heikin_ashi(candles[1], first_candle)
-        self._first_previous_candle = self.candle_to_heikin_ashi(candles[2], self._second_previous_candle)
-        self._current_unfinished_candle = self.candle_to_heikin_ashi(candles[3], self._first_previous_candle)
+        first_candle = create_initial_heikin_ashi_candle(candles[0])
+        self._second_previous_candle = candle_to_heikin_ashi(candles[1], first_candle)
+        self._first_previous_candle = candle_to_heikin_ashi(candles[2], self._second_previous_candle)
+        self._current_unfinished_candle = candle_to_heikin_ashi(candles[3], self._first_previous_candle)
 
     def _tick(self, markets: List[Market], pair: Pair) -> None:
         market = self.get_market(markets)
@@ -112,8 +113,8 @@ class HeikinAshiStrategy(Strategy):
 
         if candles[0].time == self._current_unfinished_candle.time:
             self._second_previous_candle = self._first_previous_candle
-            self._first_previous_candle = self.candle_to_heikin_ashi(candles[0], self._first_previous_candle)
-            self._current_unfinished_candle = self.candle_to_heikin_ashi(candles[1], self._first_previous_candle)
+            self._first_previous_candle = candle_to_heikin_ashi(candles[0], self._first_previous_candle)
+            self._current_unfinished_candle = candle_to_heikin_ashi(candles[1], self._first_previous_candle)
 
             # print(self._second_previous_candle)
             # print(self._first_previous_candle)
@@ -138,38 +139,6 @@ class HeikinAshiStrategy(Strategy):
         if len(markets) != 1:
             raise ValueError('HeikinAshiStrategy expects exactly one market. But {} given.'.format(len(markets)))
         return markets[0]
-
-    @staticmethod
-    def initial_candle_to_heikin_ashi(candle: Candle) -> HeikinAshiCandle:
-        return HeikinAshiCandle(
-            candle.market_name,
-            candle.pair,
-            candle.time,
-            open_price=(candle.open + candle.high + candle.low + candle.close) / 4,
-            high_price=candle.high,
-            low_price=candle.low,
-            close_price=(candle.open + candle.close) / 2,
-            candle_size=candle.candle_size
-        )
-
-    @staticmethod
-    def candle_to_heikin_ashi(candle: Candle, previous: HeikinAshiCandle) -> HeikinAshiCandle:
-        heikin_close = (candle.open + candle.high + candle.low + candle.close) / 4
-        heikin_open = (previous.open + previous.close) / 2
-        elements = numpy.array([candle.high, candle.low, heikin_open, heikin_close])
-        heikin_high = elements.max(0)
-        heikin_low = elements.min(0)
-
-        return HeikinAshiCandle(
-            candle.market_name,
-            candle.pair,
-            candle.time,
-            heikin_close,
-            heikin_high,
-            heikin_low,
-            heikin_open,
-            candle.candle_size
-        )
 
     @staticmethod
     def get_configuration_structure() -> Dict[str, Dict[str, str]]:

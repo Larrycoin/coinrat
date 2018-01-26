@@ -1,3 +1,5 @@
+import numpy
+
 from coinrat.domain.candle import Candle
 
 
@@ -12,4 +14,40 @@ class HeikinAshiCandle(Candle):
     """
 
     def __repr__(self):
-        return super().__repr__() + ' (HeikinAshiCandle)'
+        return super().__repr__() + ' (Heikin-Ashi)'
+
+
+def create_initial_heikin_ashi_candle(candle: Candle) -> HeikinAshiCandle:
+    """
+    As Heikin-Ashi candle refers to previous candle we have chicken-egg problem here.
+    Thi method is used to construct first candle in the series.
+    """
+    return HeikinAshiCandle(
+        candle.market_name,
+        candle.pair,
+        candle.time,
+        open_price=(candle.open + candle.high + candle.low + candle.close) / 4,
+        high_price=candle.high,
+        low_price=candle.low,
+        close_price=(candle.open + candle.close) / 2,
+        candle_size=candle.candle_size
+    )
+
+
+def candle_to_heikin_ashi(candle: Candle, previous: HeikinAshiCandle) -> HeikinAshiCandle:
+    heikin_close = (candle.open + candle.high + candle.low + candle.close) / 4
+    heikin_open = (previous.open + previous.close) / 2
+    elements = numpy.array([candle.high, candle.low, heikin_open, heikin_close])
+    heikin_high = elements.max(0)
+    heikin_low = elements.min(0)
+
+    return HeikinAshiCandle(
+        candle.market_name,
+        candle.pair,
+        candle.time,
+        heikin_close,
+        heikin_high,
+        heikin_low,
+        heikin_open,
+        candle.candle_size
+    )
