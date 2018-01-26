@@ -23,8 +23,8 @@ DUMMY_LIMIT_BUY_ORDER = Order(
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_LIMIT,
-    Decimal(1),
-    Decimal(8000)
+    Decimal('1'),
+    Decimal('8000')
 )
 DUMMY_MARKET_BUY_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
@@ -33,7 +33,7 @@ DUMMY_MARKET_BUY_ORDER = Order(
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_MARKET,
-    Decimal(1),
+    Decimal('1'),
     None
 )
 MY_BTC_BALANCE = 100
@@ -89,7 +89,7 @@ def test_invalid_order():
 
 def test_not_enough_balance():
     order = copy.deepcopy(DUMMY_LIMIT_BUY_ORDER)
-    order._quantity = Decimal(0.00001)
+    order._quantity = Decimal('0.00001')
 
     market = BittrexMarket(mock_client_v1(), mock_client_v2())
     with pytest.raises(NotEnoughBalanceToPerformOrderException):
@@ -106,11 +106,11 @@ def test_cancel_order():
 
 @pytest.mark.parametrize(['expected_open', 'expected_closed_at', 'expected_quantity_amount', 'bittrex_response'],
     [
-        (True, None, Decimal(0.00310976), OPEN_ORDER),
+        (True, None, Decimal('0.00310976'), OPEN_ORDER),
         (
             False,
             datetime.datetime(2017, 11, 26, 13, 8, 14, 497000, tzinfo=datetime.timezone.utc),
-            Decimal(0),
+            Decimal('0'),
             CLOSED_ORDER
         ),
     ]

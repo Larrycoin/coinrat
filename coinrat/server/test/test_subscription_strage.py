@@ -41,10 +41,10 @@ def test_subscription_can_be_found():
         'bar_market',
         Pair('USD', 'BTC'),
         date_in_interval,
-        Decimal(11000),
-        Decimal(11000),
-        Decimal(11000),
-        Decimal(11000)
+        Decimal('11000'),
+        Decimal('11000'),
+        Decimal('11000'),
+        Decimal('11000')
     )
 
     assert storage.find_subscriptions_for_event(EVENT_LAST_CANDLE_UPDATED)[0] == last_candle_subscription
@@ -65,10 +65,10 @@ def test_subscription_can_be_found():
                     'bar_market',
                     Pair('OMG', 'WTF'),
                     date_in_interval,
-                    Decimal(11000),
-                    Decimal(11000),
-                    Decimal(11000),
-                    Decimal(11000)
+                    Decimal('11000'),
+                    Decimal('11000'),
+                    Decimal('11000'),
+                    Decimal('11000')
                 )
             )
         }
@@ -82,10 +82,10 @@ def test_subscription_can_be_found():
                     'wtf_market',
                     Pair('USD', 'BTC'),
                     date_in_interval,
-                    Decimal(11000),
-                    Decimal(11000),
-                    Decimal(11000),
-                    Decimal(11000)
+                    Decimal('11000'),
+                    Decimal('11000'),
+                    Decimal('11000'),
+                    Decimal('11000')
                 )
             )
         }
@@ -144,6 +144,6 @@ def _crate_serialized_order(pair: Pair, market_name: str, created_at: datetime.d
             created_at,
             pair,
             ORDER_TYPE_LIMIT,
-            Decimal(1),
-            Decimal(11000)
+            Decimal('1'),
+            Decimal('11000')
         ))

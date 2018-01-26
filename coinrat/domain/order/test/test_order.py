@@ -14,8 +14,8 @@ DUMMY_ORDER_OPEN = Order(
     datetime.datetime(2017, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc),
     Pair('USD', 'BTC'),
     ORDER_TYPE_LIMIT,
-    Decimal(2),
-    Decimal(9000),
+    Decimal('2'),
+    Decimal('9000'),
     'bbb-id-from-market',
 )
 
@@ -61,7 +61,7 @@ def test_canceled_order():
 
 
 def test_order_info():
-    order_info = OrderMarketInfo(DUMMY_ORDER_OPEN, True, None, Decimal(1))
+    order_info = OrderMarketInfo(DUMMY_ORDER_OPEN, True, None, Decimal('1'))
 
     assert DUMMY_ORDER_OPEN == order_info.order
     assert 'Order Id: "16fd2706-8baf-433b-82eb-8c7fada847db", OPEN, Closed at: "", Remaining quantity: "1"' \

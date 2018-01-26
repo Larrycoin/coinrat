@@ -113,10 +113,10 @@ class MockMarket(Market):
         }
 
     def get_pair_market_info(self, pair: Pair) -> PairMarketInfo:
-        return PairMarketInfo(pair, Decimal(0.004))
+        return PairMarketInfo(pair, Decimal('0.004'))
 
     def get_order_status(self, order: Order) -> OrderMarketInfo:
-        return OrderMarketInfo(order, is_open=order.is_open, closed_at=order.closed_at, quantity_remaining=Decimal(0))
+        return OrderMarketInfo(order, is_open=order.is_open, closed_at=order.closed_at, quantity_remaining=Decimal('0'))
 
     @property
     def name(self) -> str:
@@ -132,7 +132,7 @@ class MockMarket(Market):
 
     def get_balance(self, currency: str) -> Balance:
         if currency not in self._balances:
-            self._balances[currency] = Decimal(0)
+            self._balances[currency] = Decimal('0')
 
         return Balance(MARKET_NAME, currency, self._balances[currency])
 
@@ -179,13 +179,13 @@ class MockMarket(Market):
 
     def _initialize_balances(self, pair: Pair) -> None:
         if pair.base_currency not in self._balances:
-            self._balances[pair.base_currency] = Decimal(0)
+            self._balances[pair.base_currency] = Decimal('0')
         if pair.market_currency not in self._balances:
-            self._balances[pair.market_currency] = Decimal(0)
+            self._balances[pair.market_currency] = Decimal('0')
 
     def _process_buy(self, fee: Decimal, order: Order) -> None:
         max_to_buy = self.calculate_maximal_amount_to_buy(order.pair, order.rate)
-        if max_to_buy == Decimal(0) or max_to_buy < order.quantity:
+        if max_to_buy == Decimal('0') or max_to_buy < order.quantity:
             raise NotEnoughBalanceToPerformOrderException(
                 'Max to buy is {}, you want to buy {}'.format(max_to_buy, order.quantity)
             )
@@ -194,7 +194,7 @@ class MockMarket(Market):
 
     def _process_sell(self, fee: Decimal, order: Order) -> None:
         max_to_sell = self.calculate_maximal_amount_to_sell(order.pair)
-        if max_to_sell == Decimal(0) or max_to_sell < order.quantity:
+        if max_to_sell == Decimal('0') or max_to_sell < order.quantity:
             raise NotEnoughBalanceToPerformOrderException(
                 'Max to sell is {}, you want to sell {}'.format(max_to_sell, order.quantity)
             )

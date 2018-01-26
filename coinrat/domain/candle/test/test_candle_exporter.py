@@ -15,10 +15,10 @@ def test_candle_export_import():
         'dummy_market',
         pair,
         datetime.datetime(2017, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
-        Decimal(1000),
-        Decimal(2000),
-        Decimal(3000),
-        Decimal(4000)
+        Decimal('1000'),
+        Decimal('2000'),
+        Decimal('3000'),
+        Decimal('4000')
     )
 
     storage = flexmock()

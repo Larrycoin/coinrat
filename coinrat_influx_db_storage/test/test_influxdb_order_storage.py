@@ -20,8 +20,8 @@ DUMMY_ORDER = Order(
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_LIMIT,
-    Decimal(1),
-    Decimal(8000),
+    Decimal('1'),
+    Decimal('8000'),
     'aaa-id-from-market'
 )
 
@@ -125,8 +125,8 @@ def test_find_last_order(influx_database: InfluxDBClient):
         datetime.datetime(2017, 11, 26, 10, 11, 13, tzinfo=datetime.timezone.utc),
         BTC_USD_PAIR,
         ORDER_TYPE_LIMIT,
-        Decimal(1),
-        Decimal(8000),
+        Decimal('1'),
+        Decimal('8000'),
         'aaa-id-from-market'
     )
     storage.save_order(later_order)
@@ -144,8 +144,8 @@ def create_dummy_data(influx_database: InfluxDBClient):
         datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
         BTC_USD_PAIR,
         ORDER_TYPE_LIMIT,
-        Decimal(1),
-        Decimal(8000),
+        Decimal('1'),
+        Decimal('8000'),
         'aaa-id-from-market',
         ORDER_STATUS_OPEN
     ))
@@ -156,8 +156,8 @@ def create_dummy_data(influx_database: InfluxDBClient):
         datetime.datetime(2017, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc),
         BTC_USD_PAIR,
         ORDER_TYPE_LIMIT,
-        Decimal(2),
-        Decimal(9000),
+        Decimal('2'),
+        Decimal('9000'),
         'bbb-id-from-market',
         ORDER_STATUS_CLOSED
     ))

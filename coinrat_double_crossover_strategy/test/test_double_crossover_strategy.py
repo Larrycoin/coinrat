@@ -22,8 +22,8 @@ DUMMY_CLOSED_ORDER = Order(
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_LIMIT,
-    Decimal(1),
-    Decimal(8000),
+    Decimal('1'),
+    Decimal('8000'),
     'aaa-id-from-market',
     ORDER_STATUS_CLOSED,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc)
@@ -35,8 +35,8 @@ DUMMY_OPEN_ORDER = Order(
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
     BTC_USD_PAIR,
     ORDER_TYPE_LIMIT,
-    Decimal(1),
-    Decimal(8000),
+    Decimal('1'),
+    Decimal('8000'),
     'aaa-id-from-market'
 )
 
@@ -52,7 +52,7 @@ DUMMY_OPEN_ORDER = Order(
 def test_number_of_markets_validation(error: bool, markets: List[Union[Market, Mock]]):
     candle_storage = flexmock()
     candle_storage.should_receive('mean').and_return(0).mock()
-    candle_storage.should_receive('get_last_minute_candle').and_return(flexmock(average_price=Decimal(8000)))
+    candle_storage.should_receive('get_last_minute_candle').and_return(flexmock(average_price=Decimal('8000')))
 
     if len(markets) == 1:  # Flexmock is not working properly with @pytest.mark.parametrize (MethodSignatureError)
         markets = [markets[0].should_receive('name').and_return(DUMMY_MARKET_NAME).mock()]
@@ -189,7 +189,7 @@ def test_sending_signal(
 def test_not_enough_balance_logs_warning():
     candle_storage = flexmock()
     candle_storage.should_receive('mean').and_return(8000).and_return(7900).and_return(8000).and_return(8100)
-    candle_storage.should_receive('get_last_minute_candle').and_return(flexmock(average_price=Decimal(Decimal(8000))))
+    candle_storage.should_receive('get_last_minute_candle').and_return(flexmock(average_price=Decimal(Decimal('8000'))))
 
     market = create_market_mock()
     market.should_receive('place_order').and_raise(NotEnoughBalanceToPerformOrderException)
@@ -217,14 +217,14 @@ CLOSED_ORDER_INFO = OrderMarketInfo(
     order=DUMMY_OPEN_ORDER,
     is_open=False,
     closed_at=datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
-    quantity_remaining=Decimal(0)
+    quantity_remaining=Decimal('0')
 )
 
 STILL_OPEN_ORDER_INFO = OrderMarketInfo(
     order=DUMMY_OPEN_ORDER,
     is_open=True,
     closed_at=None,
-    quantity_remaining=Decimal(1)
+    quantity_remaining=Decimal('1')
 )
 
 
@@ -237,7 +237,7 @@ STILL_OPEN_ORDER_INFO = OrderMarketInfo(
 def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int, markets_order_info: OrderMarketInfo):
     candle_storage = flexmock()
     candle_storage.should_receive('mean').and_return(8000).and_return(7900)
-    candle_storage.should_receive('get_last_minute_candle').and_return(flexmock(average_price=Decimal(Decimal(8000))))
+    candle_storage.should_receive('get_last_minute_candle').and_return(flexmock(average_price=Decimal(Decimal('8000'))))
 
     order_storage = create_order_storage_mock()
     order_storage.should_receive('find_by').and_return([DUMMY_OPEN_ORDER])
@@ -262,12 +262,12 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
 
 def create_market_mock() -> Union[Market, Mock]:
     market = flexmock(
-        transaction_taker_fee=Decimal(0.0025),
-        transaction_makerfee=Decimal(0.0025),
+        transaction_taker_fee=Decimal('0.0025'),
+        transaction_makerfee=Decimal('0.0025'),
         name=DUMMY_MARKET_NAME
     )
-    market.should_receive('calculate_maximal_amount_to_buy').and_return(Decimal(1))
-    market.should_receive('calculate_maximal_amount_to_sell').and_return(Decimal(1))
+    market.should_receive('calculate_maximal_amount_to_buy').and_return(Decimal('1'))
+    market.should_receive('calculate_maximal_amount_to_sell').and_return(Decimal('1'))
     return market
 
 

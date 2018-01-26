@@ -13,10 +13,10 @@ DUMMY_CANDLE = Candle(
     '',
     BTC_USD_PAIR,
     datetime.datetime(2017, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
-    Decimal(8000),
-    Decimal(8000),
-    Decimal(8000),
-    Decimal(8000)
+    Decimal('8000'),
+    Decimal('8000'),
+    Decimal('8000'),
+    Decimal('8000')
 )
 
 

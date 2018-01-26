@@ -30,11 +30,11 @@ class BittrexMarket(Market):
 
     @property
     def transaction_taker_fee(self) -> Decimal:
-        return Decimal(0.0025)
+        return Decimal('0.0025')
 
     @property
     def transaction_maker_fee(self) -> Decimal:
-        return Decimal(0.0025)
+        return Decimal('0.0025')
 
     def get_balance(self, currency: str) -> Balance:
         currency = self._convert_currency_code_to_bittrex_format(currency)
@@ -117,7 +117,7 @@ class BittrexMarket(Market):
         if closed_at is not None:
             closed_at = dateutil.parser.parse(closed_at).replace(tzinfo=datetime.timezone.utc)
 
-        return OrderMarketInfo(order, info_data['IsOpen'], closed_at, Decimal(info_data['QuantityRemaining']))
+        return OrderMarketInfo(order, info_data['IsOpen'], closed_at, Decimal(str(info_data['QuantityRemaining'])))
 
     def cancel_order(self, order_id: str) -> None:
         result = self._client_v1.cancel(order_id)

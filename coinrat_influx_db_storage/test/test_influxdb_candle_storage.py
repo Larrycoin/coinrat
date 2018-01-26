@@ -28,7 +28,7 @@ def test_find_by_for_bigger_candles(influx_database: InfluxDBClient):
 
     time1 = datetime.datetime(2017, 7, 2, 0, 1, 0, tzinfo=datetime.timezone.utc)
     storage.write_candles([
-        Candle(DUMMY_MARKET, BTC_USD_PAIR, time1, Decimal(100), Decimal(220), Decimal(90), Decimal(200)),
+        Candle(DUMMY_MARKET, BTC_USD_PAIR, time1, Decimal('100'), Decimal('220'), Decimal('90'), Decimal('200')),
     ])
 
     candle = storage.find_by(
@@ -37,15 +37,15 @@ def test_find_by_for_bigger_candles(influx_database: InfluxDBClient):
         candle_size=CandleSize(CANDLE_SIZE_UNIT_HOUR, 1)
     )[0]
 
-    assert candle.open == Decimal(100)
-    assert candle.high == Decimal(220)
-    assert candle.low == Decimal(90)
-    assert candle.close == Decimal(200)
+    assert candle.open == Decimal('100')
+    assert candle.high == Decimal('220')
+    assert candle.low == Decimal('90')
+    assert candle.close == Decimal('200')
     assert str(candle.candle_size) == 'CandleSize: 1-hour'
 
     time2 = datetime.datetime(2017, 7, 2, 0, 2, 0, tzinfo=datetime.timezone.utc)
     storage.write_candles([
-        Candle(DUMMY_MARKET, BTC_USD_PAIR, time2, Decimal(0), Decimal(320), Decimal(50), Decimal(400)),
+        Candle(DUMMY_MARKET, BTC_USD_PAIR, time2, Decimal('0'), Decimal('320'), Decimal('50'), Decimal('400')),
     ])
 
     candle = storage.find_by(
@@ -54,10 +54,10 @@ def test_find_by_for_bigger_candles(influx_database: InfluxDBClient):
         candle_size=CandleSize(CANDLE_SIZE_UNIT_HOUR, 1)
     )[0]
 
-    assert candle.open == Decimal(100)
-    assert candle.high == Decimal(320)
-    assert candle.low == Decimal(50)
-    assert candle.close == Decimal(400)
+    assert candle.open == Decimal('100')
+    assert candle.high == Decimal('320')
+    assert candle.low == Decimal('50')
+    assert candle.close == Decimal('400')
     assert str(candle.candle_size) == 'CandleSize: 1-hour'
 
 
@@ -141,8 +141,8 @@ def _create_dummy_candle(minute: int = 0, close: int = 8300) -> Candle:
         DUMMY_MARKET,
         BTC_USD_PAIR,
         datetime.datetime(2017, 7, 2, 0, minute, 0, tzinfo=datetime.timezone.utc),
-        Decimal(8000),
-        Decimal(8100),
-        Decimal(8200),
+        Decimal('8000'),
+        Decimal('8100'),
+        Decimal('8200'),
         Decimal(close)
     )

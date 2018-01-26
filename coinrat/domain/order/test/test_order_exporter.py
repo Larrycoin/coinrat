@@ -22,8 +22,8 @@ def test_order_export_import():
         datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
         pair,
         ORDER_TYPE_LIMIT,
-        Decimal(1),
-        Decimal(8000),
+        Decimal('1'),
+        Decimal('8000'),
         'aaa-id-from-market'
     )
 
