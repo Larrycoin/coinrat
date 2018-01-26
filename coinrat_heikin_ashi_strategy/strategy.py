@@ -49,25 +49,29 @@ class HeikinAshiStrategy(Strategy):
         self._trend = 0
 
     def tick(self, markets: List[Market], pair: Pair) -> None:
+        print(self._strategy_ticker)
+        print('------------------------')
         if self._strategy_ticker == 0:
             self.first_tick(markets, pair)
         else:
             self._tick(markets, pair)
 
         self._strategy_ticker += 1
+        print('------------------------\n')
 
     def first_tick(self, markets: List[Market], pair: Pair) -> None:
         market = self.get_market(markets)
 
-        start_time = self._datetime_factory.now()
+        current_time = self._datetime_factory.now()
+        interval = DateTimeInterval(current_time - 4 * self._candle_size.get_as_time_delta(), current_time)
+        print('Current time: ', current_time, 'interval', interval)
+
         candles = self._candle_storage.find_by(
             market_name=market.name,
             pair=pair,
-            interval=DateTimeInterval(start_time - 4 * self._candle_size.get_as_time_delta(), start_time),
+            interval=interval,
             candle_size=self._candle_size
         )
-
-        print(candles)
 
         assert len(candles) in [4, 5], \
             'Expected to get at 4 or 5 candles, but only {} given. Do you have enough data?'.format(len(candles))
@@ -75,18 +79,32 @@ class HeikinAshiStrategy(Strategy):
         if len(candles) == 5:  # First and last candle can be cut in half, we dont need the first half-candle.
             candles.pop(0)
 
+        for c in candles:
+            print(c)
+
         first_candle = create_initial_heikin_ashi_candle(candles[0])
         self._second_previous_candle = candle_to_heikin_ashi(candles[1], first_candle)
         self._first_previous_candle = candle_to_heikin_ashi(candles[2], self._second_previous_candle)
         self._current_unfinished_candle = candle_to_heikin_ashi(candles[3], self._first_previous_candle)
 
+        print('\n')
+        print(first_candle)
+        print(self._first_previous_candle)
+        print(self._second_previous_candle)
+        print(self._current_unfinished_candle)
+        print('\n')
+
     def _tick(self, markets: List[Market], pair: Pair) -> None:
+
         market = self.get_market(markets)
         current_time = self._datetime_factory.now()
+        interval = DateTimeInterval(current_time - 2 * self._candle_size.get_as_time_delta(), current_time)
+        print('Current time: ', current_time, 'interval', interval)
+
         candles = self._candle_storage.find_by(
             market_name=market.name,
             pair=pair,
-            interval=DateTimeInterval(current_time - 2 * self._candle_size.get_as_time_delta(), current_time),
+            interval=interval,
             candle_size=self._candle_size
         )
 
@@ -96,17 +114,15 @@ class HeikinAshiStrategy(Strategy):
         if len(candles) == 3:  # First and last candle can be cut in half, we dont need the first half-candle.
             candles.pop(0)
 
-        print('------------------------')
         print('current', self._current_unfinished_candle)
-        # print('len: ', len(candles))
-        # print(candles[0])
-        # print(candles[1])
 
         print(self._second_previous_candle)
 
         if self._second_previous_candle.is_bearish() and self._trend > -5:
+            print('BEARISH', self._second_previous_candle)
             self._trend -= 1
         if self._second_previous_candle.is_bullish() and self._trend < 5:
+            print('BULLISH', self._second_previous_candle)
             self._trend += 1
 
         print('Trend: ', self._trend)
@@ -115,10 +131,6 @@ class HeikinAshiStrategy(Strategy):
             self._second_previous_candle = self._first_previous_candle
             self._first_previous_candle = candle_to_heikin_ashi(candles[0], self._first_previous_candle)
             self._current_unfinished_candle = candle_to_heikin_ashi(candles[1], self._first_previous_candle)
-
-            # print(self._second_previous_candle)
-            # print(self._first_previous_candle)
-            # print(self._first_previous_candle.has_upper_wick())
 
             if (
                 self._trend > 0

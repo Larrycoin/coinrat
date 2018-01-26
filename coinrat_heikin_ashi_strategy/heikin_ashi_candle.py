@@ -26,10 +26,10 @@ def create_initial_heikin_ashi_candle(candle: Candle) -> HeikinAshiCandle:
         candle.market_name,
         candle.pair,
         candle.time,
-        open_price=(candle.open + candle.high + candle.low + candle.close) / 4,
+        open_price=(candle.open + candle.close) / 2,
         high_price=candle.high,
         low_price=candle.low,
-        close_price=(candle.open + candle.close) / 2,
+        close_price=(candle.open + candle.high + candle.low + candle.close) / 4,
         candle_size=candle.candle_size
     )
 
