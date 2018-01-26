@@ -208,7 +208,7 @@ def test_not_enough_balance_logs_warning():
             'short_average_interval': 15 * 60,
         }
     )
-    flexmock(logging).should_receive('warning').once()
+    flexmock(logging.getLogger('coinrat_double_crossover_strategy.strategy')).should_receive('warning').once()
     strategy.tick([market], BTC_USD_PAIR)
     strategy.tick([market], BTC_USD_PAIR)
 
