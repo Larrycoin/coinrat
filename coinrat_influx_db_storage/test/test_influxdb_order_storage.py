@@ -1,6 +1,7 @@
 from uuid import UUID
 
-import pytest, datetime
+import pytest
+import datetime
 from decimal import Decimal
 from influxdb import InfluxDBClient
 
