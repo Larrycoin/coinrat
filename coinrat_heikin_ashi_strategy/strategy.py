@@ -1,12 +1,11 @@
 import logging
 import uuid
-from typing import Union, Tuple, List, Dict
+from typing import Union, List, Dict
 
-from coinrat.domain import Strategy, Pair, Market, MarketOrderException, StrategyConfigurationException, \
-    DateTimeFactory, DateTimeInterval
-from coinrat.domain.candle import Candle, CandleStorage, deserialize_candle_size, CandleSize
-from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, \
-    NotEnoughBalanceToPerformOrderException, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET
+from coinrat.domain import Strategy, Pair, Market, DateTimeFactory, DateTimeInterval
+from coinrat.domain.candle import CandleStorage, deserialize_candle_size, CandleSize
+from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_TYPE_LIMIT, \
+    NotEnoughBalanceToPerformOrderException
 from coinrat.event.event_emitter import EventEmitter
 from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_STRING, CONFIGURATION_STRUCTURE_TYPE_INT
 from coinrat_heikin_ashi_strategy.heikin_ashi_candle import HeikinAshiCandle, candle_to_heikin_ashi, \
@@ -24,9 +23,6 @@ class HeikinAshiStrategy(Strategy):
         @link https://quantiacs.com/Blog/Intro-to-Algorithmic-Trading-with-Heikin-Ashi.aspx
         @link http://www.humbletraders.com/heikin-ashi-trading-strategy/
     """
-
-    def get_seconds_delay_between_runs(self) -> float:
-        return self._candle_size.get_as_time_delta().total_seconds()
 
     def __init__(
         self,
@@ -50,20 +46,22 @@ class HeikinAshiStrategy(Strategy):
         self._current_unfinished_candle: Union[HeikinAshiCandle, None] = None
         self._trend = 0
 
+    def get_seconds_delay_between_runs(self) -> float:
+        return self._candle_size.get_as_time_delta().total_seconds()
+
     def tick(self, markets: List[Market], pair: Pair) -> None:
         if self._strategy_ticker == 0:
-            self.first_tick(markets, pair)
+            self.first_tick_initialize_strategy_data(markets, pair)
         else:
             self._tick(markets, pair)
 
         self._strategy_ticker += 1
 
-    def first_tick(self, markets: List[Market], pair: Pair) -> None:
+    def first_tick_initialize_strategy_data(self, markets: List[Market], pair: Pair) -> None:
         market = self.get_market(markets)
 
         current_time = self._datetime_factory.now()
         interval = DateTimeInterval(current_time - 4 * self._candle_size.get_as_time_delta(), current_time)
-        print('Current time: ', current_time, 'interval', interval)
 
         candles = self._candle_storage.find_by(
             market_name=market.name,
@@ -102,49 +100,70 @@ class HeikinAshiStrategy(Strategy):
         if len(candles) == 3:  # First and last candle can be cut in half, we dont need the first half-candle.
             candles.pop(0)
 
-        if self._second_previous_candle.is_bearish() and self._trend > -5:
-            self._trend -= 1
-        if self._second_previous_candle.is_bullish() and self._trend < 5:
-            self._trend += 1
+        self.update_trend()
 
         if candles[0].time == self._current_unfinished_candle.time:
             self._second_previous_candle = self._first_previous_candle
             self._first_previous_candle = candle_to_heikin_ashi(candles[0], self._first_previous_candle)
             self._current_unfinished_candle = candle_to_heikin_ashi(candles[1], self._first_previous_candle)
 
-            logger.info(
-                '[{0}] Trend: {1}, HA_Candle(-1): {2}, HA_Candle(0): {3}`, '.format(
-                    self._strategy_ticker,
-                    self._trend,
-                    'BEAR' if self._first_previous_candle.is_bearish() else 'BULL',
-                    'BEAR' if self._second_previous_candle.is_bearish() else 'BULL'
-                )
+            self.log_tick()
+
+            try:
+                self.check_for_buy_or_sell(market, pair)
+            except NotEnoughBalanceToPerformOrderException as e:
+                # Intentionally, this strategy does not need state of order,
+                # just ignores buy/sell and waits for next signal.
+                logger.warning(e)
+
+    def update_trend(self):
+        if self._second_previous_candle.is_bearish() and self._trend > -5:
+            self._trend -= 1
+        if self._second_previous_candle.is_bullish() and self._trend < 5:
+            self._trend += 1
+
+    def check_for_buy_or_sell(self, market: Market, pair: Pair) -> None:
+        if (
+            self._trend > 0
+            and self._first_previous_candle.is_bearish()
+            and self._second_previous_candle.is_bearish()
+        ):
+            self.create_order(market, pair, DIRECTION_SELL)
+        if (
+            self._trend < 0
+            and self._first_previous_candle.is_bullish()
+            and self._second_previous_candle.is_bullish()
+        ):
+            self.create_order(market, pair, DIRECTION_BUY)
+
+    def create_order(self, market: Market, pair: Pair, direction: str):
+        current_price = market.get_current_price(pair)
+        logger.info(direction.upper() + 'ING at price: ' + str(current_price))
+        order = Order(
+            uuid.uuid4(),
+            market.name,
+            direction,
+            self._datetime_factory.now(),
+            pair,
+            ORDER_TYPE_LIMIT,
+            market.calculate_maximal_amount_to_buy(pair, current_price) \
+                if direction is DIRECTION_BUY \
+                else market.calculate_maximal_amount_to_sell(pair),
+            current_price
+        )
+        market.place_order(order)
+        self._event_emitter.emit_new_order(self._order_storage.name, order)
+        self._order_storage.save_order(order)
+
+    def log_tick(self) -> None:
+        logger.info(
+            '[{0}] Trend: {1}, HA_Candle(-1): {2}, HA_Candle(0): {3}`, '.format(
+                self._strategy_ticker,
+                self._trend,
+                'BEAR' if self._first_previous_candle.is_bearish() else 'BULL',
+                'BEAR' if self._second_previous_candle.is_bearish() else 'BULL'
             )
-
-            if (
-                self._trend > 0
-                and self._first_previous_candle.is_bearish()
-                and self._second_previous_candle.is_bearish()
-            ):
-                order = Order(
-                    uuid.uuid4(),
-                    market.name,
-                    DIRECTION_BUY,
-                    self._datetime_factory.now(),
-                    pair,
-                    ORDER_TYPE_LIMIT,
-                    market.calculate_maximal_amount_to_buy(pair, self._last_signal.average_price),
-                    self._last_signal.average_price
-                )
-
-                market.place_order(order)
-
-            if (
-                self._trend < 0
-                and self._first_previous_candle.is_bullish()
-                and self._second_previous_candle.is_bullish()
-            ):
-                print('BUY !!!')
+        )
 
     @staticmethod
     def get_market(markets: List[Market]):
@@ -160,14 +179,7 @@ class HeikinAshiStrategy(Strategy):
                 'title': 'Candle size',
                 'default': DEFAULT_CANDLE_SIZE_CONFIGURATION,
                 'unit': '',
-            },
-            'delay': {
-                'type': CONFIGURATION_STRUCTURE_TYPE_INT,
-                'title': 'Disable sleep by setting this to 0',
-                'default': 1,
-                'unit': 'seconds',
-                'hidden': True,
-            },
+            }
         }
 
     @staticmethod
