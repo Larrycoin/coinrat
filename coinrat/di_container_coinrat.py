@@ -1,4 +1,6 @@
 import os
+
+import MySQLdb
 import pika
 
 from .di_container import DiContainer
@@ -93,6 +95,15 @@ class DiContainerCoinrat(DiContainer):
             'subscription_storage': {
                 'instance': None,
                 'factory': lambda: SubscriptionStorage(),
+            },
+            'mysql_connection': {
+                'instance': None,
+                'factory': lambda: MySQLdb.connect(
+                    host=os.environ.get('MYSQL_HOST'),
+                    database=os.environ.get('MYSQL_DATABASE'),
+                    user=os.environ.get('MYSQL_USER'),
+                    password=os.environ.get('MYSQL_PASSWORD'),
+                ),
             }
         }
 

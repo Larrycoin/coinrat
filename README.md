@@ -17,9 +17,10 @@ to help with running simulations and to visualize results.
     * Make sure that socket server is **NEVER** accessible from the internet.
 
 ## Installation
-* Coinrat core-platform has dependency only on **Python** :snake: (and bunch of packages) and **RabbitMQ** :rabbit:.
+* Coinrat core-platform has dependency on **Python** :snake: (and bunch of packages), MySQL :memo: and **RabbitMQ** :rabbit:.
     * Minimum Python version : **3.6.3**!
     * Following [official instructions](https://www.rabbitmq.com/install-debian.html) to install RabbitMQ.
+    * Install your preferred MySQL database (MySQL, MariaDB, Percona, ...) and create `coinrat` database and user wit write access for it. Add configuration into `.env`
 
 * If you want to use default storage plugins (recommended), you will need **Influx DB**.
     * Install by the instructions: [here](https://portal.influxdata.com/downloads#influxdb) or [here](https://github.com/influxdata/influxdb)
@@ -79,11 +80,15 @@ Once we have data you can see them in the UI-App.
 Run one of default strategies with this command: `python -m coinrat run_strategy double_crossover USD BTC bittrex --candle_storage influx_db --order_storage influx_db_orders-A` 
 
 ## Troubleshooting
+* During installation I got: `OSError: mysql_config not found`
+    * You need to install: `sudo apt-get install libmysqlclient-dev`
+
 * `ERROR: For market "bittrex" no candles in storage "influx_db".` 
     * Strategy has no data for given market in given storage.
     * Make sure you have synchronizer running. 
     * Or, that you have data in the storage for given time period in case you are attempting to run simulation.
-    * Or, your time interval somewhere is too small.   
+    * Or, your time interval somewhere is too small.
+   
 * In UI-App (1-minute view) every second candle is missing.
     * You are using `bittrex` synchronizer that uses native Bittrex API. This is known issue, see [#29](https://github.com/Achse/coinrat/issues/29) for more info and workaround.
 
