@@ -2,7 +2,8 @@ import logging
 import uuid
 from typing import Union, List, Dict
 
-from coinrat.domain import Strategy, Pair, Market, DateTimeFactory, DateTimeInterval
+from coinrat.domain import Pair, Market, DateTimeFactory, DateTimeInterval
+from coinrat.domain.strategy import Strategy
 from coinrat.domain.candle import CandleStorage, deserialize_candle_size, CandleSize
 from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_TYPE_LIMIT, \
     NotEnoughBalanceToPerformOrderException

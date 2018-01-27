@@ -1,11 +1,11 @@
 import pluggy
 from typing import List, Set
 
-from coinrat.domain.order import OrderStorage
 from coinrat.domain import DateTimeFactory
+from coinrat.domain.order import OrderStorage
+from coinrat.domain.strategy import Strategy
 from coinrat.event.event_emitter import EventEmitter
 from .plugins import PluginSpecification, plugins_loader
-from .domain import Strategy
 from .domain.candle import CandleStorage
 
 get_available_strategies_spec = pluggy.HookspecMarker('coinrat_plugins')

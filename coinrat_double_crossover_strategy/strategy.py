@@ -6,8 +6,9 @@ from decimal import Decimal
 
 import math
 
-from coinrat.domain import Strategy, Pair, Market, MarketOrderException, StrategyConfigurationException, \
-    DateTimeFactory, DateTimeInterval
+from coinrat.domain import Pair, Market, MarketOrderException, StrategyConfigurationException, DateTimeFactory, \
+    DateTimeInterval
+from coinrat.domain.strategy import Strategy
 from coinrat.domain.candle import CandleStorage, CANDLE_STORAGE_FIELD_CLOSE
 from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, \
     NotEnoughBalanceToPerformOrderException, ORDER_TYPE_LIMIT

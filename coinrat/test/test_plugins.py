@@ -2,14 +2,15 @@ import datetime
 import pytest
 from flexmock import flexmock
 
+from coinrat.domain import Market, MarketStateSynchronizer
+from coinrat.domain.order import OrderStorage
+from coinrat.domain.candle import CandleStorage
+from coinrat.domain.strategy import Strategy
 from coinrat.market_plugins import MarketPlugins, MarketNotProvidedByAnyPluginException
 from coinrat.candle_storage_plugins import CandleStoragePlugins, CandleStorageNotProvidedByAnyPluginException
 from coinrat.strategy_plugins import StrategyPlugins, StrategyNotProvidedByAnyPluginException
 from coinrat.synchronizer_plugins import SynchronizerPlugins, SynchronizerNotProvidedByAnyPluginException
-from coinrat.domain import Strategy, Market, MarketStateSynchronizer
-from coinrat.domain.order import OrderStorage
 from coinrat.order_storage_plugins import OrderStoragePlugins, OrderStorageNotProvidedByAnyPluginException
-from coinrat.domain.candle import CandleStorage
 
 
 def test_synchronizer_plugins():
