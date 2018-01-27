@@ -1,8 +1,5 @@
 import pluggy
-from flexmock import flexmock
-
 from coinrat.market_plugins import MarketPluginSpecification
-from coinrat.domain import DateTimeFactory
 from .market import MARKET_NAME, MockMarket
 
 get_name_impl = pluggy.HookimplMarker('market_plugins')

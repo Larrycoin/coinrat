@@ -1,7 +1,8 @@
 from decimal import Decimal
 from typing import Dict, List
 
-from coinrat.domain import Market, Balance, Pair, PairMarketInfo, DateTimeFactory, serialize_pair
+from coinrat.domain import Balance, Pair, DateTimeFactory, serialize_pair
+from coinrat.domain.market import Market, PairMarketInfo
 from coinrat.domain.order import ORDER_TYPE_LIMIT, Order, OrderMarketInfo, ORDER_TYPE_MARKET, \
     NotEnoughBalanceToPerformOrderException
 from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_STRING, \

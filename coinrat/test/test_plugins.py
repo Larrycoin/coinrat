@@ -1,8 +1,8 @@
-import datetime
 import pytest
 from flexmock import flexmock
 
-from coinrat.domain import Market, MarketStateSynchronizer
+from coinrat.domain import MarketStateSynchronizer
+from coinrat.domain.market import Market
 from coinrat.domain.order import OrderStorage
 from coinrat.domain.candle import CandleStorage
 from coinrat.domain.strategy import Strategy

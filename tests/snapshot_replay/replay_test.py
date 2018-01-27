@@ -12,7 +12,8 @@ from influxdb import InfluxDBClient
 
 from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage
 from coinrat_influx_db_storage.order_storage import OrderInnoDbStorage
-from coinrat.domain import Pair, FrozenDateTimeFactory, DateTimeFactory, Strategy, Market
+from coinrat.domain import Pair, FrozenDateTimeFactory, DateTimeFactory, Strategy
+from coinrat.domain.market import Market
 from coinrat.domain.candle import CandleExporter
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 from coinrat_mock.market import MockMarket

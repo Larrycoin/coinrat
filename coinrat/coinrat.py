@@ -12,8 +12,8 @@ from os.path import join, dirname
 from click import Context
 from dotenv import load_dotenv
 
-from coinrat.domain import Market
 from coinrat.domain.candle import CandleExporter
+from coinrat.domain.market import Market
 from coinrat.domain import CurrentUtcDateTimeFactory
 from coinrat.domain import Pair, ForEndUserException, DateTimeInterval
 from coinrat.domain.order import OrderExporter

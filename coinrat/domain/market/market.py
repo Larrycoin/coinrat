@@ -2,8 +2,8 @@ from decimal import Decimal
 from typing import Union, Dict, List
 
 from coinrat.domain import Balance
-from .order import Order, OrderMarketInfo
-from .pair import Pair
+from coinrat.domain.order import Order, OrderMarketInfo
+from coinrat.domain.pair import Pair
 
 
 class MarketOrderException(Exception):

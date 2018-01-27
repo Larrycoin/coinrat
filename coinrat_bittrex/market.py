@@ -1,16 +1,17 @@
 import datetime
 import logging
 import uuid
-
 import dateutil.parser
+
 from typing import Dict, List
 from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, TICKINTERVAL_ONEMIN
 
 from decimal import Decimal
+from coinrat.domain import Balance, Pair, MarketPairDoesNotExistsException
 from coinrat.domain.candle import Candle
-from coinrat.domain import Market, Balance, Pair, PairMarketInfo, MarketPairDoesNotExistsException, MarketOrderException
-from coinrat.domain.order import Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, \
-    NotEnoughBalanceToPerformOrderException, OrderMarketInfo
+from coinrat.domain.market import Market, PairMarketInfo, MarketOrderException
+from coinrat.domain.order import Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, NotEnoughBalanceToPerformOrderException, \
+    OrderMarketInfo
 
 MARKET_NAME = 'bittrex'
 

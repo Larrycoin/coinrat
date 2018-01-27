@@ -2,7 +2,8 @@ import pluggy
 from typing import List, Set, Dict
 
 from .plugins import PluginSpecification, plugins_loader
-from .domain import Market, DateTimeFactory
+from coinrat.domain import DateTimeFactory
+from coinrat.domain.market import Market
 
 get_available_markets_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_market_spec = pluggy.HookspecMarker('coinrat_plugins')
