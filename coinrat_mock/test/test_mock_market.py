@@ -4,7 +4,8 @@ from uuid import UUID
 
 import pytest
 
-from coinrat.domain import Pair, CurrentUtcDateTimeFactory
+from coinrat.domain import CurrentUtcDateTimeFactory
+from coinrat.domain.pair import Pair
 from coinrat.domain.order import Order, ORDER_TYPE_LIMIT, DIRECTION_BUY, DIRECTION_SELL, \
     NotEnoughBalanceToPerformOrderException
 from coinrat_mock.market import MockMarket

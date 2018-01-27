@@ -1,7 +1,7 @@
 from decimal import Decimal
 from flexmock import flexmock
 
-from coinrat.domain import Pair
+from coinrat.domain.pair import Pair
 from coinrat.domain.market import Market, PairMarketInfo
 
 

@@ -4,7 +4,7 @@ from decimal import Decimal
 from flexmock import flexmock
 
 from coinrat_bittrex.synchronizer import BittrexSynchronizer
-from coinrat.domain import Pair
+from coinrat.domain.pair import Pair
 from coinrat.domain.candle import Candle
 from coinrat.event.event_emitter import EventEmitter
 

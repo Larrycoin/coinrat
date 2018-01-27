@@ -1,7 +1,8 @@
 import logging
 from typing import Dict, List, Union
 
-from coinrat.domain import Pair, DateTimeInterval
+from coinrat.domain import DateTimeInterval
+from coinrat.domain.pair import Pair
 from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER
 from coinrat.domain.candle import deserialize_candle, CandleSize
 from coinrat.domain.order import deserialize_order

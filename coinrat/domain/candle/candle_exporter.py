@@ -1,6 +1,7 @@
 import json
 
-from coinrat.domain import Pair, DateTimeInterval
+from coinrat.domain import DateTimeInterval
+from coinrat.domain.pair import Pair
 from .candle import serialize_candles, deserialize_candles
 
 from .candle_storage import CandleStorage

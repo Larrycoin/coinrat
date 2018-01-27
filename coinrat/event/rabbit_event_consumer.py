@@ -6,7 +6,8 @@ import traceback
 import pika
 
 from coinrat.candle_storage_plugins import CandleStoragePlugins
-from coinrat.domain import deserialize_datetime_interval, deserialize_pair, DateTimeFactory, DateTimeInterval
+from coinrat.domain import deserialize_datetime_interval, DateTimeFactory, DateTimeInterval
+from coinrat.domain.pair import deserialize_pair
 from coinrat.domain.order import deserialize_order
 from coinrat.domain.candle import deserialize_candle_size, Candle, CandleStorage
 from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER

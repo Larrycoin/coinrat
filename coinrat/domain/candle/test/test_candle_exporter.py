@@ -6,7 +6,7 @@ from flexmock import flexmock
 from decimal import Decimal
 
 from coinrat.domain.candle import CandleExporter, Candle
-from coinrat.domain import Pair
+from coinrat.domain.pair import Pair
 
 
 def test_candle_export_import():

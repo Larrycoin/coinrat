@@ -7,7 +7,8 @@ from decimal import Decimal
 import math
 
 from coinrat.domain.market import Market, MarketOrderException
-from coinrat.domain import Pair, StrategyConfigurationException, DateTimeFactory, DateTimeInterval
+from coinrat.domain import StrategyConfigurationException, DateTimeFactory, DateTimeInterval
+from coinrat.domain.pair import Pair
 from coinrat.domain.strategy import Strategy
 from coinrat.domain.candle import CandleStorage, CANDLE_STORAGE_FIELD_CLOSE
 from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, \

@@ -4,7 +4,7 @@ from uuid import UUID
 
 from decimal import Decimal
 
-from coinrat.domain import Pair
+from coinrat.domain.pair import Pair
 from coinrat.domain.order import Order, ORDER_TYPE_LIMIT, OrderMarketInfo, DIRECTION_BUY
 
 DUMMY_ORDER_OPEN = Order(

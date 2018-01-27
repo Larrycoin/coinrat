@@ -1,8 +1,9 @@
 import time
 from typing import Union
 
+from coinrat.domain import MarketStateSynchronizer
 from coinrat.domain.candle import CandleStorage
-from coinrat.domain import MarketStateSynchronizer, Pair
+from coinrat.domain.pair import Pair
 from coinrat.event.event_emitter import EventEmitter
 from .market import BittrexMarket
 

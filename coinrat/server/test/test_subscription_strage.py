@@ -3,7 +3,8 @@ import uuid
 
 from decimal import Decimal
 
-from coinrat.domain import Pair, DateTimeInterval
+from coinrat.domain import DateTimeInterval
+from coinrat.domain.pair import Pair
 from coinrat.domain.candle import Candle, CandleSize, CANDLE_SIZE_UNIT_MINUTE, serialize_candle
 from coinrat.domain.order import serialize_order, Order, DIRECTION_SELL, ORDER_TYPE_LIMIT
 from coinrat.server.subscription_storage import SubscriptionStorage, NewOrderSubscription, LastCandleSubscription

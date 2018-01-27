@@ -7,7 +7,8 @@ from typing import Dict, List
 from bittrex.bittrex import Bittrex, API_V1_1, API_V2_0, TICKINTERVAL_ONEMIN
 
 from decimal import Decimal
-from coinrat.domain import Balance, Pair, MarketPairDoesNotExistsException
+from coinrat.domain import Balance
+from coinrat.domain.pair import Pair, MarketPairDoesNotExistsException
 from coinrat.domain.candle import Candle
 from coinrat.domain.market import Market, PairMarketInfo, MarketOrderException
 from coinrat.domain.order import Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, NotEnoughBalanceToPerformOrderException, \

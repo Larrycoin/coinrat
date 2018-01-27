@@ -8,7 +8,7 @@ from flexmock import flexmock
 from decimal import Decimal
 
 from coinrat.domain.order import Order, OrderExporter, DIRECTION_BUY, ORDER_TYPE_LIMIT
-from coinrat.domain import Pair
+from coinrat.domain.pair import Pair
 
 DUMMY_MARKET = 'dummy_market_name'
 

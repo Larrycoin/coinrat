@@ -5,7 +5,7 @@ from decimal import Decimal
 import pytest
 
 from coinrat_bittrex.market import bittrex_market_factory
-from coinrat.domain import Pair, MarketPairDoesNotExistsException
+from coinrat.domain.pair import Pair, MarketPairDoesNotExistsException
 
 BTC_USD_PAIR = Pair('USD', 'BTC')
 

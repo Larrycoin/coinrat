@@ -6,8 +6,8 @@ import os
 import socketio
 from flask import Flask
 
-from coinrat.domain import DateTimeFactory, deserialize_pair, serialize_balances, serialize_pair, \
-    deserialize_datetime_interval
+from coinrat.domain import DateTimeFactory, serialize_balances, deserialize_datetime_interval
+from coinrat.domain.pair import deserialize_pair, serialize_pair
 from coinrat.domain.order import Order, serialize_order, serialize_orders
 from coinrat.domain.candle import serialize_candles, Candle, serialize_candle, deserialize_candle_size
 from coinrat.order_storage_plugins import OrderStoragePlugins

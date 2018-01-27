@@ -12,10 +12,10 @@ from os.path import join, dirname
 from click import Context
 from dotenv import load_dotenv
 
+from coinrat.domain import CurrentUtcDateTimeFactory, ForEndUserException, DateTimeInterval
 from coinrat.domain.candle import CandleExporter
 from coinrat.domain.market import Market
-from coinrat.domain import CurrentUtcDateTimeFactory
-from coinrat.domain import Pair, ForEndUserException, DateTimeInterval
+from coinrat.domain.pair import Pair
 from coinrat.domain.order import OrderExporter
 from coinrat.market_plugins import MarketNotProvidedByAnyPluginException
 from coinrat.strategy_plugins import StrategyNotProvidedByAnyPluginException

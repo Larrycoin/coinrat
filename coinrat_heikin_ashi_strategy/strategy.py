@@ -2,7 +2,8 @@ import logging
 import uuid
 from typing import Union, List, Dict
 
-from coinrat.domain import Pair, DateTimeFactory, DateTimeInterval
+from coinrat.domain import DateTimeFactory, DateTimeInterval
+from coinrat.domain.pair import Pair
 from coinrat.domain.market import Market
 from coinrat.domain.strategy import Strategy
 from coinrat.domain.candle import CandleStorage, deserialize_candle_size, CandleSize

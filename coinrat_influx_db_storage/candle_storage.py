@@ -5,7 +5,8 @@ from decimal import Decimal
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
-from coinrat.domain import Pair, DateTimeInterval, serialize_pair
+from coinrat.domain import DateTimeInterval
+from coinrat.domain.pair import Pair, serialize_pair
 from coinrat.domain.candle import Candle, CandleStorage, \
     CANDLE_STORAGE_FIELD_HIGH, CANDLE_STORAGE_FIELD_OPEN, CANDLE_STORAGE_FIELD_CLOSE, CANDLE_STORAGE_FIELD_LOW, \
     NoCandlesForMarketInStorageException, CANDLE_STORAGE_FIELD_MARKET, CANDLE_STORAGE_FIELD_PAIR, CandleSize, \

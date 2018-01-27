@@ -8,7 +8,8 @@ import dateutil.parser
 from influxdb import InfluxDBClient
 from influxdb.resultset import ResultSet
 
-from coinrat.domain import Pair, DateTimeInterval, serialize_pair
+from coinrat.domain import DateTimeInterval
+from coinrat.domain.pair import Pair, serialize_pair
 from coinrat.domain.order import OrderStorage, Order, POSSIBLE_ORDER_STATUSES
 from coinrat.domain.order import ORDER_FIELD_MARKET, ORDER_FIELD_PAIR, ORDER_FIELD_STATUS, \
     ORDER_FIELD_DIRECTION, ORDER_FIELD_ORDER_ID, ORDER_FIELD_QUANTITY, ORDER_FIELD_CANCELED_AT, \

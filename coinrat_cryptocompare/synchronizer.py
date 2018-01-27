@@ -4,8 +4,9 @@ from typing import Dict, List, Union
 from decimal import Decimal
 
 from requests import Session, RequestException, TooManyRedirects
+from coinrat.domain import MarketStateSynchronizer
 from coinrat.domain.candle import Candle, CandleStorage
-from coinrat.domain import MarketStateSynchronizer, Pair
+from coinrat.domain.pair import Pair
 from coinrat.event.event_emitter import EventEmitter
 
 MINUTE_CANDLE_URL = 'https://min-api.cryptocompare.com/data/histominute?fsym={}&tsym={}&limit=1&aggregate=1&e={}'

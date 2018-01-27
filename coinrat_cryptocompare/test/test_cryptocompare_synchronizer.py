@@ -2,7 +2,7 @@ import pytest
 from flexmock import flexmock
 
 from coinrat_cryptocompare.synchronizer import CryptocompareSynchronizer, CryptocompareRequestException
-from coinrat.domain import Pair
+from coinrat.domain.pair import Pair
 from coinrat.event.event_emitter import EventEmitter
 
 BTC_USD_PAIR = Pair('USD', 'BTC')
