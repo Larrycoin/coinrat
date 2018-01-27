@@ -124,13 +124,13 @@ class HeikinAshiStrategy(Strategy):
 
     def check_for_buy_or_sell(self, market: Market, pair: Pair) -> None:
         if (
-            self._trend > 0
+            self._trend >= 5
             and self._first_previous_candle.is_bearish()
             and self._second_previous_candle.is_bearish()
         ):
             self.create_order(market, pair, DIRECTION_SELL)
         if (
-            self._trend < 0
+            self._trend <= 5
             and self._first_previous_candle.is_bullish()
             and self._second_previous_candle.is_bullish()
         ):
@@ -157,7 +157,8 @@ class HeikinAshiStrategy(Strategy):
 
     def log_tick(self) -> None:
         logger.info(
-            '[{0}] Trend: {1}, HA_Candle(-1): {2}, HA_Candle(0): {3}`, '.format(
+            '[{0}] {1} | Trend: {2}, HA_Candle(-1): {3}, HA_Candle(0): {4}`, '.format(
+                self._current_unfinished_candle.time.isoformat(),
                 self._strategy_ticker,
                 self._trend,
                 'BEAR' if self._first_previous_candle.is_bearish() else 'BULL',

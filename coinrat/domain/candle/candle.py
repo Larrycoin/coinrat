@@ -4,6 +4,7 @@ from typing import Dict, List
 import dateutil.parser
 
 from coinrat.domain.pair import Pair, serialize_pair, deserialize_pair
+from coinrat.domain.number import to_decimal
 from .candle_size import CandleSize, CANDLE_SIZE_UNIT_MINUTE, serialize_candle_size, deserialize_candle_size
 
 CANDLE_STORAGE_FIELD_OPEN = 'open'
@@ -146,10 +147,10 @@ def deserialize_candle(row: Dict) -> Candle:
         row[CANDLE_STORAGE_FIELD_MARKET],
         deserialize_pair(row[CANDLE_STORAGE_FIELD_PAIR]),
         dateutil.parser.parse(row[CANDLE_STORAGE_FIELD_TIME]).replace(tzinfo=datetime.timezone.utc),
-        Decimal(row[CANDLE_STORAGE_FIELD_OPEN]),
-        Decimal(row[CANDLE_STORAGE_FIELD_HIGH]),
-        Decimal(row[CANDLE_STORAGE_FIELD_LOW]),
-        Decimal(row[CANDLE_STORAGE_FIELD_CLOSE]),
+        to_decimal(row[CANDLE_STORAGE_FIELD_OPEN]),
+        to_decimal(row[CANDLE_STORAGE_FIELD_HIGH]),
+        to_decimal(row[CANDLE_STORAGE_FIELD_LOW]),
+        to_decimal(row[CANDLE_STORAGE_FIELD_CLOSE]),
         candle_size
     )
 
