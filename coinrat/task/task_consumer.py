@@ -7,7 +7,7 @@ from typing import Dict
 
 from coinrat.domain import DateTimeFactory, deserialize_datetime_interval
 from coinrat.domain.pair import deserialize_pair
-from coinrat.domain.strategy import StrategyRun, StrategyRunStorage
+from coinrat.domain.strategy import StrategyRun, StrategyRunStorage, StrategyRunMarket
 from coinrat.strategy_replayer import StrategyReplayer
 from .task_types import TASK_REPLY_STRATEGY
 
@@ -42,14 +42,13 @@ class TaskConsumer:
         self._channel.basic_consume(rabbit_message_callback, queue='tasks', no_ack=True)
 
     def process_reply_strategy(self, data: Dict) -> None:
-        logger.info("[Rabbit] Proceessing task: %s | %r", TASK_REPLY_STRATEGY, data)
+        logger.info("[Rabbit] Processing task: %s | %r", TASK_REPLY_STRATEGY, data)
         interval = deserialize_datetime_interval(data)
         strategy_run = StrategyRun(
             uuid.uuid4(),
             self._date_time_factory.now(),
             deserialize_pair(data['pair']),
-            'mock',
-            data['market_configuration'],
+            [StrategyRunMarket('mock', data['market_configuration'])],
             data['strategy_name'],
             data['strategy_configuration'],
             interval,

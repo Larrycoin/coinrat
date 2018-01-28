@@ -3,8 +3,8 @@ import os
 import MySQLdb
 import pika
 
-from .di_container import DiContainer
-
+from coinrat.di_container import DiContainer
+from coinrat.strategy_standard_runner import StrategyStandardRunner
 from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.event.event_emitter import EventEmitter
 from coinrat.market_plugins import MarketPlugins
@@ -107,6 +107,17 @@ class DiContainerCoinrat(DiContainer):
             'strategy_run_storage': {
                 'instance': None,
                 'factory': lambda: StrategyRunStorage(self.mysql_connection),
+            },
+            'strategy_standard_runner': {
+                'instance': None,
+                'factory': lambda: StrategyStandardRunner(
+                    self.candle_storage_plugins,
+                    self.order_storage_plugins,
+                    self.strategy_plugins,
+                    self.market_plugins,
+                    self.event_emitter,
+                    self.datetime_factory,
+                ),
             }
         }
 
@@ -183,3 +194,7 @@ class DiContainerCoinrat(DiContainer):
     @property
     def strategy_run_storage(self) -> StrategyRunStorage:
         return self._get('strategy_run_storage')
+
+    @property
+    def strategy_standard_runner(self) -> StrategyStandardRunner:
+        return self._get('strategy_standard_runner')

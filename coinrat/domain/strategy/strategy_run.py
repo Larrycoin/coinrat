@@ -1,9 +1,15 @@
 import datetime
-from typing import Dict
+from typing import Dict, List
 from uuid import UUID
 
 from coinrat.domain import DateTimeInterval
 from coinrat.domain.pair import Pair
+
+
+class StrategyRunMarket:
+    def __init__(self, market_name: str, market_configuration: Dict) -> None:
+        self.market_name = market_name
+        self.market_configuration = market_configuration
 
 
 class StrategyRun:
@@ -12,8 +18,7 @@ class StrategyRun:
         strategy_id: UUID,
         run_at: datetime.datetime,
         pair: Pair,
-        market_name: str,
-        market_configuration: Dict,
+        markets: List[StrategyRunMarket],
         strategy_name: str,
         strategy_configuration: Dict,
         interval: DateTimeInterval,
@@ -26,8 +31,7 @@ class StrategyRun:
         self.strategy_id = strategy_id
         self.run_at = run_at
         self.pair = pair
-        self.market_name = market_name
-        self.market_configuration = market_configuration
+        self.markets = markets
         self.strategy_name = strategy_name
         self.strategy_configuration = strategy_configuration
         self.interval = interval

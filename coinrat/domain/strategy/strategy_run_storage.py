@@ -14,14 +14,18 @@ class StrategyRunStorage:
         self._connection = connection
 
     def save(self, strategy_run: StrategyRun):
+        serialized_markets = {}
+
+        for strategy_run_market in strategy_run.markets:
+            serialized_markets[strategy_run_market.market_name] = strategy_run_market.market_configuration
+
         cursor = self._connection.cursor()
         cursor.execute("""
             INSERT INTO `strategy_runs` (
                 `id`,
                 `run_at`,
                 `pair`,
-                `market_name`,
-                `market_configuration`,
+                `markets`,
                 `strategy_name`,
                 `strategy_configuration`,
                 `interval_since`,
@@ -38,15 +42,13 @@ class StrategyRunStorage:
                 %s,
                 %s,
                 %s,
-                %s,
                 %s
             )     
         """, (
             str(strategy_run.strategy_id),
             strategy_run.run_at.timestamp(),
             serialize_pair(strategy_run.pair),
-            strategy_run.market_name,
-            json.dumps(strategy_run.market_configuration),
+            json.dumps(serialized_markets),
             strategy_run.strategy_name,
             json.dumps(strategy_run.strategy_configuration),
             strategy_run.interval.since.timestamp(),
