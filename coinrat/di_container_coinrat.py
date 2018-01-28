@@ -3,7 +3,7 @@ import os
 import MySQLdb
 import pika
 
-from coinrat.di_container import DiContainer
+from .di_container import DiContainer
 from coinrat.strategy_standard_runner import StrategyStandardRunner
 from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.event.event_emitter import EventEmitter

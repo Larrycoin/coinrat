@@ -1,5 +1,4 @@
 import datetime
-import time
 import json
 import logging
 import uuid
@@ -13,7 +12,7 @@ from os.path import join, dirname
 from click import Context
 from dotenv import load_dotenv
 
-from coinrat.domain import CurrentUtcDateTimeFactory, ForEndUserException, DateTimeInterval
+from coinrat.domain import ForEndUserException, DateTimeInterval
 from coinrat.domain.candle import CandleExporter
 from coinrat.domain.market import Market
 from coinrat.domain.order import OrderExporter

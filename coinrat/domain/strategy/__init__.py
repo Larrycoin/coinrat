@@ -1,5 +1,5 @@
-from .strategy import Strategy, StrategyConfigurationException, StrategyRunMarket
-from .strategy_run import StrategyRun
+from .strategy import Strategy, StrategyConfigurationException
+from .strategy_run import StrategyRun, StrategyRunMarket
 from .strategy_run_storage import StrategyRunStorage
 from .strategy_runner import StrategyRunner
 

@@ -7,7 +7,7 @@ from uuid import UUID
 from coinrat.db_migrations import run_db_migrations
 from coinrat.domain import DateTimeInterval
 from coinrat.domain.pair import Pair
-from coinrat.domain.strategy import StrategyRunStorage, StrategyRun
+from coinrat.domain.strategy import StrategyRunStorage, StrategyRun, StrategyRunMarket
 
 current_directory = os.path.dirname(__file__)
 
@@ -36,8 +36,7 @@ def test_save_strategy_run_and_find_it(mysql_connection: MySQLdb.Connection) -> 
         UUID('637f46a2-d008-48ba-9899-322abb56b425'),
         DUMMY_DATE,
         Pair('USD', 'BTC'),
-        'yolo_market',
-        {'foo': 'BAR'},
+        [StrategyRunMarket('yolo_market', {'foo': 'BAR'})],
         'strategy_dummy_name',
         {'gandalf': 'Gandalf the Gray'},
         DateTimeInterval(DUMMY_DATE, DUMMY_DATE + datetime.timedelta(hours=4)),
