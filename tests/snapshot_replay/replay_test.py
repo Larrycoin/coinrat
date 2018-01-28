@@ -12,7 +12,8 @@ from influxdb import InfluxDBClient
 
 from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage
 from coinrat_influx_db_storage.order_storage import OrderInnoDbStorage
-from coinrat.domain import FrozenDateTimeFactory, DateTimeFactory, Strategy
+from coinrat.domain import FrozenDateTimeFactory, DateTimeFactory
+from coinrat.domain.strategy import Strategy
 from coinrat.domain.pair import Pair
 from coinrat.domain.market import Market
 from coinrat.domain.candle import CandleExporter

@@ -26,10 +26,10 @@ yml_file_template = """databases:
 """
 
 
-def run_db_migrations(mysql_connection: MySQLdb.Connection):
+def run_db_migrations(mysql_connection: MySQLdb.Connection, tag='coinrat'):
     create_yml_file_for_migration_lib()
     create_migrations_table_if_not_exists(mysql_connection)
-    os.system("dbschema --config db_schema/migrations.yml --tag coinrat")
+    os.system("dbschema --config db_schema/migrations.yml --tag " + tag)
 
 
 def create_migrations_table_if_not_exists(mysql_connection: MySQLdb.Connection):
