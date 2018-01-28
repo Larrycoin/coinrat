@@ -80,7 +80,13 @@ class DiContainerCoinrat(DiContainer):
             },
             'strategy_replayer': {
                 'instance': None,
-                'factory': lambda: StrategyReplayer(self.strategy_plugins, self.market_plugins, self.event_emitter)
+                'factory': lambda: StrategyReplayer(
+                    self.candle_storage_plugins,
+                    self.order_storage_plugins,
+                    self.strategy_plugins,
+                    self.market_plugins,
+                    self.event_emitter
+                )
             },
             'task_consumer': {
                 'instance': None,
