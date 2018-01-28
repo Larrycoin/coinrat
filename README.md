@@ -21,6 +21,7 @@ to help with running simulations and to visualize results.
     * Minimum Python version : **3.6.3**!
     * Following [official instructions](https://www.rabbitmq.com/install-debian.html) to install RabbitMQ.
     * Install your preferred MySQL database (MySQL, MariaDB, Percona, ...) and create `coinrat` database and user wit write access for it. Add configuration into `.env`
+    * Run migrations: `python -m coinrat database_migrate`.
 
 * If you want to use default storage plugins (recommended), you will need **Influx DB**.
     * Install by the instructions: [here](https://portal.influxdata.com/downloads#influxdb) or [here](https://github.com/influxdata/influxdb)
