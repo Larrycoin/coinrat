@@ -13,3 +13,4 @@ build
 htmlcov
 _coverage
 logs
+db_schema/migrations.yml

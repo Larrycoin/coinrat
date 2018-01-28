@@ -1,7 +1,7 @@
 import datetime
-import time
 import json
 import logging
+import uuid
 
 import dateutil.parser
 import click
@@ -12,15 +12,16 @@ from os.path import join, dirname
 from click import Context
 from dotenv import load_dotenv
 
-from coinrat.domain import CurrentUtcDateTimeFactory, ForEndUserException, DateTimeInterval
+from coinrat.domain import ForEndUserException, DateTimeInterval
 from coinrat.domain.candle import CandleExporter
 from coinrat.domain.market import Market
-from coinrat.domain.pair import Pair
 from coinrat.domain.order import OrderExporter
+from coinrat.domain.pair import Pair
+from coinrat.domain.strategy import StrategyRun, StrategyRunMarket
 from coinrat.market_plugins import MarketNotProvidedByAnyPluginException
 from coinrat.strategy_plugins import StrategyNotProvidedByAnyPluginException
-from coinrat.domain.configuration_structure import format_data_to_python_types
 from coinrat.thread_watcher import ThreadWatcher
+from .db_migrations import run_db_migrations
 from .di_container_coinrat import DiContainerCoinrat
 
 dotenv_path = join(dirname(__file__), '../.env')
@@ -221,46 +222,36 @@ def run_strategy(
     order_storage: str
 ) -> None:
     pair = Pair(pair[0], pair[1])
-    strategy_plugins = di_container.strategy_plugins
-
     strategy_configuration = {}
     if configuration_file is not None:
-        try:
-            strategy_class = strategy_plugins.get_strategy_class(strategy_name)
-        except StrategyNotProvidedByAnyPluginException as e:
-            print_error_and_terminate(str(e))
-        structure = strategy_class.get_configuration_structure()
-        strategy_configuration = load_configuration_from_file(configuration_file, structure)
+        strategy_configuration = load_configuration_from_file(configuration_file)
+
+    strategy_run_at = di_container.datetime_factory.now()
+
+    strategy_run = StrategyRun(
+        uuid.uuid4(),
+        strategy_run_at,
+        pair,
+        [StrategyRunMarket(market_name, {}) for market_name in market_names],
+        strategy_name,
+        strategy_configuration,
+        DateTimeInterval(strategy_run_at, None),
+        candle_storage,
+        order_storage
+    )
+    di_container.strategy_run_storage.save(strategy_run)
 
     try:
-        strategy_obj = strategy_plugins.get_strategy(
-            strategy_name,
-            di_container.candle_storage_plugins.get_candle_storage(candle_storage),
-            di_container.order_storage_plugins.get_order_storage(order_storage),
-            di_container.event_emitter,
-            di_container.datetime_factory,
-            strategy_configuration
-        )
+        di_container.strategy_standard_runner.run(strategy_run)
     except StrategyNotProvidedByAnyPluginException as e:
         print_error_and_terminate(str(e))
-
-    try:
-        markers = [
-            di_container.market_plugins.get_market(marker_name, CurrentUtcDateTimeFactory(), {})
-            for marker_name in market_names
-        ]
-
-        while True:
-            strategy_obj.tick(markers, pair)
-            time.sleep(int(strategy_obj.get_seconds_delay_between_runs()))
-
     except ForEndUserException as e:
         print_error_and_terminate(str(e))
 
 
-def load_configuration_from_file(configuration_file: str, structure: Dict) -> Dict:
+def load_configuration_from_file(configuration_file: str) -> Dict:
     with open(configuration_file) as json_file:
-        return format_data_to_python_types(json.load(json_file), structure)
+        return json.load(json_file)
 
 
 @cli.command(help="Starts an socket server for communication with frontend.")
@@ -279,6 +270,12 @@ def start_server(ctx: Context):
 @click.pass_context
 def start_task_consumer(ctx: Context):
     di_container.task_consumer.run()
+
+
+@cli.command(help="Runs migrations, make schema up-to date.")
+@click.pass_context
+def database_migrate(ctx: Context):
+    run_db_migrations(di_container.mysql_connection)
 
 
 def print_structure_configuration(structure: Dict) -> None:

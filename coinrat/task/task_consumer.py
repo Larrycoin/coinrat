@@ -1,17 +1,14 @@
-import datetime
 import json
 import logging
+import uuid
 import pika
-import dateutil.parser
 
-from typing import Dict, Union
+from typing import Dict
 
-from coinrat.strategy_replayer import StrategyReplayer
+from coinrat.domain import DateTimeFactory, deserialize_datetime_interval
 from coinrat.domain.pair import deserialize_pair
-from coinrat.candle_storage_plugins import CandleStoragePlugins
-from coinrat.market_plugins import MarketPlugins
-from coinrat.order_storage_plugins import OrderStoragePlugins
-from coinrat.strategy_plugins import StrategyPlugins
+from coinrat.domain.strategy import StrategyRun, StrategyRunStorage, StrategyRunMarket
+from coinrat.strategy_replayer import StrategyReplayer
 from .task_types import TASK_REPLY_STRATEGY
 
 logger = logging.getLogger(__name__)
@@ -21,18 +18,14 @@ class TaskConsumer:
     def __init__(
         self,
         rabbit_connection: pika.BlockingConnection,
-        candle_storage_plugins: CandleStoragePlugins,
-        orders_storage_plugins: OrderStoragePlugins,
-        strategy_plugins: StrategyPlugins,
-        market_plugins: MarketPlugins,
-        strategy_replayer: StrategyReplayer
+        strategy_replayer: StrategyReplayer,
+        date_time_factory: DateTimeFactory,
+        strategy_run_storage: StrategyRunStorage
     ) -> None:
         super().__init__()
-        self._candle_storage_plugins = candle_storage_plugins
-        self._orders_storage_plugins = orders_storage_plugins
-        self._strategy_plugins = strategy_plugins
-        self._market_plugins = market_plugins
+        self._strategy_run_storage = strategy_run_storage
         self._strategy_replayer = strategy_replayer
+        self._date_time_factory = date_time_factory
 
         self._channel = rabbit_connection.channel()
         self._channel.queue_declare(queue='tasks')
@@ -49,26 +42,21 @@ class TaskConsumer:
         self._channel.basic_consume(rabbit_message_callback, queue='tasks', no_ack=True)
 
     def process_reply_strategy(self, data: Dict) -> None:
-        logger.info("[Rabbit] Proceessing task: %s | %r", TASK_REPLY_STRATEGY, data)
-
-        start = dateutil.parser.parse(data['start']).replace(tzinfo=datetime.timezone.utc)
-        end = dateutil.parser.parse(data['stop']).replace(tzinfo=datetime.timezone.utc)
-
-        strategy_configuration: Dict[str, Union[str, int]] = data['strategy_configuration']
-
-        orders_storage = self._orders_storage_plugins.get_order_storage(data['orders_storage'])
-        candle_storage = self._candle_storage_plugins.get_candle_storage(data['candles_storage'])
-
-        self._strategy_replayer.replay(
-            data['strategy_name'],
-            data['market_configuration'],
-            strategy_configuration,
+        logger.info("[Rabbit] Processing task: %s | %r", TASK_REPLY_STRATEGY, data)
+        interval = deserialize_datetime_interval(data)
+        strategy_run = StrategyRun(
+            uuid.uuid4(),
+            self._date_time_factory.now(),
             deserialize_pair(data['pair']),
-            candle_storage,
-            orders_storage,
-            start,
-            end
+            [StrategyRunMarket('mock', data['market_configuration'])],
+            data['strategy_name'],
+            data['strategy_configuration'],
+            interval,
+            data['candles_storage'],
+            data['orders_storage']
         )
+        self._strategy_run_storage.save(strategy_run)
+        self._strategy_replayer.run(strategy_run)
 
     def run(self):
         self._channel.start_consuming()
