@@ -19,6 +19,7 @@ from coinrat_bittrex.test.fixtures import MARKET_USDT_BTC_DATA, DUMMY_ORDER_ID_O
 BTC_USD_PAIR = Pair('USD', 'BTC')
 DUMMY_LIMIT_BUY_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
+    UUID('99fd2706-8baf-433b-82eb-8c7fada847da'),
     'bittrex',
     DIRECTION_BUY,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
@@ -29,6 +30,7 @@ DUMMY_LIMIT_BUY_ORDER = Order(
 )
 DUMMY_MARKET_BUY_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
+    UUID('99fd2706-8baf-433b-82eb-8c7fada847da'),
     'bittrex',
     DIRECTION_BUY,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),

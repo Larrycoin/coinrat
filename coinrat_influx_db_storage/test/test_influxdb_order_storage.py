@@ -15,6 +15,7 @@ BTC_USD_PAIR = Pair('USD', 'BTC')
 
 DUMMY_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
+    UUID('99fd2706-8baf-433b-82eb-8c7fada847da'),
     DUMMY_MARKET,
     DIRECTION_BUY,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
@@ -120,6 +121,7 @@ def test_find_last_order(influx_database: InfluxDBClient):
 
     later_order = Order(
         UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
+        UUID('99fd2706-8baf-433b-82eb-8c7fada847da'),
         DUMMY_MARKET,
         DIRECTION_BUY,
         datetime.datetime(2017, 11, 26, 10, 11, 13, tzinfo=datetime.timezone.utc),
@@ -139,6 +141,7 @@ def create_dummy_data(influx_database: InfluxDBClient):
     storage = OrderInnoDbStorage(influx_database, 'test_orders')
     storage.save_order(Order(
         UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
+        UUID('99fd2706-8baf-433b-82eb-8c7fada847da'),
         DUMMY_MARKET,
         DIRECTION_BUY,
         datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
@@ -151,6 +154,7 @@ def create_dummy_data(influx_database: InfluxDBClient):
     ))
     storage.save_order(Order(
         UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
+        UUID('99fd2706-8baf-433b-82eb-8c7fada847da'),
         DUMMY_MARKET,
         DIRECTION_SELL,
         datetime.datetime(2017, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc),

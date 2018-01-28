@@ -140,6 +140,7 @@ def _crate_serialized_order(pair: Pair, market_name: str, created_at: datetime.d
     return serialize_order(
         Order(
             uuid.uuid4(),
+            uuid.UUID('99fd2706-8baf-433b-82eb-8c7fada847da'),
             market_name,
             DIRECTION_SELL,
             created_at,

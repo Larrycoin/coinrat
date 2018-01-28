@@ -12,21 +12,21 @@ from influxdb import InfluxDBClient
 
 from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage
 from coinrat_influx_db_storage.order_storage import OrderInnoDbStorage
-from coinrat.domain import FrozenDateTimeFactory, DateTimeFactory
-from coinrat.domain.strategy import Strategy
-from coinrat.domain.pair import Pair
+from coinrat.domain import FrozenDateTimeFactory, DateTimeFactory, DateTimeInterval
+from coinrat.domain.candle import CandleStorage, CandleExporter
 from coinrat.domain.market import Market
-from coinrat.domain.candle import CandleExporter
+from coinrat.domain.order import serialize_orders, OrderStorage
+from coinrat.domain.pair import Pair
+from coinrat.domain.strategy import Strategy, StrategyRun
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 from coinrat_mock.market import MockMarket
-from coinrat.domain.order import serialize_orders, OrderStorage
-from coinrat.domain.candle import CandleStorage
 from coinrat.event.event_emitter import EventEmitter
 
 DUMMY_MARKET = 'dummy_market'
 BTC_USD_PAIR = Pair('USD', 'BTC')
 
 UUID_MOCK_LIST = [UUID("3cf10055-68c2-43ad-b608-{0:012d}".format(number)) for number in range(1, 100)]
+STRATEGY_RUN_ID = UUID('99fd2706-8baf-433b-82eb-8c7fada847da')
 
 logging.disable(logging.DEBUG)
 
@@ -93,7 +93,7 @@ def run_strategy_replay(
     end: datetime.datetime
 ):
     while datetime_factory.now() < end:
-        strategy.tick([mock_market], BTC_USD_PAIR)
+        strategy.tick([mock_market])
         datetime_factory.move(datetime.timedelta(seconds=30))
 
 
@@ -108,11 +108,20 @@ def create_strategy_to_test(
         order_storage,
         emitter_mock,
         datetime_factory,
-        {
-            'long_average_interval': 60 * 60,
-            'short_average_interval': 15 * 60,
-            'delay': 0,
-        }
+        StrategyRun(
+            STRATEGY_RUN_ID,
+            datetime.datetime(2017, 12, 2, 14, 0, 0, tzinfo=datetime.timezone.utc),
+            BTC_USD_PAIR,
+            [],
+            '',
+            {
+                'long_average_interval': 60 * 60,
+                'short_average_interval': 15 * 60,
+            },
+            DateTimeInterval(None, None),
+            '',
+            ''
+        )
     )
 
 

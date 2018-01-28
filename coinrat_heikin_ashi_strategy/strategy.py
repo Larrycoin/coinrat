@@ -3,9 +3,8 @@ import uuid
 from typing import Union, List, Dict
 
 from coinrat.domain import DateTimeFactory, DateTimeInterval
-from coinrat.domain.pair import Pair
 from coinrat.domain.market import Market
-from coinrat.domain.strategy import Strategy
+from coinrat.domain.strategy import Strategy, StrategyRun
 from coinrat.domain.candle import CandleStorage, deserialize_candle_size, CandleSize
 from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_TYPE_LIMIT, \
     NotEnoughBalanceToPerformOrderException
@@ -13,6 +12,7 @@ from coinrat.event.event_emitter import EventEmitter
 from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_STRING, CONFIGURATION_STRUCTURE_TYPE_INT
 from coinrat_heikin_ashi_strategy.heikin_ashi_candle import HeikinAshiCandle, candle_to_heikin_ashi, \
     create_initial_heikin_ashi_candle
+from coinrat.domain.configuration_structure import format_data_to_python_types
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +33,9 @@ class HeikinAshiStrategy(Strategy):
         order_storage: OrderStorage,
         event_emitter: EventEmitter,
         datetime_factory: DateTimeFactory,
-        configuration
+        strategy_run: StrategyRun
     ) -> None:
-        configuration = self.process_configuration(configuration)
+        configuration = self.process_configuration(strategy_run.strategy_configuration)
 
         self._candle_storage = candle_storage
         self._order_storage = order_storage
@@ -48,19 +48,20 @@ class HeikinAshiStrategy(Strategy):
         self._second_previous_candle: Union[HeikinAshiCandle, None] = None
         self._current_unfinished_candle: Union[HeikinAshiCandle, None] = None
         self._trend = 0
+        self._strategy_run = strategy_run
 
-    def get_seconds_delay_between_runs(self) -> float:
+    def get_seconds_delay_between_ticks(self) -> float:
         return self._candle_size.get_as_time_delta().total_seconds()
 
-    def tick(self, markets: List[Market], pair: Pair) -> None:
+    def tick(self, markets: List[Market]) -> None:
         if self._strategy_ticker == 0:
-            self.first_tick_initialize_strategy_data(markets, pair)
+            self.first_tick_initialize_strategy_data(markets)
         else:
-            self._tick(markets, pair)
+            self._tick(markets)
 
         self._strategy_ticker += 1
 
-    def first_tick_initialize_strategy_data(self, markets: List[Market], pair: Pair) -> None:
+    def first_tick_initialize_strategy_data(self, markets: List[Market]) -> None:
         market = self.get_market(markets)
 
         current_time = self._datetime_factory.now()
@@ -68,7 +69,7 @@ class HeikinAshiStrategy(Strategy):
 
         candles = self._candle_storage.find_by(
             market_name=market.name,
-            pair=pair,
+            pair=self._strategy_run.pair,
             interval=interval,
             candle_size=self._candle_size
         )
@@ -84,7 +85,7 @@ class HeikinAshiStrategy(Strategy):
         self._first_previous_candle = candle_to_heikin_ashi(candles[2], self._second_previous_candle)
         self._current_unfinished_candle = candle_to_heikin_ashi(candles[3], self._first_previous_candle)
 
-    def _tick(self, markets: List[Market], pair: Pair) -> None:
+    def _tick(self, markets: List[Market]) -> None:
 
         market = self.get_market(markets)
         current_time = self._datetime_factory.now()
@@ -92,7 +93,7 @@ class HeikinAshiStrategy(Strategy):
 
         candles = self._candle_storage.find_by(
             market_name=market.name,
-            pair=pair,
+            pair=self._strategy_run.pair,
             interval=interval,
             candle_size=self._candle_size
         )
@@ -113,7 +114,7 @@ class HeikinAshiStrategy(Strategy):
             self.log_tick()
 
             try:
-                self.check_for_buy_or_sell(market, pair)
+                self.check_for_buy_or_sell(market)
             except NotEnoughBalanceToPerformOrderException as e:
                 # Intentionally, this strategy does not need state of order,
                 # just ignores buy/sell and waits for next signal.
@@ -125,33 +126,34 @@ class HeikinAshiStrategy(Strategy):
         if self._second_previous_candle.is_bullish() and self._trend < 5:
             self._trend += 1
 
-    def check_for_buy_or_sell(self, market: Market, pair: Pair) -> None:
+    def check_for_buy_or_sell(self, market: Market) -> None:
         if (
             self._trend >= 5
             and self._first_previous_candle.is_bearish()
             and self._second_previous_candle.is_bearish()
         ):
-            self.create_order(market, pair, DIRECTION_SELL)
+            self.create_order(market, DIRECTION_SELL)
         if (
             self._trend <= 5
             and self._first_previous_candle.is_bullish()
             and self._second_previous_candle.is_bullish()
         ):
-            self.create_order(market, pair, DIRECTION_BUY)
+            self.create_order(market, DIRECTION_BUY)
 
-    def create_order(self, market: Market, pair: Pair, direction: str):
-        current_price = market.get_current_price(pair)
+    def create_order(self, market: Market, direction: str):
+        current_price = market.get_current_price(self._strategy_run.pair)
         logger.info(direction.upper() + 'ING at price: ' + str(current_price))
         order = Order(
             uuid.uuid4(),
+            self._strategy_run.strategy_run_id,
             market.name,
             direction,
             self._datetime_factory.now(),
-            pair,
+            self._strategy_run.pair,
             ORDER_TYPE_LIMIT,
-            market.calculate_maximal_amount_to_buy(pair, current_price) \
+            market.calculate_maximal_amount_to_buy(self._strategy_run.pair, current_price) \
                 if direction is DIRECTION_BUY \
-                else market.calculate_maximal_amount_to_sell(pair),
+                else market.calculate_maximal_amount_to_sell(self._strategy_run.pair),
             current_price
         )
         market.place_order(order)
@@ -186,8 +188,9 @@ class HeikinAshiStrategy(Strategy):
             }
         }
 
-    @staticmethod
-    def process_configuration(configuration: Dict) -> Dict:
+    def process_configuration(self, configuration: Dict) -> Dict:
+        configuration = format_data_to_python_types(configuration, self.get_configuration_structure())
+
         if 'candle_size' not in configuration:
             configuration['candle_size'] = DEFAULT_CANDLE_SIZE_CONFIGURATION
 

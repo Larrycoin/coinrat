@@ -13,7 +13,8 @@ from coinrat.domain.pair import Pair, serialize_pair
 from coinrat.domain.order import OrderStorage, Order, POSSIBLE_ORDER_STATUSES
 from coinrat.domain.order import ORDER_FIELD_MARKET, ORDER_FIELD_PAIR, ORDER_FIELD_STATUS, \
     ORDER_FIELD_DIRECTION, ORDER_FIELD_ORDER_ID, ORDER_FIELD_QUANTITY, ORDER_FIELD_CANCELED_AT, \
-    ORDER_FIELD_RATE, ORDER_FIELD_ID_ON_MARKET, ORDER_FIELD_TYPE, ORDER_FIELD_CLOSED_AT
+    ORDER_FIELD_RATE, ORDER_FIELD_ID_ON_MARKET, ORDER_FIELD_TYPE, ORDER_FIELD_CLOSED_AT, \
+    ORDER_FIELD_STRATEGY_RUN_ID
 
 ORDER_STORAGE_NAME = 'influx_db'
 
@@ -97,6 +98,7 @@ class OrderInnoDbStorage(OrderStorage):
                 ORDER_FIELD_MARKET: order.market_name,
                 ORDER_FIELD_PAIR: serialize_pair(order.pair),
                 ORDER_FIELD_ORDER_ID: str(order.order_id),
+                ORDER_FIELD_STRATEGY_RUN_ID: str(order.strategy_run_in),
             },
             'time': order.created_at.isoformat(),
             'fields': {
@@ -128,6 +130,7 @@ class OrderInnoDbStorage(OrderStorage):
 
         return Order(
             UUID(row[ORDER_FIELD_ORDER_ID]),
+            UUID(row[ORDER_FIELD_STRATEGY_RUN_ID]),
             row[ORDER_FIELD_MARKET],
             row[ORDER_FIELD_DIRECTION],
             dateutil.parser.parse(row['time']).replace(tzinfo=datetime.timezone.utc),

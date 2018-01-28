@@ -49,7 +49,7 @@ class StrategyRunStorage:
                 %s
             )     
         """, (
-            str(strategy_run.strategy_id),
+            str(strategy_run.strategy_run_id),
             strategy_run.run_at.timestamp(),
             serialize_pair(strategy_run.pair),
             json.dumps(serialized_markets),
@@ -61,7 +61,7 @@ class StrategyRunStorage:
             strategy_run.order_storage_name
         ))
         self._connection.commit()
-        logger.debug('Strategy Run: {} saved.'.format(strategy_run.strategy_id))
+        logger.debug('Strategy Run: {} saved.'.format(strategy_run.strategy_run_id))
 
     def find_by(self) -> List[StrategyRun]:
         cursor = self._connection.cursor()

@@ -143,17 +143,6 @@ class BittrexMarket(Market):
             currency_code = 'USD'
         return currency_code
 
-    def _create_order_entity(
-        self,
-        order_direction: str,
-        order_type: str,
-        pair: Pair,
-        amount_to_buy: Decimal,
-        rate: Decimal
-    ) -> Order:
-        created_at = datetime.datetime.now().astimezone(datetime.timezone.utc)
-        return Order(uuid.uuid4(), self.name, order_direction, created_at, pair, order_type, amount_to_buy, rate)
-
     def _validate_minimal_order(self, order: Order) -> None:
         pair_market_info = self.get_pair_market_info(order.pair)
         if pair_market_info.minimal_order_size > order.quantity:

@@ -21,14 +21,14 @@ class StrategyPlugin(StrategyPluginSpecification):
         return [STRATEGY_NAME]
 
     @get_strategy_impl
-    def get_strategy(self, name, candle_storage, order_storage, event_emitter, datetime_factory, configuration):
+    def get_strategy(self, name, candle_storage, order_storage, event_emitter, datetime_factory, strategy_run):
         if name == STRATEGY_NAME:
             return DoubleCrossoverStrategy(
                 candle_storage,
                 order_storage,
                 event_emitter,
                 datetime_factory,
-                configuration
+                strategy_run
             )
 
         raise ValueError('Strategy "{}" not supported by this plugin.'.format(name))

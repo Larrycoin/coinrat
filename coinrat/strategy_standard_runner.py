@@ -3,7 +3,6 @@ import time
 from coinrat.domain import DateTimeFactory
 from coinrat.domain.strategy import StrategyRunner
 from coinrat.domain.strategy import StrategyRun
-from coinrat.domain.configuration_structure import format_data_to_python_types
 from coinrat.market_plugins import MarketPlugins
 from coinrat.strategy_plugins import StrategyPlugins
 from coinrat.candle_storage_plugins import CandleStoragePlugins
@@ -33,17 +32,13 @@ class StrategyStandardRunner(StrategyRunner):
         order_storage = self._order_storage_plugins.get_order_storage(strategy_run.order_storage_name)
         candle_storage = self._candle_storage_plugins.get_candle_storage(strategy_run.candle_storage_name)
 
-        strategy_class = self._strategy_plugins.get_strategy_class(strategy_run.strategy_name)
         strategy = self._strategy_plugins.get_strategy(
             strategy_run.strategy_name,
             candle_storage,
             order_storage,
             self._event_emitter,
             self._datetime_factory,
-            format_data_to_python_types(
-                strategy_run.strategy_configuration,
-                strategy_class.get_configuration_structure()
-            )
+            strategy_run
         )
 
         markers = [
@@ -56,5 +51,5 @@ class StrategyStandardRunner(StrategyRunner):
         ]
 
         while True:
-            strategy.tick(markers, strategy_run.pair)
-            time.sleep(int(strategy.get_seconds_delay_between_runs()))
+            strategy.tick(markers)
+            time.sleep(int(strategy.get_seconds_delay_between_ticks()))

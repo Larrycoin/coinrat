@@ -3,7 +3,7 @@ from typing import List, Set
 
 from coinrat.domain import DateTimeFactory
 from coinrat.domain.order import OrderStorage
-from coinrat.domain.strategy import Strategy
+from coinrat.domain.strategy import Strategy, StrategyRun
 from coinrat.event.event_emitter import EventEmitter
 from .plugins import PluginSpecification, plugins_loader
 from .domain.candle import CandleStorage
@@ -20,7 +20,7 @@ class StrategyPluginSpecification(PluginSpecification):
         raise NotImplementedError()
 
     @get_strategy_spec
-    def get_strategy(self, name, candle_storage, order_storage, event_emitter, datetime_factory, configuration):
+    def get_strategy(self, name, candle_storage, order_storage, event_emitter, datetime_factory, strategy_run):
         raise NotImplementedError()
 
     @get_strategy_class_spec
@@ -56,7 +56,7 @@ class StrategyPlugins:
         order_storage: OrderStorage,
         event_emitter: EventEmitter,
         datetime_factory: DateTimeFactory,
-        configuration
+        strategy_run: StrategyRun
     ) -> Strategy:
         for plugin in self._plugins:
             if name in plugin.get_available_strategies():
@@ -66,7 +66,7 @@ class StrategyPlugins:
                     order_storage,
                     event_emitter,
                     datetime_factory,
-                    configuration
+                    strategy_run
                 )
 
         raise StrategyNotProvidedByAnyPluginException('Strategy "{}" not found.'.format(name))

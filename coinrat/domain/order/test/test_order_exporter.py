@@ -17,6 +17,7 @@ def test_order_export_import():
     pair = Pair('USD', 'BTC')
     order = Order(
         UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
+        UUID('99fd2706-8baf-433b-82eb-8c7fada847da'),
         DUMMY_MARKET,
         DIRECTION_BUY,
         datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
@@ -37,6 +38,7 @@ def test_order_export_import():
 
     expected = [{
         "order_id": "16fd2706-8baf-433b-82eb-8c7fada847da",
+        "strategy_run_id": "99fd2706-8baf-433b-82eb-8c7fada847da",
         "market": "dummy_market_name",
         "direction": "buy",
         "created_at": "2017-11-26T10:11:12+00:00",

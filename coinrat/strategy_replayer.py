@@ -35,17 +35,13 @@ class StrategyReplayer(StrategyRunner):
 
         datetime_factory = FrozenDateTimeFactory(strategy_run.interval.since)
 
-        strategy_class = self._strategy_plugins.get_strategy_class(strategy_run.strategy_name)
         strategy = self._strategy_plugins.get_strategy(
             strategy_run.strategy_name,
             candle_storage,
             order_storage,
             self._event_emitter,
             datetime_factory,
-            format_data_to_python_types(
-                strategy_run.strategy_configuration,
-                strategy_class.get_configuration_structure()
-            )
+            strategy_run
         )
 
         market_class = self._market_plugins.get_market_class('mock')
@@ -65,5 +61,5 @@ class StrategyReplayer(StrategyRunner):
                 datetime_factory.now()
             )
             market.mock_current_price(strategy_run.pair, current_candle.average_price)
-            strategy.tick([market], strategy_run.pair)
-            datetime_factory.move(datetime.timedelta(seconds=strategy.get_seconds_delay_between_runs()))
+            strategy.tick([market])
+            datetime_factory.move(datetime.timedelta(seconds=strategy.get_seconds_delay_between_ticks()))

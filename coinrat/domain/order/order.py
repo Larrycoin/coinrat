@@ -20,6 +20,7 @@ ORDER_STATUS_CANCELED = 'canceled'
 POSSIBLE_ORDER_STATUSES = [ORDER_STATUS_OPEN, ORDER_STATUS_CLOSED, ORDER_STATUS_CANCELED]
 
 ORDER_FIELD_ORDER_ID = 'order_id'
+ORDER_FIELD_STRATEGY_RUN_ID = 'strategy_run_id'
 ORDER_FIELD_MARKET = 'market'
 ORDER_FIELD_DIRECTION = 'direction'
 ORDER_FIELD_CREATED_AT = 'created_at'
@@ -41,6 +42,7 @@ class Order:
     def __init__(
         self,
         order_id: UUID,
+        strategy_run_in: UUID,
         market_name: str,
         direction: str,
         created_at: datetime.datetime,
@@ -51,7 +53,7 @@ class Order:
         market_id: Union[str, None] = None,
         status: str = ORDER_STATUS_OPEN,
         closed_at: Union[datetime.datetime, None] = None,
-        canceled_at: Union[datetime.datetime, None] = None
+        canceled_at: Union[datetime.datetime, None] = None,
     ) -> None:
         assert '+00:00' in created_at.isoformat()[-6:], \
             ('Time must be in UTC and aware of its timezone ({})'.format(created_at.isoformat()))
@@ -72,6 +74,7 @@ class Order:
         assert direction in [DIRECTION_SELL, DIRECTION_BUY]
 
         self._order_id = order_id
+        self._strategy_run_in = strategy_run_in
         self._market_name = market_name
         self._created_at = created_at
         self._direction = direction
@@ -93,6 +96,10 @@ class Order:
     @property
     def order_id(self) -> UUID:
         return self._order_id
+
+    @property
+    def strategy_run_in(self) -> UUID:
+        return self._strategy_run_in
 
     @property
     def market_name(self) -> str:
@@ -188,6 +195,7 @@ class Order:
 def serialize_order(order: Order) -> Dict[str, Union[str, None]]:
     return {
         ORDER_FIELD_ORDER_ID: str(order.order_id),
+        ORDER_FIELD_STRATEGY_RUN_ID: str(order.strategy_run_in),
         ORDER_FIELD_MARKET: order.market_name,
         ORDER_FIELD_DIRECTION: order._direction,
         ORDER_FIELD_CREATED_AT: order.created_at.isoformat(),
@@ -216,7 +224,8 @@ def deserialize_order(serialized: Dict) -> Order:
         canceled_at = dateutil.parser.parse(canceled_at).replace(tzinfo=datetime.timezone.utc)
 
     return Order(
-        serialized[ORDER_FIELD_ORDER_ID],
+        UUID(serialized[ORDER_FIELD_ORDER_ID]),
+        UUID(serialized[ORDER_FIELD_STRATEGY_RUN_ID]),
         serialized[ORDER_FIELD_MARKET],
         serialized[ORDER_FIELD_DIRECTION],
         dateutil.parser.parse(serialized[ORDER_FIELD_CREATED_AT]).replace(tzinfo=datetime.timezone.utc),

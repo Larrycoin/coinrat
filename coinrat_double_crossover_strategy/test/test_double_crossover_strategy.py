@@ -7,8 +7,8 @@ import pytest
 from decimal import Decimal
 from flexmock import flexmock, Mock
 
-from coinrat.domain import CurrentUtcDateTimeFactory
-from coinrat.domain.strategy import StrategyConfigurationException
+from coinrat.domain import CurrentUtcDateTimeFactory, DateTimeInterval
+from coinrat.domain.strategy import StrategyConfigurationException, StrategyRun
 from coinrat.domain.pair import Pair
 from coinrat.domain.market import Market
 from coinrat.domain.order import ORDER_TYPE_LIMIT, Order, OrderMarketInfo, DIRECTION_BUY, DIRECTION_SELL, \
@@ -18,8 +18,11 @@ from coinrat.event.event_emitter import EventEmitter
 
 DUMMY_MARKET_NAME = 'dummy_market'
 BTC_USD_PAIR = Pair('USD', 'BTC')
+STRATEGY_RUN_ID = UUID('99fd2706-8baf-433b-82eb-8c7fada847da')
+
 DUMMY_CLOSED_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
+    STRATEGY_RUN_ID,
     DUMMY_MARKET_NAME,
     DIRECTION_BUY,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
@@ -33,6 +36,7 @@ DUMMY_CLOSED_ORDER = Order(
 )
 DUMMY_OPEN_ORDER = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
+    STRATEGY_RUN_ID,
     DUMMY_MARKET_NAME,
     DIRECTION_BUY,
     datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
@@ -41,6 +45,20 @@ DUMMY_OPEN_ORDER = Order(
     Decimal('1'),
     Decimal('8000'),
     'aaa-id-from-market'
+)
+STRATEGY_RUN = StrategyRun(
+    STRATEGY_RUN_ID,
+    datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
+    BTC_USD_PAIR,
+    [],
+    '',
+    {
+        'long_average_interval': 60 * 60,
+        'short_average_interval': 15 * 60,
+    },
+    DateTimeInterval(None, None),
+    '',
+    ''
 )
 
 
@@ -69,16 +87,13 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
         order_storage,
         create_event_emitter_mock(),
         CurrentUtcDateTimeFactory(),
-        {
-            'long_average_interval': 60 * 60,
-            'short_average_interval': 15 * 60,
-        }
+        STRATEGY_RUN
     )
     if error:
         with pytest.raises(StrategyConfigurationException):
-            strategy.tick(markets, BTC_USD_PAIR)
+            strategy.tick(markets)
     else:
-        strategy.tick(markets, BTC_USD_PAIR)
+        strategy.tick(markets)
 
 
 @pytest.mark.parametrize(
@@ -180,13 +195,10 @@ def test_sending_signal(
         order_storage,
         create_event_emitter_mock(),
         CurrentUtcDateTimeFactory(),
-        {
-            'long_average_interval': 60 * 60,
-            'short_average_interval': 15 * 60,
-        }
+        STRATEGY_RUN
     )
     for x in range(0, len(mean_evolution)):
-        strategy.tick([market], BTC_USD_PAIR)
+        strategy.tick([market])
 
 
 def test_not_enough_balance_logs_warning():
@@ -206,14 +218,11 @@ def test_not_enough_balance_logs_warning():
         order_storage,
         create_event_emitter_mock(),
         CurrentUtcDateTimeFactory(),
-        {
-            'long_average_interval': 60 * 60,
-            'short_average_interval': 15 * 60,
-        }
+        STRATEGY_RUN
     )
     flexmock(logging.getLogger('coinrat_double_crossover_strategy.strategy')).should_receive('warning').once()
-    strategy.tick([market], BTC_USD_PAIR)
-    strategy.tick([market], BTC_USD_PAIR)
+    strategy.tick([market])
+    strategy.tick([market])
 
 
 CLOSED_ORDER_INFO = OrderMarketInfo(
@@ -255,12 +264,9 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
         order_storage,
         create_event_emitter_mock(),
         CurrentUtcDateTimeFactory(),
-        {
-            'long_average_interval': 60 * 60,
-            'short_average_interval': 15 * 60,
-        }
+        STRATEGY_RUN
     )
-    strategy.tick([market], BTC_USD_PAIR)
+    strategy.tick([market])
 
 
 def create_market_mock() -> Union[Market, Mock]:

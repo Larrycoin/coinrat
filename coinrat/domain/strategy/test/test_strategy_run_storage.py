@@ -46,4 +46,4 @@ def test_save_strategy_run_and_find_it(mysql_connection: MySQLdb.Connection) -> 
     storage.save(strategy_run_to_save)
     strategy_runs = storage.find_by()
     assert len(strategy_runs) == 1
-    assert str(strategy_runs[0].strategy_id) == str(strategy_run_to_save.strategy_id)
+    assert str(strategy_runs[0].strategy_run_id) == str(strategy_run_to_save.strategy_run_id)

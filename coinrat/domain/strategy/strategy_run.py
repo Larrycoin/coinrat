@@ -15,7 +15,7 @@ class StrategyRunMarket:
 class StrategyRun:
     def __init__(
         self,
-        strategy_id: UUID,
+        strategy_run_id: UUID,
         run_at: datetime.datetime,
         pair: Pair,
         markets: List[StrategyRunMarket],
@@ -28,7 +28,7 @@ class StrategyRun:
         assert '+00:00' in run_at.isoformat()[-6:], \
             ('Time must be in UTC and aware of its timezone ({})'.format(run_at.isoformat()))
 
-        self.strategy_id = strategy_id
+        self.strategy_run_id = strategy_run_id
         self.run_at = run_at
         self.pair = pair
         self.markets = markets

@@ -80,6 +80,7 @@ def create_order(
 ) -> Order:
     return Order(
         UUID('16fd2706-8baf-433b-82eb-8c7fada847da'),
+        UUID('99fd2706-8baf-433b-82eb-8c7fada847da'),
         'dummy_market_name',
         direction,
         datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),

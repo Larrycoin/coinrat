@@ -55,9 +55,11 @@ def test_strategy_plugins():
     plugins = StrategyPlugins()
     assert 'double_crossover' in plugins.get_available_strategies()
 
+    strategy_run_mock = flexmock(strategy_configuration={})
+
     assert isinstance(
-        plugins.get_strategy('double_crossover', flexmock(), flexmock(), flexmock(), flexmock(), {}),
+        plugins.get_strategy('double_crossover', flexmock(), flexmock(), flexmock(), flexmock(), strategy_run_mock),
         Strategy
     )
     with pytest.raises(StrategyNotProvidedByAnyPluginException):
-        plugins.get_strategy('gandalf', flexmock(), flexmock(), flexmock(), flexmock(), {})
+        plugins.get_strategy('gandalf', flexmock(), flexmock(), flexmock(), flexmock(), strategy_run_mock)

@@ -9,6 +9,7 @@ from coinrat.domain.order import Order, ORDER_TYPE_LIMIT, OrderMarketInfo, DIREC
 
 DUMMY_ORDER_OPEN = Order(
     UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
+    UUID('99fd2706-8baf-433b-82eb-8c7fada847da'),
     'lorem_ipsum',
     DIRECTION_BUY,
     datetime.datetime(2017, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc),
