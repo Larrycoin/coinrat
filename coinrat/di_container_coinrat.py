@@ -14,6 +14,7 @@ from coinrat.server.socket_server import SocketServer
 from coinrat.strategy_plugins import StrategyPlugins
 from coinrat.synchronizer_plugins import SynchronizerPlugins
 from coinrat.domain import CurrentUtcDateTimeFactory, DateTimeFactory
+from coinrat.domain.strategy import StrategyRunStorage
 from coinrat.task.task_planner import TaskPlanner
 from coinrat.task.task_consumer import TaskConsumer
 from coinrat.strategy_replayer import StrategyReplayer
@@ -85,11 +86,9 @@ class DiContainerCoinrat(DiContainer):
                 'instance': None,
                 'factory': lambda: TaskConsumer(
                     self.rabbit_connection,
-                    self.candle_storage_plugins,
-                    self.order_storage_plugins,
-                    self.strategy_plugins,
-                    self.market_plugins,
-                    self.strategy_replayer
+                    self.strategy_replayer,
+                    self.datetime_factory,
+                    self.strategy_run_storage
                 ),
             },
             'subscription_storage': {
@@ -104,6 +103,10 @@ class DiContainerCoinrat(DiContainer):
                     user=os.environ.get('MYSQL_USER'),
                     password=os.environ.get('MYSQL_PASSWORD'),
                 ),
+            },
+            'strategy_run_storage': {
+                'instance': None,
+                'factory': lambda: StrategyRunStorage(self.mysql_connection),
             }
         }
 
@@ -172,3 +175,11 @@ class DiContainerCoinrat(DiContainer):
     @property
     def subscription_storage(self) -> SubscriptionStorage:
         return self._get('subscription_storage')
+
+    @property
+    def mysql_connection(self) -> MySQLdb.Connection:
+        return self._get('mysql_connection')
+
+    @property
+    def strategy_run_storage(self) -> StrategyRunStorage:
+        return self._get('strategy_run_storage')

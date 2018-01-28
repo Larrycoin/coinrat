@@ -45,6 +45,9 @@ class DateTimeInterval:
             'None' if self._till is None else self._till.isoformat()
         )
 
+    def is_closed(self):
+        return self._since is not None and self._till is not None
+
 
 def deserialize_datetime_interval(data: Dict[str, str]) -> DateTimeInterval:
     since = data['since']

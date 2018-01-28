@@ -281,6 +281,18 @@ def start_task_consumer(ctx: Context):
     di_container.task_consumer.run()
 
 
+@cli.command(help="Runs migrations, make schema up-to date.")
+@click.pass_context
+def database_migrate(ctx: Context):
+    di_container.socket_server.start()
+
+    def on_exception(exception: Exception):
+        logger.critical('RABBIT CONSUMER RESTART: Got exception %r', exception)
+        di_container.create_rabbit_consumer(ThreadWatcher(on_exception)).start()
+
+    di_container.create_rabbit_consumer(ThreadWatcher(on_exception)).start()
+
+
 def print_structure_configuration(structure: Dict) -> None:
     click.echo('    {:<40} {:<20} <title> (<unit>) - <description>'.format('<name>:<type>', '<default_value>', ))
 
