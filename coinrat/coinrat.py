@@ -21,6 +21,7 @@ from coinrat.market_plugins import MarketNotProvidedByAnyPluginException
 from coinrat.strategy_plugins import StrategyNotProvidedByAnyPluginException
 from coinrat.domain.configuration_structure import format_data_to_python_types
 from coinrat.thread_watcher import ThreadWatcher
+from .db_migrations import run_db_migrations
 from .di_container_coinrat import DiContainerCoinrat
 
 dotenv_path = join(dirname(__file__), '../.env')
@@ -284,13 +285,7 @@ def start_task_consumer(ctx: Context):
 @cli.command(help="Runs migrations, make schema up-to date.")
 @click.pass_context
 def database_migrate(ctx: Context):
-    di_container.socket_server.start()
-
-    def on_exception(exception: Exception):
-        logger.critical('RABBIT CONSUMER RESTART: Got exception %r', exception)
-        di_container.create_rabbit_consumer(ThreadWatcher(on_exception)).start()
-
-    di_container.create_rabbit_consumer(ThreadWatcher(on_exception)).start()
+    run_db_migrations(di_container.mysql_connection)
 
 
 def print_structure_configuration(structure: Dict) -> None:

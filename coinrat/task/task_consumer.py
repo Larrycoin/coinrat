@@ -5,10 +5,10 @@ import pika
 
 from typing import Dict
 
+from coinrat.domain import DateTimeFactory, deserialize_datetime_interval
 from coinrat.domain.pair import deserialize_pair
 from coinrat.domain.strategy import StrategyRun, StrategyRunStorage
 from coinrat.strategy_replayer import StrategyReplayer
-from domain import DateTimeFactory, deserialize_datetime_interval
 from .task_types import TASK_REPLY_STRATEGY
 
 logger = logging.getLogger(__name__)
