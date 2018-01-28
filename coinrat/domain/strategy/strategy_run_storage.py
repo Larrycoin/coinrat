@@ -1,3 +1,5 @@
+import logging
+
 import MySQLdb
 import datetime
 import json
@@ -7,6 +9,8 @@ from uuid import UUID
 from coinrat.domain import DateTimeInterval
 from coinrat.domain.strategy import StrategyRun, StrategyRunMarket
 from coinrat.domain.pair import serialize_pair, deserialize_pair
+
+logger = logging.getLogger(__name__)
 
 
 class StrategyRunStorage:
@@ -52,10 +56,12 @@ class StrategyRunStorage:
             strategy_run.strategy_name,
             json.dumps(strategy_run.strategy_configuration),
             strategy_run.interval.since.timestamp(),
-            strategy_run.interval.till.timestamp(),
+            strategy_run.interval.till.timestamp() if strategy_run.interval.till is not None else None,
             strategy_run.candle_storage_name,
             strategy_run.order_storage_name
         ))
+        self._connection.commit()
+        logger.debug('Strategy Run: {} saved.'.format(strategy_run.strategy_id))
 
     def find_by(self) -> List[StrategyRun]:
         cursor = self._connection.cursor()
@@ -77,7 +83,8 @@ class StrategyRunStorage:
                 json.loads(row[5]),
                 DateTimeInterval(
                     datetime.datetime.fromtimestamp(row[6], tz=datetime.timezone.utc),
-                    datetime.datetime.fromtimestamp(row[7], tz=datetime.timezone.utc),
+                    datetime.datetime.fromtimestamp(row[7], tz=datetime.timezone.utc) \
+                        if row[7] is not None else None,
                 ),
                 row[8],
                 row[9],

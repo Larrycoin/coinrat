@@ -39,7 +39,7 @@ def test_save_strategy_run_and_find_it(mysql_connection: MySQLdb.Connection) -> 
         [StrategyRunMarket('yolo_market', {'foo': 'BAR'})],
         'strategy_dummy_name',
         {'gandalf': 'Gandalf the Gray'},
-        DateTimeInterval(DUMMY_DATE, DUMMY_DATE + datetime.timedelta(hours=4)),
+        DateTimeInterval(DUMMY_DATE, None),
         'candle_dummy_storage',
         'order_dummy_storage'
     )
