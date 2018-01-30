@@ -52,7 +52,6 @@ class DiContainerCoinrat(DiContainer):
                 'instance': None,
                 'factory': lambda: pika.BlockingConnection(
                     pika.ConnectionParameters(host=os.environ.get('RABBITMQ_SERVER_HOST')),
-
                 ),
             },
             'event_emitter': {
@@ -95,7 +94,8 @@ class DiContainerCoinrat(DiContainer):
                     self.rabbit_connection,
                     self.strategy_replayer,
                     self.datetime_factory,
-                    self.strategy_run_storage
+                    self.strategy_run_storage,
+                    self.event_emitter
                 ),
             },
             'subscription_storage': {

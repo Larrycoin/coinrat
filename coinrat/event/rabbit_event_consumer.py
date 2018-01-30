@@ -10,8 +10,9 @@ from coinrat.domain import deserialize_datetime_interval, DateTimeFactory, DateT
 from coinrat.domain.pair import deserialize_pair
 from coinrat.domain.order import deserialize_order
 from coinrat.domain.candle import deserialize_candle_size, Candle, CandleStorage
-from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER
-from coinrat.server.subscription_storage import SubscriptionStorage, LastCandleSubscription, NewOrderSubscription
+from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER, EVENT_NEW_STRATEGY_RUN
+from coinrat.server.subscription_storage import SubscriptionStorage, LastCandleSubscription, NewOrderSubscription, \
+    NewStrategyRunSubscription
 from coinrat.server.socket_server import SocketServer
 from coinrat.thread_watcher import ThreadWatcher
 
@@ -19,6 +20,8 @@ from coinrat.thread_watcher import ThreadWatcher
 # This constant should be enough. If RabbitConsumer keeps crashing on:
 #       AssertionError: Its expected to found candles after getting candle-added event. But none found.
 # you probably need to fix synchronizer, because data from it are to much delayed.
+from coinrat.domain.strategy import deserialize_strategy_run
+
 SAFETY_MULTIPLIER = 10
 
 logger = logging.getLogger(__name__)
@@ -77,6 +80,8 @@ class RabbitEventConsumer(threading.Thread):
                     deserialize_pair(data['pair']),
                     deserialize_datetime_interval(data['interval'])
                 )
+            elif data['event'] == EVENT_NEW_STRATEGY_RUN:
+                subscription = NewStrategyRunSubscription(session_id)
             else:
                 raise ValueError('Event "{}" not supported'.format(data['event']))
 
@@ -128,6 +133,11 @@ class RabbitEventConsumer(threading.Thread):
             for subscription in subscriptions:
                 order = deserialize_order(event_data['order'])
                 self._socket_server.emit_new_order(subscription.session_id, order)
+
+        elif event_name == EVENT_NEW_STRATEGY_RUN:
+            for subscription in subscriptions:
+                strategy_run = deserialize_strategy_run(event_data['strategy_run'])
+                self._socket_server.emit_new_strategy_run(subscription.session_id, strategy_run)
 
         else:
             logger.info('[Rabbit] Event "%s", received -> NOT SUPPORTED | %r', event_name, event_data)

@@ -1,15 +1,36 @@
 import datetime
+import dateutil.parser
+
 from typing import Dict, List, Union
 from uuid import UUID
 
-from coinrat.domain import DateTimeInterval, serialize_datetime_interval
-from coinrat.domain.pair import Pair, serialize_pair
+from coinrat.domain import DateTimeInterval, serialize_datetime_interval, deserialize_datetime_interval
+from coinrat.domain.pair import Pair, serialize_pair, deserialize_pair
 
 
 class StrategyRunMarket:
     def __init__(self, market_name: str, market_configuration: Dict) -> None:
         self.market_name = market_name
         self.market_configuration = market_configuration
+
+
+def serialize_strategy_run_market(strategy_run_market: StrategyRunMarket) -> Dict:
+    return {
+        'name': strategy_run_market.market_name,
+        'configuration': strategy_run_market.market_configuration,
+    }
+
+
+def serialize_strategy_run_markets(strategy_run_markets: List[StrategyRunMarket]) -> List[Dict[str, Union[str, None]]]:
+    return list(map(serialize_strategy_run_market, strategy_run_markets))
+
+
+def deserialize_strategy_run_market(data: Dict) -> StrategyRunMarket:
+    return StrategyRunMarket(data['name'], data['configuration'])
+
+
+def deserialize_strategy_run_markets(rows: List[Dict]) -> List[StrategyRunMarket]:
+    return list(map(deserialize_strategy_run_market, rows))
 
 
 class StrategyRun:
@@ -57,12 +78,19 @@ def serialize_strategy_runs(strategy_runs: List[StrategyRun]) -> List[Dict[str, 
     return list(map(serialize_strategy_run, strategy_runs))
 
 
-def serialize_strategy_run_market(strategy_run_market: StrategyRunMarket) -> Dict:
-    return {
-        'name': strategy_run_market.market_name,
-        'configuration': strategy_run_market.market_configuration,
-    }
+def deserialize_strategy_run(data: Dict) -> StrategyRun:
+    return StrategyRun(
+        UUID(data['strategy_run_id']),
+        dateutil.parser.parse(data['run_at']).replace(tzinfo=datetime.timezone.utc),
+        deserialize_pair(data['pair']),
+        deserialize_strategy_run_markets(data['markets']),
+        data['strategy_name'],
+        data['strategy_configuration'],
+        deserialize_datetime_interval(data['interval']),
+        data['candle_storage_name'],
+        data['order_storage_name'],
+    )
 
 
-def serialize_strategy_run_markets(strategy_run_markets: List[StrategyRunMarket]) -> List[Dict[str, Union[str, None]]]:
-    return list(map(serialize_strategy_run_market, strategy_run_markets))
+def deserialize_strategy_runs(rows: List[Dict]) -> List[StrategyRun]:
+    return list(map(deserialize_strategy_run, rows))

@@ -240,6 +240,7 @@ def run_strategy(
         order_storage
     )
     di_container.strategy_run_storage.save(strategy_run)
+    di_container.event_emitter.emit_new_strategy_run(strategy_run)
 
     try:
         di_container.strategy_standard_runner.run(strategy_run)

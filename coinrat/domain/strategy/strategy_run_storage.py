@@ -65,7 +65,7 @@ class StrategyRunStorage:
 
     def find_by(self) -> List[StrategyRun]:
         cursor = self._connection.cursor()
-        cursor.execute('SELECT * FROM `strategy_runs`')
+        cursor.execute('SELECT * FROM `strategy_runs` ORDER BY `run_at` DESC')
 
         result = []
         for row in cursor.fetchall():

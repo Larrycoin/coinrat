@@ -9,6 +9,7 @@ from coinrat.domain import DateTimeFactory, deserialize_datetime_interval
 from coinrat.domain.pair import deserialize_pair
 from coinrat.domain.strategy import StrategyRun, StrategyRunStorage, StrategyRunMarket
 from coinrat.strategy_replayer import StrategyReplayer
+from coinrat.event.event_emitter import EventEmitter
 from .task_types import TASK_REPLY_STRATEGY
 
 logger = logging.getLogger(__name__)
@@ -20,12 +21,14 @@ class TaskConsumer:
         rabbit_connection: pika.BlockingConnection,
         strategy_replayer: StrategyReplayer,
         date_time_factory: DateTimeFactory,
-        strategy_run_storage: StrategyRunStorage
+        strategy_run_storage: StrategyRunStorage,
+        event_emitter: EventEmitter
     ) -> None:
         super().__init__()
         self._strategy_run_storage = strategy_run_storage
         self._strategy_replayer = strategy_replayer
         self._date_time_factory = date_time_factory
+        self._event_emitter = event_emitter
 
         self._channel = rabbit_connection.channel()
         self._channel.queue_declare(queue='tasks')
@@ -56,6 +59,7 @@ class TaskConsumer:
             data['orders_storage']
         )
         self._strategy_run_storage.save(strategy_run)
+        self._event_emitter.emit_new_strategy_run(strategy_run)
         self._strategy_replayer.run(strategy_run)
 
     def run(self):

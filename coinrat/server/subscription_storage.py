@@ -3,7 +3,7 @@ from typing import Dict, List, Union
 
 from coinrat.domain import DateTimeInterval
 from coinrat.domain.pair import Pair
-from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER
+from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER, EVENT_NEW_STRATEGY_RUN
 from coinrat.domain.candle import deserialize_candle, CandleSize
 from coinrat.domain.order import deserialize_order
 
@@ -97,6 +97,17 @@ class NewOrderSubscription(Subscription):
             .format(self.session_id, self.storage_name, self.market_name, self.pair, self.interval)
 
 
+class NewStrategyRunSubscription(Subscription):
+    def __init__(self, session_id: str) -> None:
+        super().__init__(session_id)
+
+    def is_subscribed_for(self, event_name: Union[str, None] = None, event_data: Union[Dict, None] = None) -> bool:
+        return event_name is not None and event_name == EVENT_NEW_STRATEGY_RUN
+
+    def __repr__(self) -> str:
+        return 'NewStrategyRunSubscription({})'.format(self.session_id)
+
+
 class SubscriptionStorage:
     def __init__(self) -> None:
         self._subscriptions: List[Subscription] = []
@@ -114,6 +125,9 @@ class SubscriptionStorage:
         return result
 
     def unsubscribe(self, event_name: str, session_id: str) -> None:
+        print('!!!!!')
+        print(event_name)
+        print('!!!!!')
         for subscription in self._subscriptions:
             if subscription.is_subscribed_for(event_name) and subscription.session_id == session_id:
                 self._subscriptions.remove(subscription)
