@@ -42,7 +42,7 @@ class Order:
     def __init__(
         self,
         order_id: UUID,
-        strategy_run_in: UUID,
+        strategy_run_id: UUID,
         market_name: str,
         direction: str,
         created_at: datetime.datetime,
@@ -74,7 +74,7 @@ class Order:
         assert direction in [DIRECTION_SELL, DIRECTION_BUY]
 
         self._order_id = order_id
-        self._strategy_run_in = strategy_run_in
+        self._strategy_run_id = strategy_run_id
         self._market_name = market_name
         self._created_at = created_at
         self._direction = direction
@@ -98,8 +98,8 @@ class Order:
         return self._order_id
 
     @property
-    def strategy_run_in(self) -> UUID:
-        return self._strategy_run_in
+    def strategy_run_id(self) -> UUID:
+        return self._strategy_run_id
 
     @property
     def market_name(self) -> str:
@@ -195,7 +195,7 @@ class Order:
 def serialize_order(order: Order) -> Dict[str, Union[str, None]]:
     return {
         ORDER_FIELD_ORDER_ID: str(order.order_id),
-        ORDER_FIELD_STRATEGY_RUN_ID: str(order.strategy_run_in),
+        ORDER_FIELD_STRATEGY_RUN_ID: str(order.strategy_run_id),
         ORDER_FIELD_MARKET: order.market_name,
         ORDER_FIELD_DIRECTION: order._direction,
         ORDER_FIELD_CREATED_AT: order.created_at.isoformat(),

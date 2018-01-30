@@ -15,10 +15,11 @@ from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.server.socket_event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, \
     EVENT_GET_ORDERS, EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_LAST_CANDLE_UPDATED, \
     EVENT_NEW_ORDERS, EVENT_CLEAR_ORDERS, EVENT_GET_MARKETS, EVENT_GET_PAIRS, EVENT_GET_CANDLE_STORAGES, \
-    EVENT_GET_ORDER_STORAGES, EVENT_GET_STRATEGIES, SOCKET_EVENT_GET_BALANCE
+    EVENT_GET_ORDER_STORAGES, EVENT_GET_STRATEGIES, SOCKET_EVENT_GET_BALANCE, EVENT_GET_STRATEGY_RUNS
 from coinrat.task.task_planner import TaskPlanner
 from coinrat.market_plugins import MarketPlugins
 from coinrat.strategy_plugins import StrategyPlugins
+from coinrat.domain.strategy import StrategyRunStorage, serialize_strategy_runs
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,8 @@ class SocketServer(threading.Thread):
         candle_storage_plugins: CandleStoragePlugins,
         order_storage_plugins: OrderStoragePlugins,
         market_plugins: MarketPlugins,
-        strategy_plugins: StrategyPlugins
+        strategy_plugins: StrategyPlugins,
+        strategy_run_storage: StrategyRunStorage
     ):
         super().__init__()
         self.task_planner = task_planner
@@ -155,6 +157,11 @@ class SocketServer(threading.Thread):
             )
 
             return 'OK', serialize_orders(result_orders)
+
+        @socket.on(EVENT_GET_STRATEGY_RUNS)
+        def strategy_runs(sid, data):
+            logger.info('RECEIVED: {}, {}'.format(EVENT_GET_STRATEGY_RUNS, data))
+            return 'OK', serialize_strategy_runs(strategy_run_storage.find_by())
 
         @socket.on(EVENT_CLEAR_ORDERS)
         def clear_orders(sid, data):

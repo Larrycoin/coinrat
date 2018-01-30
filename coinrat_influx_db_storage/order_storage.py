@@ -98,7 +98,7 @@ class OrderInnoDbStorage(OrderStorage):
                 ORDER_FIELD_MARKET: order.market_name,
                 ORDER_FIELD_PAIR: serialize_pair(order.pair),
                 ORDER_FIELD_ORDER_ID: str(order.order_id),
-                ORDER_FIELD_STRATEGY_RUN_ID: str(order.strategy_run_in),
+                ORDER_FIELD_STRATEGY_RUN_ID: str(order.strategy_run_id),
             },
             'time': order.created_at.isoformat(),
             'fields': {

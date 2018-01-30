@@ -8,6 +8,9 @@ EVENT_GET_ORDERS = 'get_orders'
 EVENT_NEW_ORDERS = 'new_orders'
 EVENT_CLEAR_ORDERS = 'clear_orders'
 
+EVENT_GET_STRATEGY_RUNS = 'get_strategy_runs'
+EVENT_NEW_STRATEGY_RUN = 'new_strategy_run'
+
 EVENT_SUBSCRIBE = 'subscribe'
 EVENT_UNSUBSCRIBE = 'unsubscribe'
 
