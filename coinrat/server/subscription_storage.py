@@ -125,9 +125,6 @@ class SubscriptionStorage:
         return result
 
     def unsubscribe(self, event_name: str, session_id: str) -> None:
-        print('!!!!!')
-        print(event_name)
-        print('!!!!!')
         for subscription in self._subscriptions:
             if subscription.is_subscribed_for(event_name) and subscription.session_id == session_id:
                 self._subscriptions.remove(subscription)
