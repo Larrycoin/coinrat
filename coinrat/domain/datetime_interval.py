@@ -57,3 +57,10 @@ def deserialize_datetime_interval(data: Dict[str, str]) -> DateTimeInterval:
         dateutil.parser.parse(since).replace(tzinfo=datetime.timezone.utc) if since is not None else None,
         dateutil.parser.parse(till).replace(tzinfo=datetime.timezone.utc) if till is not None else None
     )
+
+
+def serialize_datetime_interval(interval: DateTimeInterval) -> Dict:
+    return {
+        'since': interval.since.isoformat() if interval.since is not None else None,
+        'till': interval.till.isoformat() if interval.till is not None else None,
+    }

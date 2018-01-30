@@ -2,8 +2,8 @@ import datetime
 from typing import Dict, List, Union
 from uuid import UUID
 
-from coinrat.domain import DateTimeInterval
-from coinrat.domain.pair import Pair
+from coinrat.domain import DateTimeInterval, serialize_datetime_interval
+from coinrat.domain.pair import Pair, serialize_pair
 
 
 class StrategyRunMarket:
@@ -41,13 +41,13 @@ class StrategyRun:
 
 def serialize_strategy_run(strategy_run: StrategyRun):
     return {
-        'strategy_run_id': strategy_run.strategy_run_id,
-        'run_at': strategy_run.run_at,
-        'pair': strategy_run.pair,
-        'markets': strategy_run.markets,
+        'strategy_run_id': str(strategy_run.strategy_run_id),
+        'run_at': strategy_run.run_at.isoformat(),
+        'pair': serialize_pair(strategy_run.pair),
+        'markets': serialize_strategy_run_markets(strategy_run.markets),
         'strategy_name': strategy_run.strategy_name,
         'strategy_configuration': strategy_run.strategy_configuration,
-        'interval': strategy_run.interval,
+        'interval': serialize_datetime_interval(strategy_run.interval),
         'candle_storage_name': strategy_run.candle_storage_name,
         'order_storage_name': strategy_run.order_storage_name,
     }
@@ -55,3 +55,14 @@ def serialize_strategy_run(strategy_run: StrategyRun):
 
 def serialize_strategy_runs(strategy_runs: List[StrategyRun]) -> List[Dict[str, Union[str, None]]]:
     return list(map(serialize_strategy_run, strategy_runs))
+
+
+def serialize_strategy_run_market(strategy_run_market: StrategyRunMarket) -> Dict:
+    return {
+        'name': strategy_run_market.market_name,
+        'configuration': strategy_run_market.market_configuration,
+    }
+
+
+def serialize_strategy_run_markets(strategy_run_markets: List[StrategyRunMarket]) -> List[Dict[str, Union[str, None]]]:
+    return list(map(serialize_strategy_run_market, strategy_run_markets))
