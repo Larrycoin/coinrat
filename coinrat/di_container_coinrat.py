@@ -75,7 +75,8 @@ class DiContainerCoinrat(DiContainer):
                     self.candle_storage_plugins,
                     self.order_storage_plugins,
                     self.market_plugins,
-                    self.strategy_plugins
+                    self.strategy_plugins,
+                    self.strategy_run_storage
                 ),
             },
             'strategy_replayer': {
