@@ -61,6 +61,7 @@ class StrategyRunStorage:
             strategy_run.order_storage_name
         ))
         self._connection.commit()
+        cursor.close()
         logger.debug('Strategy Run: {} saved.'.format(strategy_run.strategy_run_id))
 
     def find_by(self) -> List[StrategyRun]:
@@ -89,4 +90,5 @@ class StrategyRunStorage:
                 row[8],
                 row[9],
             ))
+        cursor.close()
         return result
