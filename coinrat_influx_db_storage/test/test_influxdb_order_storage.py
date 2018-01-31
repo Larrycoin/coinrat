@@ -92,6 +92,14 @@ def test_find_by(influx_database: InfluxDBClient):
     assert orders[0].is_sell() is True
     assert str(orders[0].order_id) == '16fd2706-8baf-433b-82eb-8c7fada847db'
 
+    orders = storage.find_by(
+        market_name=DUMMY_MARKET,
+        pair=BTC_USD_PAIR,
+        strategy_run_id='99fd2706-8baf-433b-82eb-8c7fada847da'
+    )
+    assert len(orders) == 1
+    assert str(orders[0].strategy_run_id) == '99fd2706-8baf-433b-82eb-8c7fada847da'
+
 
 def test_delete_order(influx_database: InfluxDBClient):
     storage = OrderInnoDbStorage(influx_database, 'test_orders')
@@ -154,7 +162,7 @@ def create_dummy_data(influx_database: InfluxDBClient):
     ))
     storage.save_order(Order(
         UUID('16fd2706-8baf-433b-82eb-8c7fada847db'),
-        UUID('99fd2706-8baf-433b-82eb-8c7fada847da'),
+        UUID('99fd2706-8baf-433b-82eb-8c7fada847db'),
         DUMMY_MARKET,
         DIRECTION_SELL,
         datetime.datetime(2017, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc),

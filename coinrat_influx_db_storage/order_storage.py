@@ -43,9 +43,10 @@ class OrderInnoDbStorage(OrderStorage):
         self,
         market_name: str,
         pair: Pair,
-        status: str = None,
-        direction: str = None,
-        interval: DateTimeInterval = DateTimeInterval(None, None)
+        status: Union[str, None] = None,
+        direction: Union[str, None] = None,
+        interval: DateTimeInterval = DateTimeInterval(None, None),
+        strategy_run_id: Union[str, None] = None
     ) -> List[Order]:
         assert status in POSSIBLE_ORDER_STATUSES or status is None, 'Invalid status: "{}"'.format(status)
 
@@ -62,6 +63,8 @@ class OrderInnoDbStorage(OrderStorage):
             parameters['"time" >'] = "'{}'".format(interval.since.isoformat())
         if interval.till is not None:
             parameters['"time" <'] = "'{}'".format(interval.till.isoformat())
+        if strategy_run_id is not None:
+            parameters[ORDER_FIELD_STRATEGY_RUN_ID] = "= '{}'".format(strategy_run_id)
 
         sql = 'SELECT * FROM "{}" WHERE '.format(self._measurement_name)
         where = []

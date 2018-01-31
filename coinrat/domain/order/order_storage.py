@@ -16,9 +16,10 @@ class OrderStorage:
         self,
         market_name: str,
         pair: Pair,
-        status: str = None,
-        direction: str = None,
-        interval: DateTimeInterval = DateTimeInterval(None, None)
+        status: Union[str, None] = None,
+        direction: Union[str, None] = None,
+        interval: DateTimeInterval = DateTimeInterval(None, None),
+        strategy_run_id: Union[str, None] = None
     ) -> List[Order]:
         raise NotImplementedError()
 

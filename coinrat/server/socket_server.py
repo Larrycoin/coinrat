@@ -151,10 +151,14 @@ class SocketServer(threading.Thread):
                 return 'ERROR', {'message': 'Missing "order_storage" field in request.'}
 
             order_storage = order_storage_plugins.get_order_storage(data['order_storage'])
+
+            strategy_run_id = data['strategy_run_id'] if 'strategy_run_id' in data else None
+
             result_orders = order_storage.find_by(
                 data['market'],
                 deserialize_pair(data['pair']),
-                interval=deserialize_datetime_interval(data['interval'])
+                interval=deserialize_datetime_interval(data['interval']),
+                strategy_run_id=strategy_run_id
             )
 
             return 'OK', serialize_orders(result_orders)
