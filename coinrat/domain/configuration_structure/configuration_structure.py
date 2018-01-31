@@ -6,6 +6,7 @@ from decimal import Decimal
 CONFIGURATION_STRUCTURE_TYPE_STRING = 'string'
 CONFIGURATION_STRUCTURE_TYPE_INT = 'int'
 CONFIGURATION_STRUCTURE_TYPE_DECIMAL = 'Decimal'
+CONFIGURATION_STRUCTURE_TYPE_CANDLE_SIZE = 'candle_size'
 
 logger = logging.getLogger(__name__)
 

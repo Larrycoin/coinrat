@@ -9,7 +9,7 @@ from coinrat.domain.candle import CandleStorage, deserialize_candle_size, Candle
 from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_TYPE_LIMIT, \
     NotEnoughBalanceToPerformOrderException
 from coinrat.event.event_emitter import EventEmitter
-from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_STRING, CONFIGURATION_STRUCTURE_TYPE_INT
+from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_CANDLE_SIZE
 from coinrat_heikin_ashi_strategy.heikin_ashi_candle import HeikinAshiCandle, candle_to_heikin_ashi, \
     create_initial_heikin_ashi_candle
 from coinrat.domain.configuration_structure import format_data_to_python_types
@@ -181,7 +181,7 @@ class HeikinAshiStrategy(Strategy):
     def get_configuration_structure() -> Dict[str, Dict[str, str]]:
         return {
             'candle_size': {
-                'type': CONFIGURATION_STRUCTURE_TYPE_STRING,
+                'type': CONFIGURATION_STRUCTURE_TYPE_CANDLE_SIZE,
                 'title': 'Candle size',
                 'default': DEFAULT_CANDLE_SIZE_CONFIGURATION,
                 'unit': '',
