@@ -239,15 +239,29 @@ def run_strategy(
         candle_storage,
         order_storage
     )
-    di_container.strategy_run_storage.save(strategy_run)
+    di_container.strategy_run_storage.insert(strategy_run)
     di_container.event_emitter.emit_new_strategy_run(strategy_run)
 
     try:
         di_container.strategy_standard_runner.run(strategy_run)
+
     except StrategyNotProvidedByAnyPluginException as e:
+        _terminate_strategy_run(strategy_run)
         print_error_and_terminate(str(e))
+
     except ForEndUserException as e:
+        _terminate_strategy_run(strategy_run)
         print_error_and_terminate(str(e))
+
+    except KeyboardInterrupt:
+        _terminate_strategy_run(strategy_run)
+        pass
+
+
+def _terminate_strategy_run(strategy_run: StrategyRun) -> None:
+    closed_interval = strategy_run.interval.with_till(di_container.datetime_factory.now())
+    strategy_run.interval = closed_interval
+    di_container.strategy_run_storage.update(strategy_run)
 
 
 def load_configuration_from_file(configuration_file: str) -> Dict:

@@ -58,7 +58,7 @@ class TaskConsumer:
             data['candles_storage'],
             data['orders_storage']
         )
-        self._strategy_run_storage.save(strategy_run)
+        self._strategy_run_storage.insert(strategy_run)
         self._event_emitter.emit_new_strategy_run(strategy_run)
         self._strategy_replayer.run(strategy_run)
 

@@ -17,13 +17,26 @@ class StrategyRunStorage:
     def __init__(self, connection: MySQLdb.Connection) -> None:
         self._connection = connection
 
-    def save(self, strategy_run: StrategyRun):
-        serialized_markets = {}
+    def update(self, strategy_run: StrategyRun):
+        cursor = self._connection.cursor()
+        cursor.execute('DELETE FROM `strategy_runs` WHERE `id` = %s', (strategy_run.strategy_run_id,))
+        self._insert(cursor, strategy_run)
+        self._connection.commit()
+        cursor.close()
+        logger.debug('Strategy Run: {} updated.'.format(strategy_run.strategy_run_id))
 
+    def insert(self, strategy_run: StrategyRun):
+        cursor = self._connection.cursor()
+        self._insert(cursor, strategy_run)
+        self._connection.commit()
+        cursor.close()
+        logger.debug('Strategy Run: {} saved.'.format(strategy_run.strategy_run_id))
+
+    @staticmethod
+    def _insert(cursor, strategy_run: StrategyRun) -> None:
+        serialized_markets = {}
         for strategy_run_market in strategy_run.markets:
             serialized_markets[strategy_run_market.market_name] = strategy_run_market.market_configuration
-
-        cursor = self._connection.cursor()
         cursor.execute("""
             INSERT INTO `strategy_runs` (
                 `id`,
@@ -60,9 +73,6 @@ class StrategyRunStorage:
             strategy_run.candle_storage_name,
             strategy_run.order_storage_name
         ))
-        self._connection.commit()
-        cursor.close()
-        logger.debug('Strategy Run: {} saved.'.format(strategy_run.strategy_run_id))
 
     def find_by(self) -> List[StrategyRun]:
         cursor = self._connection.cursor()
