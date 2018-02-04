@@ -37,6 +37,8 @@ class SocketServer(threading.Thread):
         strategy_run_storage: StrategyRunStorage
     ):
         super().__init__()
+
+        self.market_plugins = market_plugins
         self.task_planner = task_planner
         socket = socketio.Server(async_mode='threading')
 
@@ -84,13 +86,13 @@ class SocketServer(threading.Thread):
             return 'OK', serialize_candles(result_candles)
 
         @socket.on(EVENT_GET_MARKET_PLUGINS)
-        def markets(sid, data):
+        def market_plugins(sid, data):
             logger.info('RECEIVED: {}, {}'.format(EVENT_GET_MARKET_PLUGINS, data))
 
             result = []
-            for plugin in market_plugins.get_available_market_plugins():
+            for plugin in self.market_plugins.get_available_market_plugins():
                 result.append({
-                    'name': plugin.get_name,
+                    'name': plugin.get_name(),
                 })
 
             return 'OK', result
@@ -99,7 +101,7 @@ class SocketServer(threading.Thread):
         def markets(sid, data):
             logger.info('RECEIVED: {}, {}'.format(EVENT_GET_MARKETS, data))
 
-            plugin = market_plugins.get_plugin(data['market_plugin_name'])
+            plugin = self.market_plugins.get_plugin(data['market_plugin_name'])
 
             result = []
             for market_name in plugin.get_available_markets():
@@ -121,7 +123,7 @@ class SocketServer(threading.Thread):
             if 'market_plugin_name' not in data:
                 return 'ERROR', {'message': 'Missing "market_plugin_name" field in request.'}
 
-            market_plugin = market_plugins.get_plugin(data['market_plugin_name'])
+            market_plugin = self.market_plugins.get_plugin(data['market_plugin_name'])
             market = market_plugin.get_market(data['market_name'], datetime_factory, {})
 
             return 'OK', list(map(
