@@ -44,8 +44,9 @@ class StrategyReplayer(StrategyRunner):
             strategy_run
         )
 
-        market_class = self._market_plugins.get_market_class('mock')
-        market = self._market_plugins.get_market(
+        market_plugin = self._market_plugins.get_plugin('mock')
+        market_class = market_plugin.get_market_class('mock')
+        market = market_plugin.get_market(
             'mock',
             datetime_factory,
             format_data_to_python_types(

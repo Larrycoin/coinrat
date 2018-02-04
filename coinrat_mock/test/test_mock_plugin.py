@@ -5,10 +5,13 @@ from coinrat_mock import market_plugin
 from coinrat_mock.market import MockMarket
 
 
-def test_plugin():
+def test_mock_market_plugin():
     assert 'coinrat_mock' == market_plugin.get_name()
 
-    assert ['mock'] == market_plugin.get_available_markets()
+    assert [] == market_plugin.get_available_markets()
+
+    assert market_plugin.does_support_market('mock') is True
+    assert market_plugin.does_support_market('gandalf') is True
 
     assert isinstance(market_plugin.get_market('mock', flexmock(), {}), MockMarket)
     with pytest.raises(ValueError):

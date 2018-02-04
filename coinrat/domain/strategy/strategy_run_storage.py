@@ -7,7 +7,7 @@ from typing import List
 from uuid import UUID
 
 from coinrat.domain import DateTimeInterval
-from coinrat.domain.strategy import StrategyRun, StrategyRunMarket
+from coinrat.domain.strategy import StrategyRun, serialize_strategy_run_markets, deserialize_strategy_run_markets
 from coinrat.domain.pair import serialize_pair, deserialize_pair
 
 logger = logging.getLogger(__name__)
@@ -34,9 +34,6 @@ class StrategyRunStorage:
 
     @staticmethod
     def _insert(cursor, strategy_run: StrategyRun) -> None:
-        serialized_markets = {}
-        for strategy_run_market in strategy_run.markets:
-            serialized_markets[strategy_run_market.market_name] = strategy_run_market.market_configuration
         cursor.execute("""
             INSERT INTO `strategy_runs` (
                 `id`,
@@ -65,7 +62,7 @@ class StrategyRunStorage:
             str(strategy_run.strategy_run_id),
             strategy_run.run_at.timestamp(),
             serialize_pair(strategy_run.pair),
-            json.dumps(serialized_markets),
+            json.dumps(serialize_strategy_run_markets(strategy_run.markets)),
             strategy_run.strategy_name,
             json.dumps(strategy_run.strategy_configuration),
             strategy_run.interval.since.timestamp(),
@@ -80,16 +77,11 @@ class StrategyRunStorage:
 
         result = []
         for row in cursor.fetchall():
-            strategy_run_markets = [
-                StrategyRunMarket(market_name, market_configuration)
-                for market_name, market_configuration in json.loads(row[3]).items()
-            ]
-
             result.append(StrategyRun(
                 UUID(row[0]),
                 datetime.datetime.fromtimestamp(row[1], tz=datetime.timezone.utc),
                 deserialize_pair(row[2]),
-                strategy_run_markets,
+                deserialize_strategy_run_markets(json.loads(row[3])),
                 row[4],
                 json.loads(row[5]),
                 DateTimeInterval(

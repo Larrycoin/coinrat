@@ -51,7 +51,7 @@ class TaskConsumer:
             uuid.uuid4(),
             self._date_time_factory.now(),
             deserialize_pair(data['pair']),
-            [StrategyRunMarket('mock', data['market_configuration'])],
+            [StrategyRunMarket('mock', data['market_plugin_name'], data['market_configuration'])],
             data['strategy_name'],
             data['strategy_configuration'],
             interval,

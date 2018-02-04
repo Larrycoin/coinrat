@@ -2,11 +2,10 @@ import pytest
 from flexmock import flexmock
 
 from coinrat.domain import MarketStateSynchronizer
-from coinrat.domain.market import Market
 from coinrat.domain.order import OrderStorage
 from coinrat.domain.candle import CandleStorage
 from coinrat.domain.strategy import Strategy
-from coinrat.market_plugins import MarketPlugins, MarketNotProvidedByAnyPluginException
+from coinrat.market_plugins import MarketPlugins, MarketPluginSpecification, MarketPluginDoesNotExistsException
 from coinrat.candle_storage_plugins import CandleStoragePlugins, CandleStorageNotProvidedByAnyPluginException
 from coinrat.strategy_plugins import StrategyPlugins, StrategyNotProvidedByAnyPluginException
 from coinrat.synchronizer_plugins import SynchronizerPlugins, SynchronizerNotProvidedByAnyPluginException
@@ -25,12 +24,14 @@ def test_synchronizer_plugins():
 
 def test_market_plugins():
     plugins = MarketPlugins()
-    assert 'bittrex' in plugins.get_available_markets()
-    assert 'mock' in plugins.get_available_markets()
 
-    assert isinstance(plugins.get_market('bittrex', flexmock(), {}), Market)
-    with pytest.raises(MarketNotProvidedByAnyPluginException):
-        plugins.get_market('gandalf', flexmock(), {})
+    mock_plugin = plugins.get_plugin('coinrat_mock')
+    assert isinstance(mock_plugin, MarketPluginSpecification)
+    bittrex_plugin = plugins.get_plugin('coinrat_bittrex')
+    assert isinstance(bittrex_plugin, MarketPluginSpecification)
+
+    with pytest.raises(MarketPluginDoesNotExistsException):
+        plugins.get_plugin('gandalf')
 
 
 def test_candle_storage_plugins():

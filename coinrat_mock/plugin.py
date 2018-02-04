@@ -3,21 +3,31 @@ from coinrat.market_plugins import MarketPluginSpecification
 from .market import MARKET_NAME, MockMarket
 
 get_name_impl = pluggy.HookimplMarker('market_plugins')
+get_description_impl = pluggy.HookimplMarker('market_plugins')
 get_available_markets_spec = pluggy.HookimplMarker('market_plugins')
 get_market_impl = pluggy.HookimplMarker('market_plugins')
 get_market_class_impl = pluggy.HookimplMarker('market_plugins')
+does_support_market_impl = pluggy.HookimplMarker('market_plugins')
 
 PLUGIN_NAME = 'coinrat_mock'
 
 
 class MarketPlugin(MarketPluginSpecification):
+    @get_description_impl
+    def get_description(self):
+        return 'Plugin mocks any market.'
+
     @get_name_impl
     def get_name(self):
         return PLUGIN_NAME
 
     @get_available_markets_spec
     def get_available_markets(self):
-        return [MARKET_NAME]
+        return []
+
+    @does_support_market_impl
+    def does_support_market(self, name):
+        return True
 
     @get_market_impl
     def get_market(self, name, datetime_factory, configuration):

@@ -16,7 +16,7 @@ from coinrat.server.socket_event_types import EVENT_PING_REQUEST, EVENT_PING_RES
     EVENT_GET_ORDERS, EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_LAST_CANDLE_UPDATED, \
     EVENT_NEW_ORDERS, EVENT_CLEAR_ORDERS, EVENT_GET_MARKETS, EVENT_GET_PAIRS, EVENT_GET_CANDLE_STORAGES, \
     EVENT_GET_ORDER_STORAGES, EVENT_GET_STRATEGIES, SOCKET_EVENT_GET_BALANCE, EVENT_GET_STRATEGY_RUNS, \
-    EVENT_NEW_STRATEGY_RUN
+    EVENT_NEW_STRATEGY_RUN, EVENT_GET_MARKET_PLUGINS
 from coinrat.task.task_planner import TaskPlanner
 from coinrat.market_plugins import MarketPlugins
 from coinrat.strategy_plugins import StrategyPlugins
@@ -58,7 +58,11 @@ class SocketServer(threading.Thread):
             if 'market_name' not in data:
                 return 'ERROR', {'message': 'Missing "market_name" field in request.'}
 
-            market = market_plugins.get_market(data['market_name'], datetime_factory, {})
+            if 'market_plugin_name' not in data:
+                return 'ERROR', {'message': 'Missing "market_plugin_name" field in request.'}
+
+            market_plugin = market_plugins.get_plugin(data['market_plugin_name'])
+            market = market_plugin.get_market(data['market_name'], datetime_factory, {})
 
             return 'OK', serialize_balances(market.get_balances())
 
@@ -79,13 +83,27 @@ class SocketServer(threading.Thread):
 
             return 'OK', serialize_candles(result_candles)
 
+        @socket.on(EVENT_GET_MARKET_PLUGINS)
+        def markets(sid, data):
+            logger.info('RECEIVED: {}, {}'.format(EVENT_GET_MARKET_PLUGINS, data))
+
+            result = []
+            for plugin in market_plugins.get_available_market_plugins():
+                result.append({
+                    'name': plugin.get_name,
+                })
+
+            return 'OK', result
+
         @socket.on(EVENT_GET_MARKETS)
         def markets(sid, data):
             logger.info('RECEIVED: {}, {}'.format(EVENT_GET_MARKETS, data))
 
+            plugin = market_plugins.get_plugin(data['market_plugin_name'])
+
             result = []
-            for market_name in market_plugins.get_available_markets():
-                market_class = market_plugins.get_market_class(market_name)
+            for market_name in plugin.get_available_markets():
+                market_class = plugin.get_market_class(market_name)
                 result.append({
                     'name': market_name,
                     'configuration_structure': market_class.get_configuration_structure(),
@@ -100,8 +118,11 @@ class SocketServer(threading.Thread):
             if 'market_name' not in data:
                 return 'ERROR', {'message': 'Missing "market_name" field in request.'}
 
-            market_name = data['market_name']
-            market = market_plugins.get_market(market_name, datetime_factory, {})
+            if 'market_plugin_name' not in data:
+                return 'ERROR', {'message': 'Missing "market_plugin_name" field in request.'}
+
+            market_plugin = market_plugins.get_plugin(data['market_plugin_name'])
+            market = market_plugin.get_market(data['market_name'], datetime_factory, {})
 
             return 'OK', list(map(
                 lambda pair: {

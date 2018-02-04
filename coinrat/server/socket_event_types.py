@@ -16,6 +16,7 @@ EVENT_UNSUBSCRIBE = 'unsubscribe'
 
 EVENT_RUN_REPLY = 'run_reply'
 
+EVENT_GET_MARKET_PLUGINS = 'get_market_plugins'
 EVENT_GET_MARKETS = 'get_markets'
 EVENT_GET_PAIRS = 'get_pairs'
 EVENT_GET_CANDLE_STORAGES = 'get_candle_storages'

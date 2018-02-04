@@ -16,10 +16,13 @@ def test_synchronizer_plugin():
         synchronizer_plugin.get_synchronizer('gandalf', storage, flexmock())
 
 
-def test_market_plugin():
+def test_bittrex_market_plugin():
     assert 'coinrat_bittrex' == market_plugin.get_name()
 
     assert ['bittrex'] == market_plugin.get_available_markets()
+
+    assert market_plugin.does_support_market('bittrex') is True
+    assert market_plugin.does_support_market('gandalf') is False
 
     assert isinstance(market_plugin.get_market('bittrex', flexmock(), {}), BittrexMarket)
     with pytest.raises(ValueError):

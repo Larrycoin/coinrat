@@ -9,7 +9,8 @@ from coinrat.domain.pair import Pair, serialize_pair, deserialize_pair
 
 
 class StrategyRunMarket:
-    def __init__(self, market_name: str, market_configuration: Dict) -> None:
+    def __init__(self, plugin_name: str, market_name: str, market_configuration: Dict) -> None:
+        self.plugin_name = plugin_name
         self.market_name = market_name
         self.market_configuration = market_configuration
 
@@ -17,6 +18,7 @@ class StrategyRunMarket:
 def serialize_strategy_run_market(strategy_run_market: StrategyRunMarket) -> Dict:
     return {
         'name': strategy_run_market.market_name,
+        'plugin_name': strategy_run_market.plugin_name,
         'configuration': strategy_run_market.market_configuration,
     }
 
@@ -26,7 +28,7 @@ def serialize_strategy_run_markets(strategy_run_markets: List[StrategyRunMarket]
 
 
 def deserialize_strategy_run_market(data: Dict) -> StrategyRunMarket:
-    return StrategyRunMarket(data['name'], data['configuration'])
+    return StrategyRunMarket(data['name'], data['plugin_name'], data['configuration'])
 
 
 def deserialize_strategy_run_markets(rows: List[Dict]) -> List[StrategyRunMarket]:
