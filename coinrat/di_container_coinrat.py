@@ -51,7 +51,13 @@ class DiContainerCoinrat(DiContainer):
             'rabbit_connection': {
                 'instance': None,
                 'factory': lambda: pika.BlockingConnection(
-                    pika.ConnectionParameters(host=os.environ.get('RABBITMQ_SERVER_HOST')),
+                    pika.ConnectionParameters(
+                        host=os.environ.get('RABBITMQ_SERVER_HOST'),
+                        credentials=pika.PlainCredentials(
+                            os.environ.get('RABBITMQ_USERNAME'),
+                            os.environ.get('RABBITMQ_PASSWORD')
+                        )
+                    ),
                 ),
             },
             'event_emitter': {
