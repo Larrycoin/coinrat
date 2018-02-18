@@ -25,9 +25,8 @@ to help with running simulations and to visualize results.
         * Grand this user with R+W access to the database: `curl -XPOST "http://localhost:8086/query" --data-urlencode 'q=GRANT ALL ON "coinrat" TO "coinrat"'`
 * Install RabbitMQ :rabbit: [official instructions](https://www.rabbitmq.com/install-debian.html).
 * Install MySQL database (MySQL, MariaDB, Percona, ...) and create `coinrat` database and user with write access for it. Add configuration into `.env`
-* Install dependencies: `pipenv install`
+* Install dependencies: `pipenv install` (use `--dev` if you want to develop and also run tests)
 * Provide configuration `cp .env_example .env`
-* Start virtual environment: `pipenv shell`
 * Run MySQL database migrations: `pipenv run coinrat database_migrate`.
     
 ## Plugins
