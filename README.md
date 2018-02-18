@@ -71,17 +71,9 @@ Once we have data you can see them in the UI-App.
 Run one of default strategies with this command: `python -m coinrat run_strategy double_crossover USD BTC bittrex --candle_storage influx_db --order_storage influx_db_orders-A` 
 
 ## Troubleshooting
-* During installation I got: `OSError: mysql_config not found`
-    * You need to install: `sudo apt-get install libmysqlclient-dev`
-
-* `ERROR: For market "bittrex" no candles in storage "influx_db".` 
-    * Strategy has no data for given market in given storage.
-    * Make sure you have synchronizer running. 
-    * Or, that you have data in the storage for given time period in case you are attempting to run simulation.
-    * Or, your time interval somewhere is too small.
-   
-* In UI-App (1-minute view) every second candle is missing.
-    * You are using `bittrex` synchronizer that uses native Bittrex API. This is known issue, see [#29](https://github.com/Achse/coinrat/issues/29) for more info and workaround.
+1. **OSError: mysql_config not found** → Install: `sudo apt-get install libmysqlclient-dev`
+2. **ERROR: For market "bittrex" no candles in storage "influx_db".** → No data for given **market**, **storage** and selected **time period** / your time interval is too small.
+3. **Every second candle is missing.** → See [#29](https://github.com/Achse/coinrat/issues/29).
 
 ## Additional tips & tricks
-* There is visualization tool for Influx DB called [Chronograf](https://github.com/influxdata/chronograf), it can be usefull for visualizing data too.
+* There is visualization tool for Influx DB called [Chronograf](https://github.com/influxdata/chronograf), it can be useful for visualizing data too.
