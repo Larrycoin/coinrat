@@ -31,14 +31,9 @@ to help with running simulations and to visualize results.
         * Create user: `curl -XPOST "http://localhost:8086/query" --data-urlencode "q=CREATE USER coinrat WITH PASSWORD '<password>'"`
         * Grand this user with R+W access to the database: `curl -XPOST "http://localhost:8086/query" --data-urlencode 'q=GRANT ALL ON "coinrat" TO "coinrat"'`
 
-* Create [virtual-env](http://docs.python-guide.org/en/latest/dev/virtualenvs/) and install Python dependencies:
-    * `python3.6 -m venv __venv__` (Python 3.6.3 minimum!)
-    * `. __venv__/bin/activate`
-    * `python -m pip install --upgrade git+https://github.com/ericsomdahl/python-bittrex.git` ([Package on Pypi](https://pypi.python.org/pypi/bittrex/0.1.4) is not up to date.) 
-    * `python -m pip install -r requirements.txt`
-    * `python setup.py install` (or `python setup.py develop` if you want to develop the thing)
-    * `cp .env_example .env`
-    * Setup your configuration in `.env`
+* Install dependencies: `pipenv install`
+* Provide configuration `cp .env_example .env`
+* Start virtual environment: `pipenv shell`
     
 ## Plugins
 Platform has five plugin types that are registered in `setup.py`: 
@@ -95,8 +90,3 @@ Run one of default strategies with this command: `python -m coinrat run_strategy
 
 ## Additional tips & tricks
 * There is visualization tool for Influx DB called [Chronograf](https://github.com/influxdata/chronograf), it can be usefull for visualizing data too.
-
-## Development
-* Run `python setup.py develop` (instead of `python setup.py install`)
-* In `_scripts` there are some useful tools for development.
-* For more information how to add your plugin, see [Pluggy](https://github.com/pytest-dev/pluggy) - plugin system that is used here.
