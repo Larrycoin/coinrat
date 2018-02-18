@@ -28,24 +28,24 @@ to help with running simulations and to visualize results.
 * Install dependencies: `pipenv install`
 * Provide configuration `cp .env_example .env`
 * Start virtual environment: `pipenv shell`
-* Run MySQL database migrations: `python -m coinrat database_migrate`.
+* Run MySQL database migrations: `pipenv run coinrat database_migrate`.
     
 ## Plugins
 Platform has five plugin types that are registered in `setup.py`: 
 * **`coinrat_market_plugins`** - This plugin provides one or more **stock-market connections** (Bitfinex, Bittrex, ...) and platform uses those plugin to create order, check balances, ...
-    * You can check available markets by: `python -m coinrat markets`
+    * You can check available markets by: `pipenv run coinrat markets`
 * **`coinrat_candle_storage_plugins`** - This plugin provides **storage for candles** (stock-market price data).
-    * You can check available candle storages by: `python -m coinrat candle_storages`
+    * You can check available candle storages by: `pipenv run coinrat candle_storages`
 * **`coinrat_order_storage_plugins`** - This plugin provides **storage for orders** that are created by strategies in platform.
-    * You can check available order storages by: `python -m coinrat order_storages`
+    * You can check available order storages by: `pipenv run coinrat order_storages`
 * **`coinrat_synchronizer_plugins`** - This plugin is responsible for **pumping stock-market data (candles) into platform**. Usually one module contains both market and synchronizer plugin (for stock-market modules). But for read only sources (eg. cryptocompare.com) can be provided solely in the module.
-    * You can check available synchronizers by: `python -m coinrat synchronizers`
+    * You can check available synchronizers by: `pipenv run coinrat synchronizers`
 * **`coinrat_strategy_plugins`** - Most interesting plugins. Contains **trading strategies**. Strategy runs with one instance of candle and order storage, but can use multiple markets (for [Market Arbitrage](https://www.investopedia.com/terms/m/marketarbitrage.asp), etc...)
-    * You can check available strategies by: `python -m coinrat strategies`
+    * You can check available strategies by: `pipenv run coinrat strategies`
 
 ## Configuration for markets and strategies
 Each strategy (or market) can have special configuration. You can see it by running 
-`python -m coinrat market <market_name>` / `python -m coinrat strategy <strategy_name>`.
+`pipenv run coinrat market <market_name>` / `pipenv run coinrat strategy <strategy_name>`.
 
 You can create JSON file with specific properties and provide it via `-c` option to `run_strategy` command.
 
@@ -53,22 +53,22 @@ You can create JSON file with specific properties and provide it via `-c` option
 
 ## Feed data from stock markets
 Fist, we need stock-market data. There are two synchronizers in default plugins:
-* `python -m coinrat synchronize bittrex USD BTC`
-* `python -m coinrat synchronize cryptocompare USD BTC`
+* `pipenv run coinrat synchronize bittrex USD BTC`
+* `pipenv run coinrat synchronize cryptocompare USD BTC`
 
 This process must always be running to keep you with current stock-market data.
 
 ## Usage for simulations and visualisation in UI-App
 Once we have data you can see them in the UI-App.
 
-* Start socket server: `python -m coinrat start_server` and keep it running (You can configure the port of the socket server in `.env`)  .
-* For strategy simulation started from UI-App, we need to have process that will handle them. Start one by: `python -m coinrat start_task_consumer`.
+* Start socket server: `pipenv run coinrat start_server` and keep it running (You can configure the port of the socket server in `.env`)  .
+* For strategy simulation started from UI-App, we need to have process that will handle them. Start one by: `pipenv run coinrat start_task_consumer`.
 * Follow [instructions here](https://github.com/achse/coinrat_ui) to install and run the UI-App.
 
 ## Basic usage against real market
 > :bangbang: **This will execute strategy against real market!** One good option for testing (if market does not provide test account) is to create separate account on the stock-market with **very** limited resources on it.
 
-Run one of default strategies with this command: `python -m coinrat run_strategy double_crossover USD BTC bittrex --candle_storage influx_db --order_storage influx_db_orders-A` 
+Run one of default strategies with this command: `pipenv run coinrat run_strategy double_crossover USD BTC bittrex --candle_storage influx_db --order_storage influx_db_orders-A` 
 
 ## Troubleshooting
 1. **OSError: mysql_config not found** → Install: `sudo apt-get install libmysqlclient-dev`
