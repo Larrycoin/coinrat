@@ -17,23 +17,18 @@ to help with running simulations and to visualize results.
     * Make sure that socket server is **NEVER** accessible from the internet.
 
 ## Installation
-* Coinrat core-platform has dependency on **Python** :snake: (and bunch of packages), MySQL :memo: and **RabbitMQ** :rabbit:.
-    * Minimum Python version : **3.6.3**!
-    * Following [official instructions](https://www.rabbitmq.com/install-debian.html) to install RabbitMQ.
-    * Install your preferred MySQL database (MySQL, MariaDB, Percona, ...) and create `coinrat` database and user wit write access for it. Add configuration into `.env`
-    * Run migrations: `python -m coinrat database_migrate`.
-
-* If you want to use default storage plugins (recommended), you will need **Influx DB**.
-    * Install by the instructions: [here](https://portal.influxdata.com/downloads#influxdb) or [here](https://github.com/influxdata/influxdb)
+* Install InfluxDB: [here](https://portal.influxdata.com/downloads#influxdb)
     * Start: `sudo service influxdb start`
     * `curl -XPOST "http://localhost:8086/query" --data-urlencode "q=CREATE DATABASE coinrat"`
     * For development usage you can use `root`, but **always create separate user with limited access per database** in PRODUCTION:
         * Create user: `curl -XPOST "http://localhost:8086/query" --data-urlencode "q=CREATE USER coinrat WITH PASSWORD '<password>'"`
         * Grand this user with R+W access to the database: `curl -XPOST "http://localhost:8086/query" --data-urlencode 'q=GRANT ALL ON "coinrat" TO "coinrat"'`
-
+* Install RabbitMQ :rabbit: [official instructions](https://www.rabbitmq.com/install-debian.html).
+* Install MySQL database (MySQL, MariaDB, Percona, ...) and create `coinrat` database and user with write access for it. Add configuration into `.env`
 * Install dependencies: `pipenv install`
 * Provide configuration `cp .env_example .env`
 * Start virtual environment: `pipenv shell`
+* Run MySQL database migrations: `python -m coinrat database_migrate`.
     
 ## Plugins
 Platform has five plugin types that are registered in `setup.py`: 
