@@ -7,7 +7,7 @@ verify_ssl = true
 
 [packages]
 
-"-e ." = "*"
+"coinrat" = {path = ".", editable = true}
 click = "==6.7"
 cryptocompare = "==0.3"
 dbschema = "==1.1.2"

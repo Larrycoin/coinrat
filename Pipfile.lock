@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "fa0fb01bf26d15f48850778e5cbeff981db5bd7c773772ae4979fe6f99adf190"
+            "sha256": "e3d045ee005fa47c34ec633cb43f5b5d4c329be606b317339e2114e8a2813fe1"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -54,6 +54,10 @@
                 "sha256:f15516df478d5a56180fbf80e68f206010e6d160fc39fa508b65e035fd75130b"
             ],
             "version": "==6.7"
+        },
+        "coinrat": {
+            "editable": true,
+            "path": "."
         },
         "cryptocompare": {
             "hashes": [
