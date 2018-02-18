@@ -5,11 +5,3 @@
 > - Strategie obchodních modelů budou realizovány formou modulu přímo do nástroje. Mohou ale fungovat také tak, že budou volat API jiné služby/systému.
 > - Aplikace bude vizualizovat výslednou bilanci a průběh transakcí ve webovém rozhraní.
 > - Analýza a volba vhodných technologií je součástí práce.
-
-## Zadání semestrálky na MI-PYT
-> - Jádlro umožňují propojit následující položky
-> - Napojení na jednu burzu
->   - Adapter na burzu je modul
-> - Startegie beží a děla obchody
->   - Strategie je modul
-> - Vyzualizace transakcí na webovém rozhraní (backend API)
