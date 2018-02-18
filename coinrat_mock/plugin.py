@@ -33,10 +33,6 @@ class MarketPlugin(MarketPluginSpecification):
     def set_available_markets(self, available_markets_names: List[str]) -> None:
         self._available_markets_names = available_markets_names
 
-    @does_support_market_impl
-    def does_support_market(self, name):
-        return True
-
     @get_market_impl
     def get_market(self, name, datetime_factory, configuration):
         if 'mocked_market_name' not in configuration:
@@ -45,10 +41,16 @@ class MarketPlugin(MarketPluginSpecification):
         if configuration['mocked_market_name'] != name:
             raise ValueError('Configuration "{}" does not match "{}"')
 
+        if name not in self._available_markets_names:
+            raise ValueError('Market "{}" not supported by this plugin.'.format(name))
+
         return MockMarket(datetime_factory, configuration)
 
     @get_market_class_impl
     def get_market_class(self, name):
+        if name not in self._available_markets_names:
+            raise ValueError('Market "{}" not supported by this plugin.'.format(name))
+
         return MockMarket
 
 
