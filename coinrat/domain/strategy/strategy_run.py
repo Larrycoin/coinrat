@@ -28,7 +28,6 @@ def serialize_strategy_run_markets(strategy_run_markets: List[StrategyRunMarket]
 
 
 def deserialize_strategy_run_market(data: Dict) -> StrategyRunMarket:
-    print(data)
     return StrategyRunMarket(data['name'], data['plugin_name'], data['configuration'])
 
 

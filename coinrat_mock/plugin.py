@@ -39,7 +39,7 @@ class MarketPlugin(MarketPluginSpecification):
             configuration['mocked_market_name'] = name
 
         if configuration['mocked_market_name'] != name:
-            raise ValueError('Configuration "{}" does not match "{}"')
+            raise ValueError('Configuration "{}" does not match "{}"'.format(configuration['mocked_market_name'], name))
 
         if name not in self._available_markets_names:
             raise ValueError('Market "{}" not supported by this plugin.'.format(name))
