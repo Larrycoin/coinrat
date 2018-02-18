@@ -29,3 +29,4 @@ python-bittrex = {git = "https://github.com/ericsomdahl/python-bittrex.git"}
 
 flexmock = "==0.10.2"
 pytest = "==3.2.5"
+pytest-cov = "*"
