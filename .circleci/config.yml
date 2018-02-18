@@ -16,11 +16,9 @@ jobs:
       - run:
          name: install dependencies
          command: |
-            python3 -m venv __venv__
-            . __venv__/bin/activate
-            pip install --upgrade git+https://github.com/ericsomdahl/python-bittrex.git
-            pip install -r requirements.txt
-            python setup.py develop
+            sudo pip install pipenv
+            pipenv install
+            pipenv shell
 
       - run:
          name: prepare structure (dirs and files)
