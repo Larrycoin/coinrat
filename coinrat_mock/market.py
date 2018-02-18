@@ -9,7 +9,7 @@ from coinrat.domain.order import ORDER_TYPE_LIMIT, Order, OrderMarketInfo, ORDER
 from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_STRING, \
     CONFIGURATION_STRUCTURE_TYPE_DECIMAL
 
-DEFAULT_BASE_BALANCE = Decimal('1000')
+DEFAULT_BASE_BALANCE = Decimal('0')
 DEFAULT_TRANSACTION_FEE = Decimal('0.0025')
 DEFAULT_BASE_CURRENCY = 'USD'
 

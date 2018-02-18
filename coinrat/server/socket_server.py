@@ -63,7 +63,7 @@ class SocketServer(threading.Thread):
             if 'market_plugin_name' not in data:
                 return 'ERROR', {'message': 'Missing "market_plugin_name" field in request.'}
 
-            market_plugin = market_plugins.get_plugin(data['market_plugin_name'])
+            market_plugin = self.market_plugins.get_plugin(data['market_plugin_name'])
             market = market_plugin.get_market(data['market_name'], datetime_factory, {})
 
             return 'OK', serialize_balances(market.get_balances())
