@@ -9,7 +9,6 @@ from coinrat.domain.order import ORDER_TYPE_LIMIT, Order, OrderMarketInfo, ORDER
 from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_STRING, \
     CONFIGURATION_STRUCTURE_TYPE_DECIMAL
 
-MARKET_NAME = 'mock'
 DEFAULT_BASE_BALANCE = Decimal('1000')
 DEFAULT_TRANSACTION_FEE = Decimal('0.0025')
 DEFAULT_BASE_CURRENCY = 'USD'
@@ -44,18 +43,15 @@ class MockMarket(Market):
 
     def __init__(self, datetime_factory: DateTimeFactory, configuration: Dict) -> None:
         self._datetime_factory = datetime_factory
-        self._name = MARKET_NAME
         self._transaction_maker_fee: Decimal = DEFAULT_TRANSACTION_FEE
         self._transaction_taker_fee: Decimal = DEFAULT_TRANSACTION_FEE
         self._balances: Dict[str, Decimal] = {}
         self._current_prices: Dict[str, Decimal] = {}
 
         self.init_by_configuration(configuration)
+        self._name = configuration['mocked_market_name']
 
     def init_by_configuration(self, configuration: Dict) -> None:
-        if 'mocked_market_name' in configuration:
-            self._name = configuration['mocked_market_name']
-
         mocked_base_currency_balance: Decimal = configuration['mocked_base_currency_balance'] \
             if 'mocked_base_currency_balance' in configuration \
             else DEFAULT_BASE_BALANCE
@@ -136,7 +132,7 @@ class MockMarket(Market):
         if currency not in self._balances:
             self._balances[currency] = Decimal('0')
 
-        return Balance(MARKET_NAME, currency, self._balances[currency])
+        return Balance(self._name, currency, self._balances[currency])
 
     def get_balances(self) -> List[Balance]:
         result = []

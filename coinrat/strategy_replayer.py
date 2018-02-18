@@ -44,12 +44,18 @@ class StrategyReplayer(StrategyRunner):
             strategy_run
         )
 
-        market_class = self._market_plugins.get_market_class('mock')
-        market = self._market_plugins.get_market(
-            'mock',
+        strategy_run_market = strategy_run.markets[0]  # Todo: solve multi-market strategies
+        assert strategy_run_market.plugin_name == 'coinrat_mock', \
+            'Market plugin must be "coinrat_mock" for simulations, "{}" given.'.format(strategy_run_market.plugin_name)
+
+        market_plugin = self._market_plugins.get_plugin(strategy_run_market.plugin_name)
+        market_class = market_plugin.get_market_class(strategy_run_market.market_name)
+
+        market = market_plugin.get_market(
+            strategy_run_market.market_name,
             datetime_factory,
             format_data_to_python_types(
-                strategy_run.markets[0].market_configuration,
+                strategy_run_market.market_configuration,
                 market_class.get_configuration_structure()
             )
         )

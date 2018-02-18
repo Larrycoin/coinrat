@@ -38,7 +38,7 @@ def test_market():
 
 
 def test_market_processes_orders():
-    market = MockMarket(CurrentUtcDateTimeFactory(), {})
+    market = MockMarket(CurrentUtcDateTimeFactory(), {'mocked_market_name': 'yolo_market'})
 
     assert market.get_balance('USD').available_amount == Decimal('1000')
 
@@ -60,14 +60,14 @@ def test_market_processes_orders():
 
 
 def test_market_get_order_status():
-    market = MockMarket(CurrentUtcDateTimeFactory(), {})
+    market = MockMarket(CurrentUtcDateTimeFactory(), {'mocked_market_name': 'yolo_market'})
     status = market.get_order_status(create_order())
     assert 'Order Id: "16fd2706-8baf-433b-82eb-8c7fada847da", OPEN, Closed at: "", Remaining quantity: "0"' \
            == str(status)
 
 
 def test_get_tradable_pairs():
-    market = MockMarket(CurrentUtcDateTimeFactory(), {})
+    market = MockMarket(CurrentUtcDateTimeFactory(), {'mocked_market_name': 'yolo_market'})
     pairs = market.get_all_tradable_pairs()
     assert len(pairs) > 0
 
@@ -92,7 +92,7 @@ def create_order(
 
 
 def test_mock_market_current_price():
-    market = MockMarket(CurrentUtcDateTimeFactory(), {})
+    market = MockMarket(CurrentUtcDateTimeFactory(), {'mocked_market_name': 'yolo_market'})
     with pytest.raises(KeyError):
         market.get_current_price(BTC_USD_PAIR)
     market.mock_current_price(BTC_USD_PAIR, Decimal('9854.458'))

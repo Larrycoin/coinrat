@@ -10,6 +10,8 @@ get_name_impl = pluggy.HookimplMarker('market_plugins')
 get_available_markets_spec = pluggy.HookimplMarker('market_plugins')
 get_market_impl = pluggy.HookimplMarker('market_plugins')
 get_market_class_impl = pluggy.HookimplMarker('market_plugins')
+get_description_impl = pluggy.HookimplMarker('market_plugins')
+does_support_market_impl = pluggy.HookimplMarker('market_plugins')
 
 PLUGIN_NAME = 'coinrat_bittrex'
 SYNCHRONIZER_NAME = 'bittrex'
@@ -20,6 +22,10 @@ get_synchronizer_impl = pluggy.HookimplMarker('synchronizer_plugins')
 
 
 class MarketPlugin(MarketPluginSpecification):
+    @get_description_impl
+    def get_description(self):
+        return 'Native implementation of Bittrex using bittrex API 1.1 and 2.0.'
+
     @get_name_impl
     def get_name(self):
         return PLUGIN_NAME

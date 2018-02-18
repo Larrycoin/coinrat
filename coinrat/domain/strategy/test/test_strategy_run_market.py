@@ -2,5 +2,10 @@ from coinrat.domain.strategy import StrategyRunMarket, serialize_strategy_run_ma
 
 
 def test_serialize_strategy_run_market() -> None:
-    strategy_run_market = StrategyRunMarket('yolo', {'A': 'AAA'})
-    assert serialize_strategy_run_market(strategy_run_market) == {'configuration': {'A': 'AAA'}, 'name': 'yolo'}
+    strategy_run_market = StrategyRunMarket('yolo_plugin', 'yolo', {'A': 'AAA'})
+    assert serialize_strategy_run_market(strategy_run_market) \
+           == {
+               'configuration': {'A': 'AAA'},
+               'name': 'yolo',
+               'plugin_name': 'yolo_plugin'
+           }

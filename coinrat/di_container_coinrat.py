@@ -38,7 +38,7 @@ class DiContainerCoinrat(DiContainer):
             },
             'market_plugins': {
                 'instance': None,
-                'factory': lambda: MarketPlugins(),
+                'factory': self._create_market_plugins,
             },
             'synchronizer_plugins': {
                 'instance': None,
@@ -133,6 +133,20 @@ class DiContainerCoinrat(DiContainer):
                 ),
             }
         }
+
+    @staticmethod
+    def _create_market_plugins() -> MarketPlugins:
+        market_plugins_service = MarketPlugins()
+
+        markets = set()
+        for market_plugin in market_plugins_service.get_available_market_plugins():
+            if market_plugin.get_name() != 'coinrat_mock':
+                markets = markets.union(set(market_plugin.get_available_markets()))
+
+        mock_plugin = market_plugins_service.get_plugin('coinrat_mock')  # type:
+        mock_plugin.set_available_markets(list(markets))
+
+        return market_plugins_service
 
     def _get_factory(self, name: str) -> callable:
         return self._storage[name]['factory']

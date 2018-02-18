@@ -18,7 +18,8 @@ from coinrat.domain.market import Market
 from coinrat.domain.order import OrderExporter
 from coinrat.domain.pair import Pair
 from coinrat.domain.strategy import StrategyRun, StrategyRunMarket
-from coinrat.market_plugins import MarketNotProvidedByAnyPluginException
+from coinrat.market_plugins import MarketNotProvidedByPluginException, MarketPluginSpecification, \
+    MarketPluginDoesNotExistsException
 from coinrat.strategy_plugins import StrategyNotProvidedByAnyPluginException
 from coinrat.thread_watcher import ThreadWatcher
 from .db_migrations import run_db_migrations
@@ -51,16 +52,28 @@ def cli(ctx: Context) -> None:
 @cli.command(help='Shows available markets.')
 def markets() -> None:
     click.echo('Available markers:')
-    for market_name in di_container.market_plugins.get_available_markets():
-        click.echo('  - {}'.format(market_name))
+    for plugin in di_container.market_plugins.get_available_market_plugins():
+        click.echo('  - {}: {}'.format(plugin.get_name(), plugin.get_description()))
+        for market_name in plugin.get_available_markets():
+            click.echo('    - {}'.format(market_name))
 
 
-@cli.command(help='Shows market detail.')
+@cli.command(help='Shows market plugin detail.')
 @click.argument('market_name', nargs=1)
-def market(market_name) -> None:
+@click.option(
+    '--market_plugin',
+    help='Specify the name of plugin used for communication with stockmarket.',
+    required=True
+)
+def market(market_name: str, market_plugin: str) -> None:
     try:
-        market_obj: Market = di_container.market_plugins.get_market_class(market_name)
-    except MarketNotProvidedByAnyPluginException as e:
+        market_plugin_obj: MarketPluginSpecification = di_container.market_plugins.get_plugin(market_plugin)
+    except MarketPluginDoesNotExistsException as e:
+        print_error_and_terminate(str(e))
+
+    try:
+        market_obj = market_plugin_obj.get_market_class(market_name)
+    except MarketNotProvidedByPluginException as e:
         print_error_and_terminate(str(e))
 
     click.echo('Markets configuration structure:')
@@ -211,6 +224,11 @@ Example:
 )
 @click.option('--candle_storage', help='Specify candle storage to be used in this run.', required=True)
 @click.option('--order_storage', help='Specify order storage to be used in this run.', required=True)
+@click.option(
+    '--market_plugin',
+    help='Specify the name of plugin used for communication with stockmarket.',
+    required=True
+)
 @click.pass_context
 def run_strategy(
     ctx: Context,
@@ -219,7 +237,8 @@ def run_strategy(
     market_names: Tuple[str],
     configuration_file: Union[str, None],
     candle_storage: str,
-    order_storage: str
+    order_storage: str,
+    market_plugin: str
 ) -> None:
     pair = Pair(pair[0], pair[1])
     strategy_configuration = {}
@@ -232,7 +251,7 @@ def run_strategy(
         uuid.uuid4(),
         strategy_run_at,
         pair,
-        [StrategyRunMarket(market_name, {}) for market_name in market_names],
+        [StrategyRunMarket(market_name, market_plugin, {}) for market_name in market_names],
         strategy_name,
         strategy_configuration,
         DateTimeInterval(strategy_run_at, None),
@@ -294,6 +313,10 @@ def database_migrate(ctx: Context):
 
 
 def print_structure_configuration(structure: Dict) -> None:
+    if structure == {}:
+        click.echo('    This market has no configuration.')
+        return
+
     click.echo('    {:<40} {:<20} <title> (<unit>) - <description>'.format('<name>:<type>', '<default_value>', ))
 
     for key, value in structure.items():

@@ -8,6 +8,7 @@ from coinrat.domain.market import Market
 get_available_markets_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_market_spec = pluggy.HookspecMarker('coinrat_plugins')
 get_market_class_spec = pluggy.HookspecMarker('coinrat_plugins')
+does_support_market_spec = pluggy.HookspecMarker('coinrat_plugins')
 
 
 #   "ValueError: Function has keyword-only parameters or annotations, use getfullargspec() API which can support them"
@@ -15,6 +16,10 @@ class MarketPluginSpecification(PluginSpecification):
     @get_available_markets_spec
     def get_available_markets(self):
         raise NotImplementedError()
+
+    @does_support_market_spec
+    def does_support_market(self, name):
+        return name in self.get_available_markets()
 
     @get_market_spec
     def get_market(self, name, datetime_factory, configuration):
@@ -25,7 +30,11 @@ class MarketPluginSpecification(PluginSpecification):
         raise NotImplementedError()
 
 
-class MarketNotProvidedByAnyPluginException(Exception):
+class MarketNotProvidedByPluginException(Exception):
+    pass
+
+
+class MarketPluginDoesNotExistsException(Exception):
     pass
 
 
@@ -36,19 +45,12 @@ class MarketPlugins:
             MarketPluginSpecification
         )
 
-    def get_available_markets(self) -> List[str]:
-        return [market_name for plugin in self._plugins for market_name in plugin.get_available_markets()]
-
-    def get_market_class(self, name: str):
+    def get_plugin(self, plugin_name: str) -> MarketPluginSpecification:
         for plugin in self._plugins:
-            if name in plugin.get_available_markets():
-                return plugin.get_market_class(name)
+            if plugin.get_name() == plugin_name:
+                return plugin
 
-        raise MarketNotProvidedByAnyPluginException('Market "{}" not found.'.format(name))
+        raise MarketPluginDoesNotExistsException('Market plugin "{}" not found.'.format(plugin_name))
 
-    def get_market(self, name: str, datetime_factory: DateTimeFactory, configuration: Dict) -> Market:
-        for plugin in self._plugins:
-            if name in plugin.get_available_markets():
-                return plugin.get_market(name, datetime_factory, configuration)
-
-        raise MarketNotProvidedByAnyPluginException('Market "{}" not found.'.format(name))
+    def get_available_market_plugins(self) -> List[MarketPluginSpecification]:
+        return list(self._plugins)
