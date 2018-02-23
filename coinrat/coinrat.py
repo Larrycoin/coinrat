@@ -145,13 +145,13 @@ def export_candles(
     candle_storage: str
 ) -> None:
     storage = di_container.candle_storage_plugins.get_candle_storage(candle_storage)
-    pair = Pair(pair[0], pair[1])
-    interval = DateTimeInterval(
+    pair_obj = Pair(pair[0], pair[1])
+    interval_obj = DateTimeInterval(
         dateutil.parser.parse(interval[0]).replace(tzinfo=datetime.timezone.utc),
         dateutil.parser.parse(interval[1]).replace(tzinfo=datetime.timezone.utc)
     )
     exporter = CandleExporter(storage)
-    exporter.export_to_file(output_file, market_name, pair, interval)
+    exporter.export_to_file(output_file, market_name, pair_obj, interval_obj)
 
 
 @cli.command(help="""
@@ -175,13 +175,13 @@ def export_orders(
     order_storage: str
 ) -> None:
     storage = di_container.order_storage_plugins.get_order_storage(order_storage)
-    pair = Pair(pair[0], pair[1])
-    interval = DateTimeInterval(
+    pair_obj = Pair(pair[0], pair[1])
+    interval_obj = DateTimeInterval(
         dateutil.parser.parse(interval[0]).replace(tzinfo=datetime.timezone.utc),
         dateutil.parser.parse(interval[1]).replace(tzinfo=datetime.timezone.utc)
     )
     exporter = OrderExporter(storage)
-    exporter.export_to_file(output_file, market_name, pair, interval)
+    exporter.export_to_file(output_file, market_name, pair_obj, interval_obj)
 
 
 @cli.command(help="""
@@ -195,14 +195,14 @@ Example:
 @click.option('--candle_storage', help='Specify candle storage to be synced into.', required=True)
 @click.pass_context
 def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str], candle_storage: str) -> None:
-    pair = Pair(pair[0], pair[1])
+    pair_obj = Pair(pair[0], pair[1])
 
     synchronizer = di_container.synchronizer_plugins.get_synchronizer(
         synchronizer_name,
         di_container.candle_storage_plugins.get_candle_storage(candle_storage),
         di_container.event_emitter
     )
-    synchronizer.synchronize(pair)
+    synchronizer.synchronize(pair_obj)
 
 
 @cli.command(help="""
@@ -240,8 +240,8 @@ def run_strategy(
     order_storage: str,
     market_plugin: str
 ) -> None:
-    pair = Pair(pair[0], pair[1])
-    strategy_configuration = {}
+    pair_obj = Pair(pair[0], pair[1])
+    strategy_configuration: Dict = {}
     if configuration_file is not None:
         strategy_configuration = load_configuration_from_file(configuration_file)
 
@@ -250,8 +250,8 @@ def run_strategy(
     strategy_run = StrategyRun(
         uuid.uuid4(),
         strategy_run_at,
-        pair,
-        [StrategyRunMarket(market_name, market_plugin, {}) for market_name in market_names],
+        pair_obj,
+        [StrategyRunMarket(market_plugin, market_name, {}) for market_name in market_names],
         strategy_name,
         strategy_configuration,
         DateTimeInterval(strategy_run_at, None),

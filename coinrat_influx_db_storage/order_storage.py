@@ -28,7 +28,7 @@ MEASUREMENT_ORDERS_NAMES = [
 
 
 class OrderInnoDbStorage(OrderStorage):
-    def __init__(self, influx_db_client: InfluxDBClient, measurement_name: str):
+    def __init__(self, influx_db_client: InfluxDBClient, measurement_name: str) -> None:
         self._measurement_name = measurement_name
         self._client = influx_db_client
 
@@ -121,28 +121,30 @@ class OrderInnoDbStorage(OrderStorage):
 
     @staticmethod
     def _create_order_from_serialized(row: Dict[str, Union[str, int, float, bool]]) -> Order:
-        pair_data = row[ORDER_FIELD_PAIR].split('_')
+        pair_data = str(row[ORDER_FIELD_PAIR]).split('_')
 
         closed_at = None
         if ORDER_FIELD_CLOSED_AT in row and row[ORDER_FIELD_CLOSED_AT] is not None:
-            closed_at = dateutil.parser.parse(row[ORDER_FIELD_CLOSED_AT]).replace(tzinfo=datetime.timezone.utc)
+            closed_at = dateutil.parser.parse(str(row[ORDER_FIELD_CLOSED_AT])).replace(tzinfo=datetime.timezone.utc)
 
         canceled_at = None
         if ORDER_FIELD_CANCELED_AT in row and row[ORDER_FIELD_CANCELED_AT] is not None:
-            canceled_at = dateutil.parser.parse(row[ORDER_FIELD_CANCELED_AT]).replace(tzinfo=datetime.timezone.utc)
+            canceled_at = dateutil.parser.parse(str(row[ORDER_FIELD_CANCELED_AT])).replace(tzinfo=datetime.timezone.utc)
 
         return Order(
-            UUID(row[ORDER_FIELD_ORDER_ID]),
-            UUID(row[ORDER_FIELD_STRATEGY_RUN_ID]),
-            row[ORDER_FIELD_MARKET],
-            row[ORDER_FIELD_DIRECTION],
-            dateutil.parser.parse(row['time']).replace(tzinfo=datetime.timezone.utc),
+            UUID(str(row[ORDER_FIELD_ORDER_ID])),
+            UUID(str(row[ORDER_FIELD_STRATEGY_RUN_ID])),
+            str(row[ORDER_FIELD_MARKET]),
+            str(row[ORDER_FIELD_DIRECTION]),
+            dateutil.parser.parse(str(row['time'])).replace(tzinfo=datetime.timezone.utc),
             Pair(pair_data[0], pair_data[1]),
-            row[ORDER_FIELD_TYPE],
+            str(row[ORDER_FIELD_TYPE]),
             Decimal(row[ORDER_FIELD_QUANTITY]),
-            Decimal(row[ORDER_FIELD_RATE]) if ORDER_FIELD_RATE in row is not None else None,
-            row[ORDER_FIELD_ID_ON_MARKET] if ORDER_FIELD_ID_ON_MARKET in row is not None else None,
-            row[ORDER_FIELD_STATUS],
+            Decimal(row[ORDER_FIELD_RATE]) if ORDER_FIELD_RATE in row and row[ORDER_FIELD_RATE] is not None else None,
+            str(row[ORDER_FIELD_ID_ON_MARKET]) \
+                if ORDER_FIELD_ID_ON_MARKET in row and row[ORDER_FIELD_ID_ON_MARKET] \
+                else None,
+            str(row[ORDER_FIELD_STATUS]),
             closed_at,
             canceled_at
         )

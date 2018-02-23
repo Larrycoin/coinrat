@@ -1,5 +1,5 @@
 import pluggy
-from typing import List, Set
+from typing import List, Set, cast
 
 from .plugins import PluginSpecification, plugins_loader
 from .domain.candle import CandleStorage
@@ -25,9 +25,9 @@ class CandleStorageNotProvidedByAnyPluginException(Exception):
 
 class CandleStoragePlugins:
     def __init__(self) -> None:
-        self._plugins: Set[CandleStoragePluginSpecification] = plugins_loader(
-            'coinrat_candle_storage_plugins',
-            CandleStoragePluginSpecification
+        self._plugins = cast(
+            Set[CandleStoragePluginSpecification],
+            plugins_loader('coinrat_candle_storage_plugins',CandleStoragePluginSpecification)
         )
 
     def get_available_candle_storages(self) -> List[str]:

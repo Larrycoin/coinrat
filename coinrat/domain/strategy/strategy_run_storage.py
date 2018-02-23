@@ -7,8 +7,8 @@ from typing import List
 from uuid import UUID
 
 from coinrat.domain import DateTimeInterval
-from coinrat.domain.strategy import StrategyRun, serialize_strategy_run_markets, deserialize_strategy_run_markets
 from coinrat.domain.pair import serialize_pair, deserialize_pair
+from .strategy_run import StrategyRun, serialize_strategy_run_markets, deserialize_strategy_run_markets
 
 logger = logging.getLogger(__name__)
 

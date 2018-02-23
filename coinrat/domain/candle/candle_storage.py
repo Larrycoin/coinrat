@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import List
 
 from coinrat.domain import DateTimeInterval
-from coinrat.domain.candle import Candle
+from .candle import Candle
 from .candle_size import CandleSize, CANDLE_SIZE_UNIT_MINUTE
 from coinrat.domain.pair import Pair
 from coinrat.domain.coinrat import ForEndUserException

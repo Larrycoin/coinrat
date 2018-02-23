@@ -1,4 +1,4 @@
-from .pair import Pair
+from .pair.pair import Pair
 
 
 class MarketStateSynchronizer:

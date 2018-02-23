@@ -41,15 +41,16 @@ class StrategyStandardRunner(StrategyRunner):
             strategy_run
         )
 
-        markers = [
-            self._market_plugins.get_market(
+        markets = []
+
+        for strategy_run_market in strategy_run.markets:
+            market_plugin = self._market_plugins.get_plugin(strategy_run_market.plugin_name)
+            markets.append(market_plugin.get_market(
                 strategy_run_market.market_name,
                 self._datetime_factory,
                 strategy_run_market.market_configuration
-            )
-            for strategy_run_market in strategy_run.markets
-        ]
+            ))
 
         while True:
-            strategy.tick(markers)
+            strategy.tick(markets)
             time.sleep(int(strategy.get_seconds_delay_between_ticks()))

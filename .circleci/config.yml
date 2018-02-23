@@ -37,6 +37,11 @@ jobs:
          background: true
 
       - run:
+          name: run type checks
+          command: |
+            pipenv run mypy . --ignore-missing-imports
+
+      - run:
           name: run tests
           command: |
             pipenv run -- py.test --cov=. --cov-config .coveragerc

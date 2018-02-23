@@ -18,7 +18,7 @@ MARKET_NAME = 'bittrex'
 
 
 class BittrexMarket(Market):
-    def __init__(self, client_v1: Bittrex, client_v2: Bittrex):
+    def __init__(self, client_v1: Bittrex, client_v2: Bittrex) -> None:
         self._client_v1 = client_v1
         self._client_v2 = client_v2
 

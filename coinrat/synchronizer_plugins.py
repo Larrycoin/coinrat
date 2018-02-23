@@ -1,5 +1,5 @@
 import pluggy
-from typing import List, Set
+from typing import List, Set, cast
 
 from coinrat.event.event_emitter import EventEmitter
 from .plugins import PluginSpecification, plugins_loader
@@ -32,9 +32,9 @@ class SynchronizerNotProvidedByAnyPluginException(Exception):
 
 class SynchronizerPlugins:
     def __init__(self) -> None:
-        self._plugins: Set[SynchronizerPluginSpecification] = plugins_loader(
-            'coinrat_synchronizer_plugins',
-            SynchronizerPluginSpecification
+        self._plugins = cast(
+            Set[SynchronizerPluginSpecification],
+            plugins_loader('coinrat_synchronizer_plugins',SynchronizerPluginSpecification)
         )
 
     def get_available_synchronizers(self) -> List[str]:
