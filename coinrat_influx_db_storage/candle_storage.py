@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class CandleInnoDbStorage(CandleStorage):
-    def __init__(self, influx_db_client: InfluxDBClient):
+    def __init__(self, influx_db_client: InfluxDBClient) -> None:
         self._client = influx_db_client
 
     @property

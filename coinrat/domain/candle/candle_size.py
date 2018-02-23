@@ -52,6 +52,8 @@ class CandleSize:
             return datetime.timedelta(hours=self.size)
         elif self.unit == CANDLE_SIZE_UNIT_DAY:
             return datetime.timedelta(days=self.size)
+        else:
+            raise ValueError('Unknown unit "{}".'.format(self.unit))
 
     def get_interval_for_datetime(self, time: datetime.datetime) -> DateTimeInterval:
         time = time.replace(second=0)
@@ -78,6 +80,8 @@ class CandleSize:
             return time.hour
         elif self.unit == CANDLE_SIZE_UNIT_DAY:
             return time.timetuple().tm_yday
+        else:
+            raise ValueError('Unknown unit "{}".'.format(self.unit))
 
     def _set_value_by_unit(self, time: datetime.datetime, value: int) -> datetime.datetime:
         if self.unit == CANDLE_SIZE_UNIT_MINUTE:
@@ -86,6 +90,8 @@ class CandleSize:
             return time.replace(minute=0, hour=value)
         elif self.unit == CANDLE_SIZE_UNIT_DAY:
             return time.replace(minute=0, hour=0, day=1, month=1) + datetime.timedelta(days=value)
+        else:
+            raise ValueError('Unknown unit "{}".'.format(self.unit))
 
     def __repr__(self):
         return 'CandleSize: ' + serialize_candle_size(self)

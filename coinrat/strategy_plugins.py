@@ -1,5 +1,5 @@
 import pluggy
-from typing import List, Set
+from typing import List, Set, cast
 
 from coinrat.domain import DateTimeFactory
 from coinrat.domain.order import OrderStorage
@@ -34,9 +34,9 @@ class StrategyNotProvidedByAnyPluginException(Exception):
 
 class StrategyPlugins:
     def __init__(self) -> None:
-        self._plugins: Set[StrategyPluginSpecification] = plugins_loader(
-            'coinrat_strategy_plugins',
-            StrategyPluginSpecification
+        self._plugins = cast(
+            Set[StrategyPluginSpecification],
+            plugins_loader('coinrat_strategy_plugins', StrategyPluginSpecification)
         )
 
     def get_available_strategies(self) -> List[str]:

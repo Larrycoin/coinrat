@@ -1,5 +1,5 @@
 import pluggy
-from typing import List, Set, Dict
+from typing import List, Set, Dict, cast
 
 from .plugins import PluginSpecification, plugins_loader
 from coinrat.domain import DateTimeFactory
@@ -40,9 +40,9 @@ class MarketPluginDoesNotExistsException(Exception):
 
 class MarketPlugins:
     def __init__(self) -> None:
-        self._plugins: Set[MarketPluginSpecification] = plugins_loader(
-            'coinrat_market_plugins',
-            MarketPluginSpecification
+        self._plugins = cast(
+            Set[MarketPluginSpecification],
+            plugins_loader('coinrat_market_plugins', MarketPluginSpecification)
         )
 
     def get_plugin(self, plugin_name: str) -> MarketPluginSpecification:

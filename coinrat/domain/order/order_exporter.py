@@ -2,7 +2,7 @@ import json
 
 from coinrat.domain.datetime_interval import DateTimeInterval
 from coinrat.domain.pair import Pair
-from coinrat.domain.order import serialize_orders, deserialize_orders
+from .order import serialize_orders, deserialize_orders
 from .order_storage import OrderStorage
 
 

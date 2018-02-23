@@ -1,5 +1,5 @@
 import pluggy
-from typing import List, Set
+from typing import List, Set, cast
 
 from .plugins import PluginSpecification, plugins_loader
 from coinrat.domain.order import OrderStorage
@@ -25,9 +25,9 @@ class OrderStorageNotProvidedByAnyPluginException(Exception):
 
 class OrderStoragePlugins:
     def __init__(self) -> None:
-        self._plugins: Set[OrderStoragePluginSpecification] = plugins_loader(
-            'coinrat_order_storage_plugins',
-            OrderStoragePluginSpecification
+        self._plugins = cast(
+            Set[OrderStoragePluginSpecification],
+            plugins_loader('coinrat_order_storage_plugins',OrderStoragePluginSpecification)
         )
 
     def get_available_order_storages(self) -> List[str]:

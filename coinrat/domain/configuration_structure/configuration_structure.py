@@ -15,6 +15,8 @@ def format_data_to_python_types(
     data: Dict[str, str],
     configuration_structure: Dict[str, Dict[str, str]]
 ) -> Dict[str, Union[str, int, Decimal]]:
+    result: Dict[str, Union[str, int, Decimal]] = {}
+
     for key, value in data.items():
         if key not in configuration_structure:
             logger.warning('{} not expected by configuration structure definition'.format(key))
@@ -25,12 +27,15 @@ def format_data_to_python_types(
         is_nullable = structure['type'].startswith('?')
 
         if is_nullable and value is None:
-            data[key] = None
+            result[key] = None
 
         elif structure['type'] == CONFIGURATION_STRUCTURE_TYPE_INT:
-            data[key] = int(value)
+            result[key] = int(value)
 
         elif structure['type'] == CONFIGURATION_STRUCTURE_TYPE_DECIMAL:
-            data[key] = Decimal(value)
+            result[key] = Decimal(value)
 
-    return data
+        else:
+            result[key] = value
+
+    return result

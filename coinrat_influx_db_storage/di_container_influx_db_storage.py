@@ -1,4 +1,5 @@
 import os
+from typing import Dict
 
 from influxdb import InfluxDBClient
 
@@ -30,7 +31,7 @@ class DiContainerInfluxDbStorage(DiContainer):
             },
         }
 
-        self._order_storages = {}
+        self._order_storages: Dict[str, OrderStorage] = {}
 
     def get_order_storage(self, name: str) -> OrderStorage:
         if name.startswith(ORDER_STORAGE_NAME):

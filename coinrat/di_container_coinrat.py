@@ -1,8 +1,10 @@
 import os
+from typing import Callable, Set, cast
 
 import MySQLdb
 import pika
 
+import coinrat_mock
 from .di_container import DiContainer
 from coinrat.strategy_standard_runner import StrategyStandardRunner
 from coinrat.candle_storage_plugins import CandleStoragePlugins
@@ -138,17 +140,17 @@ class DiContainerCoinrat(DiContainer):
     def _create_market_plugins() -> MarketPlugins:
         market_plugins_service = MarketPlugins()
 
-        markets = set()
+        markets: Set = set()
         for market_plugin in market_plugins_service.get_available_market_plugins():
             if market_plugin.get_name() != 'coinrat_mock':
                 markets = markets.union(set(market_plugin.get_available_markets()))
 
-        mock_plugin = market_plugins_service.get_plugin('coinrat_mock')  # type:
+        mock_plugin = cast(coinrat_mock.plugin.MarketPlugin, market_plugins_service.get_plugin('coinrat_mock'))
         mock_plugin.set_available_markets(list(markets))
 
         return market_plugins_service
 
-    def _get_factory(self, name: str) -> callable:
+    def _get_factory(self, name: str) -> Callable:
         return self._storage[name]['factory']
 
     @property

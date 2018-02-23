@@ -1,4 +1,4 @@
-from coinrat.domain import ForEndUserException
+from coinrat.domain.coinrat import ForEndUserException
 
 
 class MarketPairDoesNotExistsException(ForEndUserException):

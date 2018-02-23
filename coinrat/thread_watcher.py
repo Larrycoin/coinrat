@@ -1,5 +1,8 @@
+from typing import Callable
+
+
 class ThreadWatcher:
-    def __init__(self, on_exception: callable) -> None:
+    def __init__(self, on_exception: Callable) -> None:
         super().__init__()
         self.on_exception = on_exception
 

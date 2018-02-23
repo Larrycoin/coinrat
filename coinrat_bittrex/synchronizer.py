@@ -16,7 +16,7 @@ class BittrexSynchronizer(MarketStateSynchronizer):
         event_emitter: EventEmitter,
         delay: int = 60,
         number_of_runs: Union[int, None] = None
-    ):
+    ) -> None:
         self._market = market
         self._storage = storage
         self._event_emitter = event_emitter

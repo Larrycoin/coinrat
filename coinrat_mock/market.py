@@ -57,7 +57,7 @@ class MockMarket(Market):
             else DEFAULT_BASE_BALANCE
         assert isinstance(mocked_base_currency_balance, Decimal)
 
-        mocked_base_currency: Decimal = configuration['mocked_base_currency'] \
+        mocked_base_currency = configuration['mocked_base_currency'] \
             if 'mocked_base_currency' in configuration \
             else DEFAULT_BASE_CURRENCY
         self._balances[mocked_base_currency] = mocked_base_currency_balance

@@ -55,7 +55,7 @@ class DoubleCrossoverStrategy(Strategy):
         self._datetime_factory = datetime_factory
         self._strategy_run = strategy_run
 
-        self._previous_sign = None
+        self._previous_sign: Union[int, None] = None
         self._strategy_ticker = 0
         self._last_signal: Union[Signal, None] = None
 
@@ -69,18 +69,18 @@ class DoubleCrossoverStrategy(Strategy):
 
         long_average_interval = datetime.timedelta(minutes=60)
         if 'long_average_interval' in configuration:
-            long_average_interval = datetime.timedelta(seconds=configuration['long_average_interval'])
+            long_average_interval = datetime.timedelta(seconds=int(configuration['long_average_interval']))
 
         short_average_interval = datetime.timedelta(minutes=15)
         if 'short_average_interval' in configuration:
-            short_average_interval = datetime.timedelta(seconds=configuration['short_average_interval'])
+            short_average_interval = datetime.timedelta(seconds=int(configuration['short_average_interval']))
 
         assert short_average_interval < long_average_interval
         self._long_average_interval = long_average_interval
         self._short_average_interval = short_average_interval
 
         if 'delay' in configuration:
-            self._delay = configuration['delay']
+            self._delay = int(configuration['delay'])
 
     def get_seconds_delay_between_ticks(self) -> float:
         return self._delay
@@ -97,19 +97,19 @@ class DoubleCrossoverStrategy(Strategy):
             'long_average_interval': {
                 'type': CONFIGURATION_STRUCTURE_TYPE_INT,
                 'title': 'Long average time-delta',
-                'default': DEFAULT_LONG_AVERAGE,
+                'default': str(DEFAULT_LONG_AVERAGE),
                 'unit': 'seconds',
             },
             'short_average_interval': {
                 'type': CONFIGURATION_STRUCTURE_TYPE_INT,
                 'title': 'Short average time-delta',
-                'default': DEFAULT_SHORT_AVERAGE,
+                'default': str(DEFAULT_SHORT_AVERAGE),
                 'unit': 'seconds',
             },
             'delay': {
                 'type': CONFIGURATION_STRUCTURE_TYPE_INT,
                 'title': 'Delay between checks',
-                'default': 30,
+                'default': '30',
                 'unit': 'seconds',
             },
         }
@@ -199,7 +199,7 @@ class DoubleCrossoverStrategy(Strategy):
         if diff == 0:
             return 0
 
-        return int(math.copysign(1, diff))
+        return int(math.copysign(1, float(diff)))
 
     def _get_averages(self, market: Market) -> Tuple[Decimal, Decimal]:
         now = self._datetime_factory.now()
@@ -269,8 +269,10 @@ class DoubleCrossoverStrategy(Strategy):
         except NotEnoughBalanceToPerformOrderException as e:
             # Intentionally, this strategy does not need state of order,
             # just ignores buy/sell and waits for next signal.
-            logger.warning(e)
+            logger.warning(str(e))
             self._last_signal = None
+
+        return None
 
     def _cancel_open_order(self, market: Market, direction: str):
         orders = self._order_storage.find_by(

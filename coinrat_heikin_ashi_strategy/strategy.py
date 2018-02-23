@@ -1,6 +1,8 @@
 import logging
 import uuid
-from typing import Union, List, Dict
+from typing import Union, List, Dict, cast
+
+from decimal import Decimal
 
 from coinrat.domain import DateTimeFactory, DateTimeInterval
 from coinrat.domain.market import Market
@@ -41,7 +43,7 @@ class HeikinAshiStrategy(Strategy):
         self._order_storage = order_storage
         self._event_emitter = event_emitter
         self._datetime_factory = datetime_factory
-        self._candle_size: CandleSize = configuration['candle_size']
+        self._candle_size = cast(CandleSize, configuration['candle_size'])
         self._strategy_ticker = 0
 
         self._first_previous_candle: Union[HeikinAshiCandle, None] = None
@@ -118,7 +120,7 @@ class HeikinAshiStrategy(Strategy):
             except NotEnoughBalanceToPerformOrderException as e:
                 # Intentionally, this strategy does not need state of order,
                 # just ignores buy/sell and waits for next signal.
-                logger.warning(e)
+                logger.warning(str(e))
 
     def update_trend(self):
         if self._second_previous_candle.is_bearish() and self._trend > -5:
@@ -188,12 +190,15 @@ class HeikinAshiStrategy(Strategy):
             }
         }
 
-    def process_configuration(self, configuration: Dict) -> Dict:
-        configuration = format_data_to_python_types(configuration, self.get_configuration_structure())
+    def process_configuration(self, configuration: Dict[str, str]) -> Dict[str, Union[str, int, Decimal, CandleSize]]:
+        configuration_formatted = cast(
+            Dict[str, Union[str, int, Decimal, CandleSize]],
+            format_data_to_python_types(configuration, self.get_configuration_structure())
+        )
 
-        if 'candle_size' not in configuration:
-            configuration['candle_size'] = DEFAULT_CANDLE_SIZE_CONFIGURATION
+        if 'candle_size' not in configuration_formatted:
+            configuration_formatted['candle_size'] = DEFAULT_CANDLE_SIZE_CONFIGURATION
 
-        configuration['candle_size'] = deserialize_candle_size(configuration['candle_size'])
+        configuration_formatted['candle_size'] = deserialize_candle_size(str(configuration_formatted['candle_size']))
 
-        return configuration
+        return configuration_formatted
