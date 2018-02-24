@@ -8,8 +8,8 @@ import math
 
 from coinrat.domain.market import Market, MarketOrderException
 from coinrat.domain import DateTimeFactory, DateTimeInterval
-from coinrat.domain.strategy import Strategy, StrategyConfigurationException, StrategyRun
-from coinrat.domain.candle import CandleStorage, CANDLE_STORAGE_FIELD_CLOSE
+from coinrat.domain.strategy import Strategy, StrategyConfigurationException, StrategyRun, SkipTickException
+from coinrat.domain.candle import CandleStorage, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
 from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, \
     NotEnoughBalanceToPerformOrderException, ORDER_TYPE_LIMIT
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
@@ -87,9 +87,13 @@ class DoubleCrossoverStrategy(Strategy):
 
     def tick(self, markets: List[Market]) -> None:
         market = self._get_one_market(markets)
-        self._check_and_process_open_orders(market)
-        self._check_for_signal_and_trade(market)
-        self._strategy_ticker += 1
+
+        try:
+            self._check_and_process_open_orders(market)
+            self._check_for_signal_and_trade(market)
+            self._strategy_ticker += 1
+        except NoCandlesForMarketInStorageException as e:
+            raise SkipTickException('In given range: ' + str(e))
 
     @staticmethod
     def get_configuration_structure() -> Dict[str, Dict[str, str]]:
