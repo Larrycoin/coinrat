@@ -1,6 +1,5 @@
 import datetime
 import logging
-import uuid
 import dateutil.parser
 
 from typing import Dict, List
@@ -10,7 +9,7 @@ from decimal import Decimal
 from coinrat.domain import Balance
 from coinrat.domain.pair import Pair, MarketPairDoesNotExistsException
 from coinrat.domain.candle import Candle
-from coinrat.domain.market import Market, PairMarketInfo, MarketOrderException
+from coinrat.domain.market import Market, PairMarketInfo, MarketException
 from coinrat.domain.order import Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, NotEnoughBalanceToPerformOrderException, \
     OrderMarketInfo
 
@@ -179,7 +178,7 @@ class BittrexMarket(Market):
     @staticmethod
     def _validate_result(result: Dict):
         if not result['success']:
-            raise MarketOrderException(result['message'])
+            raise MarketException(result['message'])
 
     @staticmethod
     def _convert_currency_code_to_bittrex_format(currency):

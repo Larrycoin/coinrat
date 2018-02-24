@@ -6,7 +6,7 @@ from decimal import Decimal
 
 import math
 
-from coinrat.domain.market import Market, MarketOrderException
+from coinrat.domain.market import Market, MarketException
 from coinrat.domain import DateTimeFactory, DateTimeInterval
 from coinrat.domain.strategy import Strategy, StrategyConfigurationException, StrategyRun, SkipTickException
 from coinrat.domain.candle import CandleStorage, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
@@ -288,7 +288,7 @@ class DoubleCrossoverStrategy(Strategy):
         for order in orders:
             try:
                 market.cancel_order(order.id_on_market)
-            except MarketOrderException as e:
+            except MarketException as e:
                 logger.error('Order "{}" cancelling failed: Error: "{}"!'.format(order.order_id, e))
                 return
 

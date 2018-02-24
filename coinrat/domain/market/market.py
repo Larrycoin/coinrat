@@ -6,7 +6,7 @@ from coinrat.domain.order import Order, OrderMarketInfo
 from coinrat.domain.pair import Pair
 
 
-class MarketOrderException(Exception):
+class MarketException(Exception):
     pass
 
 

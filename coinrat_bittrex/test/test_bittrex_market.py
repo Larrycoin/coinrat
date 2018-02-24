@@ -10,7 +10,7 @@ from bittrex import Bittrex
 from flexmock import flexmock, Mock
 
 from coinrat.domain.pair import Pair
-from coinrat.domain.market import MarketOrderException
+from coinrat.domain.market import MarketException
 from coinrat.domain.order import Order, ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET, DIRECTION_BUY, DIRECTION_SELL, \
     NotEnoughBalanceToPerformOrderException
 from coinrat_bittrex.market import BittrexMarket
@@ -139,7 +139,7 @@ def test_get_oder_status(
 def test_result_validation():
     BittrexMarket._validate_result({'success': True})
 
-    with pytest.raises(MarketOrderException):
+    with pytest.raises(MarketException):
         BittrexMarket._validate_result({'success': False, 'message': 'You shall not pass!'})
 
 

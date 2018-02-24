@@ -1,7 +1,7 @@
-from .market import Market, PairMarketInfo, MarketOrderException
+from .market import Market, PairMarketInfo, MarketException
 
 __all__ = [
     'Market',
     'PairMarketInfo',
-    'MarketOrderException',
+    'MarketException',
 ]
