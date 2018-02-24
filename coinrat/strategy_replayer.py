@@ -1,14 +1,18 @@
 import datetime
+import logging
+from typing import List
 
 from coinrat.domain import FrozenDateTimeFactory
-from coinrat.domain.strategy import StrategyRunner
-from coinrat.domain.strategy import StrategyRun
+from coinrat.domain.market import Market
+from coinrat.domain.strategy import StrategyRun, StrategyRunner, SkipTickException, Strategy
 from coinrat.market_plugins import MarketPlugins
 from coinrat.strategy_plugins import StrategyPlugins
 from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.order_storage_plugins import OrderStoragePlugins
 from coinrat.event.event_emitter import EventEmitter
 from coinrat.domain.configuration_structure import format_data_to_python_types
+
+logger = logging.getLogger(__name__)
 
 
 class StrategyReplayer(StrategyRunner):
@@ -67,5 +71,12 @@ class StrategyReplayer(StrategyRunner):
                 datetime_factory.now()
             )
             market.mock_current_price(strategy_run.pair, current_candle.average_price)
-            strategy.tick([market])
+            self._do_tick([market], strategy, datetime_factory.now())
             datetime_factory.move(datetime.timedelta(seconds=strategy.get_seconds_delay_between_ticks()))
+
+    @staticmethod
+    def _do_tick(markets: List[Market], strategy: Strategy, tick_at: datetime.datetime) -> None:
+        try:
+            strategy.tick(markets)
+        except SkipTickException as e:
+            logger.warning('[{}]Exception during tick: {}'.format(tick_at.isoformat(), str(e)))

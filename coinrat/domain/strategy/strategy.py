@@ -2,7 +2,6 @@ from typing import List, Dict
 
 from coinrat.domain.coinrat import ForEndUserException
 from coinrat.domain.market import Market
-from coinrat.domain.pair import Pair
 
 
 class StrategyConfigurationException(ForEndUserException):

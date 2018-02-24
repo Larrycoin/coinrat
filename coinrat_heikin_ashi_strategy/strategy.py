@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from coinrat.domain import DateTimeFactory, DateTimeInterval
 from coinrat.domain.market import Market
-from coinrat.domain.strategy import Strategy, StrategyRun
+from coinrat.domain.strategy import Strategy, StrategyRun, SkipTickException
 from coinrat.domain.candle import CandleStorage, deserialize_candle_size, CandleSize
 from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_TYPE_LIMIT, \
     NotEnoughBalanceToPerformOrderException
@@ -76,8 +76,10 @@ class HeikinAshiStrategy(Strategy):
             candle_size=self._candle_size
         )
 
-        assert len(candles) in [4, 5], \
-            'Expected to get at 4 or 5 candles, but only {} given. Do you have enough data?'.format(len(candles))
+        if len(candles) not in [4, 5]:
+            raise SkipTickException(
+                'Expected to get at 4 or 5 candles, but only {} given. Do you have enough data?'.format(len(candles))
+            )
 
         if len(candles) == 5:  # First and last candle can be cut in half, we dont need the first half-candle.
             candles.pop(0)
@@ -100,10 +102,12 @@ class HeikinAshiStrategy(Strategy):
             candle_size=self._candle_size
         )
 
-        assert len(candles) in [2, 3], \
-            'Expected to get at 2 or 3 candles, but only {} given. Do you have enough data?'.format(len(candles))
+        if len(candles) not in [2, 3]:
+            raise SkipTickException(
+                'Expected to get at 2 or 3 candles, but only {} given. Do you have enough data?'.format(len(candles))
+            )
 
-        if len(candles) == 3:  # First and last candle can be cut in half, we dont need the first half-candle.
+        if len(candles) == 3:  # First and last candle can be cut in half, we don't need the first half-candle.
             candles.pop(0)
 
         self.update_trend()

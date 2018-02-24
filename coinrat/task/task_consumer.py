@@ -61,6 +61,7 @@ class TaskConsumer:
         self._strategy_run_storage.insert(strategy_run)
         self._event_emitter.emit_new_strategy_run(strategy_run)
         self._strategy_replayer.run(strategy_run)
+        logger.info("[Rabbit] Finished task: %s | %r", TASK_REPLY_STRATEGY, data)
 
     def run(self):
         self._channel.start_consuming()
