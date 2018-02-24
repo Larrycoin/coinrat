@@ -18,18 +18,20 @@ class StrategyRunStorage:
         self._connection = connection
 
     def update(self, strategy_run: StrategyRun):
+        self._connection.begin()
         cursor = self._connection.cursor()
         cursor.execute('DELETE FROM `strategy_runs` WHERE `id` = %s', (strategy_run.strategy_run_id,))
         self._insert(cursor, strategy_run)
-        self._connection.commit()
         cursor.close()
+        self._connection.commit()
         logger.debug('Strategy Run: {} updated.'.format(strategy_run.strategy_run_id))
 
     def insert(self, strategy_run: StrategyRun):
+        self._connection.begin()
         cursor = self._connection.cursor()
         self._insert(cursor, strategy_run)
-        self._connection.commit()
         cursor.close()
+        self._connection.commit()
         logger.debug('Strategy Run: {} saved.'.format(strategy_run.strategy_run_id))
 
     @staticmethod
@@ -72,6 +74,7 @@ class StrategyRunStorage:
         ))
 
     def find_by(self) -> List[StrategyRun]:
+        self._connection.begin()
         cursor = self._connection.cursor()
         cursor.execute('SELECT * FROM `strategy_runs` ORDER BY `run_at` DESC')
 
@@ -93,4 +96,6 @@ class StrategyRunStorage:
                 row[9],
             ))
         cursor.close()
+        self._connection.commit()
+
         return result
