@@ -29,7 +29,7 @@ def test_synchronize_success():
     storage = flexmock(name='yolo_storage')
     storage.should_receive('write_candles').times(2)
 
-    synchronizer = BittrexSynchronizer(market, storage, create_emitter_mock(), delay=0, number_of_runs=1)
+    synchronizer = BittrexSynchronizer(market, storage, create_emitter_mock(), delay=0, number_of_runs=2)
     synchronizer.synchronize(BTC_USD_PAIR)
 
 
