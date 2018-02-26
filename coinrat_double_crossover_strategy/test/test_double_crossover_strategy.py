@@ -13,6 +13,7 @@ from coinrat.domain.pair import Pair
 from coinrat.domain.market import Market
 from coinrat.domain.order import ORDER_TYPE_LIMIT, Order, OrderMarketInfo, DIRECTION_BUY, DIRECTION_SELL, \
     NotEnoughBalanceToPerformOrderException, ORDER_STATUS_CLOSED, ORDER_STATUS_OPEN, OrderStorage
+from coinrat.order_facade import OrderFacade
 from coinrat_double_crossover_strategy.strategy import DoubleCrossoverStrategy
 from coinrat.event.event_emitter import EventEmitter
 
@@ -61,6 +62,20 @@ STRATEGY_RUN = StrategyRun(
     ''
 )
 
+CLOSED_ORDER_INFO = OrderMarketInfo(
+    order=DUMMY_OPEN_ORDER,
+    is_open=False,
+    closed_at=datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
+    quantity_remaining=Decimal('0')
+)
+
+STILL_OPEN_ORDER_INFO = OrderMarketInfo(
+    order=DUMMY_OPEN_ORDER,
+    is_open=True,
+    closed_at=None,
+    quantity_remaining=Decimal('1')
+)
+
 
 @pytest.mark.parametrize(
     ['error', 'markets'],
@@ -84,8 +99,7 @@ def test_number_of_markets_validation(error: bool, markets: List[Union[Market, M
 
     strategy = DoubleCrossoverStrategy(
         candle_storage,
-        order_storage,
-        create_event_emitter_mock(),
+        OrderFacade(order_storage, create_portfolio_snapshot_mock(), create_event_emitter_mock()),
         CurrentUtcDateTimeFactory(),
         STRATEGY_RUN
     )
@@ -164,26 +178,15 @@ def test_sending_signal(
         .times(expected_sell)
 
     market.should_receive('cancel_order').with_args(DUMMY_OPEN_ORDER.id_on_market).times(canceled_orders_count)
+    market.should_receive('get_order_status').and_return(STILL_OPEN_ORDER_INFO)
+    market.should_receive('get_balances').and_return([])
 
     order_storage = flexmock(name='yolo_order_storage')
-    order_storage.should_receive('find_by').with_args(
-        market_name=DUMMY_MARKET_NAME,
-        pair=BTC_USD_PAIR,
-        status=ORDER_STATUS_OPEN
-    ).and_return([])
-    order_storage.should_receive('find_by').with_args(
-        market_name=DUMMY_MARKET_NAME,
-        pair=BTC_USD_PAIR,
-        status=ORDER_STATUS_OPEN,
-        direction=DIRECTION_BUY
-    ).and_return([DUMMY_OPEN_ORDER])
-    order_storage.should_receive('find_by').with_args(
-        market_name=DUMMY_MARKET_NAME,
-        pair=BTC_USD_PAIR,
-        status=ORDER_STATUS_OPEN,
-        direction=DIRECTION_SELL
-    ).and_return([DUMMY_OPEN_ORDER])
+    order_storage.should_receive('find_by').and_return([])
+    order_storage.should_receive('find_by').and_return([DUMMY_OPEN_ORDER])
+    order_storage.should_receive('find_by').and_return([DUMMY_OPEN_ORDER])
     order_storage.should_receive('save_order').times(expected_buy + expected_sell + canceled_orders_count)
+    order_storage.should_receive('delete')
 
     previous_order = None
     if previous_order_rate is not None:
@@ -192,8 +195,7 @@ def test_sending_signal(
 
     strategy = DoubleCrossoverStrategy(
         candle_storage,
-        order_storage,
-        create_event_emitter_mock(),
+        OrderFacade(order_storage, create_portfolio_snapshot_mock(), create_event_emitter_mock()),
         CurrentUtcDateTimeFactory(),
         STRATEGY_RUN
     )
@@ -208,6 +210,7 @@ def test_not_enough_balance_logs_warning():
 
     market = create_market_mock()
     market.should_receive('place_order').and_raise(NotEnoughBalanceToPerformOrderException)
+    market.should_receive('get_balances').and_return([])
 
     order_storage = create_order_storage_mock()
     order_storage.should_receive('find_by').and_return([])
@@ -215,29 +218,13 @@ def test_not_enough_balance_logs_warning():
 
     strategy = DoubleCrossoverStrategy(
         candle_storage,
-        order_storage,
-        create_event_emitter_mock(),
+        OrderFacade(order_storage, create_portfolio_snapshot_mock(), create_event_emitter_mock()),
         CurrentUtcDateTimeFactory(),
         STRATEGY_RUN
     )
     flexmock(logging.getLogger('coinrat_double_crossover_strategy.strategy')).should_receive('warning').once()
     strategy.tick([market])
     strategy.tick([market])
-
-
-CLOSED_ORDER_INFO = OrderMarketInfo(
-    order=DUMMY_OPEN_ORDER,
-    is_open=False,
-    closed_at=datetime.datetime(2017, 11, 26, 10, 11, 12, tzinfo=datetime.timezone.utc),
-    quantity_remaining=Decimal('0')
-)
-
-STILL_OPEN_ORDER_INFO = OrderMarketInfo(
-    order=DUMMY_OPEN_ORDER,
-    is_open=True,
-    closed_at=None,
-    quantity_remaining=Decimal('1')
-)
 
 
 @pytest.mark.parametrize(['expected_save_order_called', 'markets_order_info'],
@@ -258,11 +245,11 @@ def test_closes_open_orders_if_closed_on_market(expected_save_order_called: int,
 
     market = create_market_mock()
     market.should_receive('get_order_status').and_return(markets_order_info).once()
+    market.should_receive('get_balances').and_return([])
 
     strategy = DoubleCrossoverStrategy(
         candle_storage,
-        order_storage,
-        create_event_emitter_mock(),
+        OrderFacade(order_storage, create_portfolio_snapshot_mock(), create_event_emitter_mock()),
         CurrentUtcDateTimeFactory(),
         STRATEGY_RUN
     )
@@ -289,3 +276,9 @@ def create_event_emitter_mock() -> EventEmitter:
     emitter_mock = flexmock()
     emitter_mock.should_receive('emit_new_order')
     return emitter_mock
+
+
+def create_portfolio_snapshot_mock():
+    mock = flexmock()
+    mock.should_receive('save')
+    return mock

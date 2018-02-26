@@ -28,7 +28,7 @@ setuptools = "*"
 
 [dev-packages]
 
-flexmock = "==0.10.2"
+flexmock = "*"
 pytest = "==3.2.5"
 pytest-cov = "*"
 mypy = "*"

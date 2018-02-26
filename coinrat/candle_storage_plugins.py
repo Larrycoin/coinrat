@@ -27,7 +27,7 @@ class CandleStoragePlugins:
     def __init__(self) -> None:
         self._plugins = cast(
             Set[CandleStoragePluginSpecification],
-            plugins_loader('coinrat_candle_storage_plugins',CandleStoragePluginSpecification)
+            plugins_loader('coinrat_candle_storage_plugins', CandleStoragePluginSpecification)
         )
 
     def get_available_candle_storages(self) -> List[str]:

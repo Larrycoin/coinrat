@@ -6,15 +6,15 @@ from decimal import Decimal
 
 import math
 
-from coinrat.domain.market import Market, MarketException
+from coinrat.domain.market import Market
 from coinrat.domain import DateTimeFactory, DateTimeInterval
 from coinrat.domain.strategy import Strategy, StrategyConfigurationException, StrategyRun, SkipTickException
 from coinrat.domain.candle import CandleStorage, CANDLE_STORAGE_FIELD_CLOSE, NoCandlesForMarketInStorageException
-from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, \
+from coinrat.domain.order import Order, DIRECTION_SELL, DIRECTION_BUY, ORDER_STATUS_OPEN, \
     NotEnoughBalanceToPerformOrderException, ORDER_TYPE_LIMIT
+from coinrat.order_facade import OrderFacade
 from coinrat_double_crossover_strategy.signal import Signal, SIGNAL_BUY, SIGNAL_SELL
 from coinrat_double_crossover_strategy.utils import absolute_possible_percentage_gain
-from coinrat.event.event_emitter import EventEmitter
 from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_INT
 from coinrat.domain.configuration_structure import format_data_to_python_types
 
@@ -44,14 +44,12 @@ class DoubleCrossoverStrategy(Strategy):
     def __init__(
         self,
         candle_storage: CandleStorage,
-        order_storage: OrderStorage,
-        event_emitter: EventEmitter,
+        order_facade: OrderFacade,
         datetime_factory: DateTimeFactory,
         strategy_run: StrategyRun
     ) -> None:
         self._candle_storage = candle_storage
-        self._order_storage = order_storage
-        self._event_emitter = event_emitter
+        self._order_facade = order_facade
         self._datetime_factory = datetime_factory
         self._strategy_run = strategy_run
 
@@ -92,6 +90,7 @@ class DoubleCrossoverStrategy(Strategy):
             self._check_and_process_open_orders(market)
             self._check_for_signal_and_trade(market)
             self._strategy_ticker += 1
+
         except NoCandlesForMarketInStorageException as e:
             raise SkipTickException('In given range: ' + str(e))
 
@@ -119,7 +118,7 @@ class DoubleCrossoverStrategy(Strategy):
         }
 
     def _check_and_process_open_orders(self, market: Market):
-        orders = self._order_storage.find_by(
+        orders = self._order_facade.find_by(
             market_name=market.name,
             pair=self._strategy_run.pair,
             status=ORDER_STATUS_OPEN
@@ -127,10 +126,7 @@ class DoubleCrossoverStrategy(Strategy):
         for order in orders:
             status = market.get_order_status(order)
             if status.is_open is False:
-                order.close(status.closed_at)
-                self._order_storage.delete(order.order_id)
-                self._order_storage.save_order(order)
-                logger.info('Order "{}" has been successfully CLOSED.'.format(order.order_id))
+                self._order_facade.close(order, status.closed_at)
 
     def _check_for_signal_and_trade(self, market: Market):
         signal = self._check_for_signal(market)
@@ -138,13 +134,10 @@ class DoubleCrossoverStrategy(Strategy):
             self._last_signal = signal
 
         if self._last_signal is not None:
-            order = self._trade_on_signal(market)
-            if order is not None:
-                self._event_emitter.emit_new_order(self._order_storage.name, order)
-                self._order_storage.save_order(order)
+            self._trade_on_signal(market)
 
     def _does_trade_worth_it(self, market: Market) -> bool:
-        last_order = self._order_storage.find_last_order(market.name, self._strategy_run.pair)
+        last_order = self._order_facade.find_last_order(market.name, self._strategy_run.pair)
         if last_order is None:
             return True
 
@@ -224,7 +217,7 @@ class DoubleCrossoverStrategy(Strategy):
 
         return long_average, short_average
 
-    def _trade_on_signal(self, market: Market) -> Union[Order, None]:
+    def _trade_on_signal(self, market: Market) -> None:
         logger.info('Checking trade on signal: "{}".'.format(self._last_signal))
         try:
             if self._last_signal.is_buy():
@@ -244,10 +237,8 @@ class DoubleCrossoverStrategy(Strategy):
                         ),
                         self._last_signal.average_price
                     )
-
-                    market.place_order(order)
+                    self._order_facade.create(market, order)
                     self._last_signal = None
-                    return order
 
             elif self._last_signal.is_sell():
                 self._cancel_open_order(market, DIRECTION_BUY)
@@ -263,10 +254,8 @@ class DoubleCrossoverStrategy(Strategy):
                         market.calculate_maximal_amount_to_sell(self._strategy_run.pair),
                         self._last_signal.average_price
                     )
-
-                    market.place_order(order)
+                    self._order_facade.create(market, order)
                     self._last_signal = None
-                    return order
             else:
                 raise ValueError('Unknown signal: "{}"'.format(self._last_signal))  # pragma: no cover
 
@@ -276,25 +265,15 @@ class DoubleCrossoverStrategy(Strategy):
             logger.warning(str(e))
             self._last_signal = None
 
-        return None
-
     def _cancel_open_order(self, market: Market, direction: str):
-        orders = self._order_storage.find_by(
+        orders = self._order_facade.find_by(
             market_name=market.name,
             pair=self._strategy_run.pair,
             status=ORDER_STATUS_OPEN,
             direction=direction
         )
         for order in orders:
-            try:
-                market.cancel_order(order.id_on_market)
-            except MarketException as e:
-                logger.error('Order "{}" cancelling failed: Error: "{}"!'.format(order.order_id, e))
-                return
-
-            order.cancel(self._datetime_factory.now())
-            self._order_storage.save_order(order)
-            logger.info('Order "{}" has been CANCELED!'.format(order.order_id))
+            self._order_facade.cancel(market, order, self._datetime_factory.now())
 
     @staticmethod
     def _get_one_market(markets: List[Market]) -> Market:

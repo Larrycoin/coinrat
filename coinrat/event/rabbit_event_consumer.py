@@ -132,7 +132,8 @@ class RabbitEventConsumer(threading.Thread):
         elif event_name == EVENT_NEW_ORDER:
             for subscription in subscriptions:
                 order = deserialize_order(event_data['order'])
-                self._socket_server.emit_new_order(subscription.session_id, order)
+                portfolio_snapshot_raw = event_data['order']['portfolio_snapshot']
+                self._socket_server.emit_new_order(subscription.session_id, order, portfolio_snapshot_raw)
 
         elif event_name == EVENT_NEW_STRATEGY_RUN:
             for subscription in subscriptions:

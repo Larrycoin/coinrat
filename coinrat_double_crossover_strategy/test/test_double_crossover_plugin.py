@@ -17,10 +17,9 @@ def test_plugin():
             flexmock(),
             flexmock(),
             flexmock(),
-            flexmock(),
             strategy_run_mock
         ),
         DoubleCrossoverStrategy
     )
     with pytest.raises(ValueError):
-        strategy_plugin.get_strategy('gandalf', flexmock(), flexmock(), flexmock(), flexmock(), strategy_run_mock)
+        strategy_plugin.get_strategy('gandalf', flexmock(), flexmock(), flexmock(), strategy_run_mock)

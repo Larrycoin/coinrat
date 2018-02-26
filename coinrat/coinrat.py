@@ -91,22 +91,29 @@ def synchronizers() -> None:
 @cli.command(help='Shows available candle storages.')
 def candle_storages() -> None:
     click.echo('Available candle storages:')
-    for synchronizer_name in di_container.candle_storage_plugins.get_available_candle_storages():
-        click.echo('  - {}'.format(synchronizer_name))
+    for storage_name in di_container.candle_storage_plugins.get_available_candle_storages():
+        click.echo('  - {}'.format(storage_name))
 
 
 @cli.command(help='Shows available order storages.')
 def order_storages() -> None:
     click.echo('Available order storages:')
-    for synchronizer_name in di_container.order_storage_plugins.get_available_order_storages():
-        click.echo('  - {}'.format(synchronizer_name))
+    for storage_name in di_container.order_storage_plugins.get_available_order_storages():
+        click.echo('  - {}'.format(storage_name))
+
+
+@cli.command(help='Shows available portfolio snapshot storages.')
+def portfolio_snapshots() -> None:
+    click.echo('Available portfolio snapshot storages:')
+    for storage_name in di_container.portfolio_snapshot_storage_plugins.get_available_portfolio_snapshot_storages():
+        click.echo('  - {}'.format(storage_name))
 
 
 @cli.command(help='Shows available strategies.')
 def strategies() -> None:
     click.echo('Available strategies:')
-    for synchronizer_name in di_container.strategy_plugins.get_available_strategies():
-        click.echo('  - {}'.format(synchronizer_name))
+    for strategy_name in di_container.strategy_plugins.get_available_strategies():
+        click.echo('  - {}'.format(strategy_name))
 
 
 @cli.command(help='Shows strategy detail.')
