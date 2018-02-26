@@ -21,15 +21,9 @@ class StrategyPlugin(StrategyPluginSpecification):
         return [STRATEGY_NAME]
 
     @get_strategy_impl
-    def get_strategy(self, name, candle_storage, order_storage, event_emitter, datetime_factory, strategy_run):
+    def get_strategy(self, name, candle_storage, order_facade, datetime_factory, strategy_run):
         if name == STRATEGY_NAME:
-            return HeikinAshiStrategy(
-                candle_storage,
-                order_storage,
-                event_emitter,
-                datetime_factory,
-                strategy_run
-            )
+            return HeikinAshiStrategy(candle_storage, order_facade, datetime_factory, strategy_run)
 
         raise ValueError('Strategy "{}" not supported by this plugin.'.format(name))
 

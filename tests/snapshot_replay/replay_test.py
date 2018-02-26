@@ -10,6 +10,7 @@ import pytest
 from flexmock import flexmock
 from influxdb import InfluxDBClient
 
+from coinrat.order_facade import OrderFacade
 from coinrat_influx_db_storage.candle_storage import CandleInnoDbStorage
 from coinrat_influx_db_storage.order_storage import OrderInnoDbStorage
 from coinrat.domain import FrozenDateTimeFactory, DateTimeFactory, DateTimeInterval
@@ -105,8 +106,7 @@ def create_strategy_to_test(
 ):
     return DoubleCrossoverStrategy(
         candle_storage,
-        order_storage,
-        emitter_mock,
+        OrderFacade(order_storage, create_portfolio_snapshot_mock(), emitter_mock),
         datetime_factory,
         StrategyRun(
             STRATEGY_RUN_ID,
@@ -147,3 +147,9 @@ def save_last_result_into_file(dataset_path: str, result_orders: List[Dict]) -> 
     file = open(dataset_path + '/orders_last_run.json', 'w')
     file.write(json.dumps(result_orders))
     file.close()
+
+
+def create_portfolio_snapshot_mock():
+    mock = flexmock()
+    mock.should_receive('save')
+    return mock

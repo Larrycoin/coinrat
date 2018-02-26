@@ -2,9 +2,8 @@ import pluggy
 from typing import List, Set, cast
 
 from coinrat.domain import DateTimeFactory
-from coinrat.domain.order import OrderStorage
 from coinrat.domain.strategy import Strategy, StrategyRun
-from coinrat.event.event_emitter import EventEmitter
+from coinrat.order_facade import OrderFacade
 from .plugins import PluginSpecification, plugins_loader
 from .domain.candle import CandleStorage
 
@@ -20,7 +19,7 @@ class StrategyPluginSpecification(PluginSpecification):
         raise NotImplementedError()
 
     @get_strategy_spec
-    def get_strategy(self, name, candle_storage, order_storage, event_emitter, datetime_factory, strategy_run):
+    def get_strategy(self, name, candle_storage, order_facade, datetime_factory, strategy_run):
         raise NotImplementedError()
 
     @get_strategy_class_spec
@@ -53,8 +52,7 @@ class StrategyPlugins:
         self,
         name: str,
         candle_storage: CandleStorage,
-        order_storage: OrderStorage,
-        event_emitter: EventEmitter,
+        order_facade: OrderFacade,
         datetime_factory: DateTimeFactory,
         strategy_run: StrategyRun
     ) -> Strategy:
@@ -63,8 +61,7 @@ class StrategyPlugins:
                 return plugin.get_strategy(
                     name,
                     candle_storage,
-                    order_storage,
-                    event_emitter,
+                    order_facade,
                     datetime_factory,
                     strategy_run
                 )

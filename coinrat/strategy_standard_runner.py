@@ -4,6 +4,8 @@ from coinrat.domain import DateTimeFactory
 from coinrat.domain.strategy import StrategyRunner
 from coinrat.domain.strategy import StrategyRun
 from coinrat.market_plugins import MarketPlugins
+from coinrat.order_facade import OrderFacade
+from coinrat.portfolio_snapshot_storage_plugins import PortfolioSnapshotStoragePlugins
 from coinrat.strategy_plugins import StrategyPlugins
 from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.order_storage_plugins import OrderStoragePlugins
@@ -17,10 +19,12 @@ class StrategyStandardRunner(StrategyRunner):
         order_storage_plugins: OrderStoragePlugins,
         strategy_plugins: StrategyPlugins,
         market_plugins: MarketPlugins,
+        portfolio_snapshot_storage_plugins: PortfolioSnapshotStoragePlugins,
         event_emitter: EventEmitter,
         datetime_factory: DateTimeFactory
     ) -> None:
         super().__init__()
+        self._portfolio_snapshot_storage_plugins = portfolio_snapshot_storage_plugins
         self._order_storage_plugins = order_storage_plugins
         self._candle_storage_plugins = candle_storage_plugins
         self._strategy_plugins = strategy_plugins
@@ -32,11 +36,14 @@ class StrategyStandardRunner(StrategyRunner):
         order_storage = self._order_storage_plugins.get_order_storage(strategy_run.order_storage_name)
         candle_storage = self._candle_storage_plugins.get_candle_storage(strategy_run.candle_storage_name)
 
+        # Todo: Make this configurable, see https://github.com/Achse/coinrat/issues/47
+        portfolio_snapshot_storage = self._portfolio_snapshot_storage_plugins \
+            .get_portfolio_snapshot_storage('influx_db')
+
         strategy = self._strategy_plugins.get_strategy(
             strategy_run.strategy_name,
             candle_storage,
-            order_storage,
-            self._event_emitter,
+            OrderFacade(order_storage, portfolio_snapshot_storage, self._event_emitter),
             self._datetime_factory,
             strategy_run
         )

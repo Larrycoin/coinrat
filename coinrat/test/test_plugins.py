@@ -4,9 +4,12 @@ from flexmock import flexmock
 from coinrat.domain import MarketStateSynchronizer
 from coinrat.domain.order import OrderStorage
 from coinrat.domain.candle import CandleStorage
+from coinrat.domain.portfolio import PortfolioSnapshotStorage
 from coinrat.domain.strategy import Strategy
 from coinrat.market_plugins import MarketPlugins, MarketPluginSpecification, MarketPluginDoesNotExistsException
 from coinrat.candle_storage_plugins import CandleStoragePlugins, CandleStorageNotProvidedByAnyPluginException
+from coinrat.portfolio_snapshot_storage_plugins import PortfolioSnapshotStoragePlugins, \
+    PortfolioSnapshotStorageNotProvidedByAnyPluginException
 from coinrat.strategy_plugins import StrategyPlugins, StrategyNotProvidedByAnyPluginException
 from coinrat.synchronizer_plugins import SynchronizerPlugins, SynchronizerNotProvidedByAnyPluginException
 from coinrat.order_storage_plugins import OrderStoragePlugins, OrderStorageNotProvidedByAnyPluginException
@@ -59,8 +62,17 @@ def test_strategy_plugins():
     strategy_run_mock = flexmock(strategy_configuration={})
 
     assert isinstance(
-        plugins.get_strategy('double_crossover', flexmock(), flexmock(), flexmock(), flexmock(), strategy_run_mock),
+        plugins.get_strategy('double_crossover', flexmock(), flexmock(), flexmock(), strategy_run_mock),
         Strategy
     )
     with pytest.raises(StrategyNotProvidedByAnyPluginException):
-        plugins.get_strategy('gandalf', flexmock(), flexmock(), flexmock(), flexmock(), strategy_run_mock)
+        plugins.get_strategy('gandalf', flexmock(), flexmock(), flexmock(), strategy_run_mock)
+
+
+def test_portfolio_snapshot_storage_plugins():
+    plugins = PortfolioSnapshotStoragePlugins()
+    assert 'influx_db' in plugins.get_available_portfolio_snapshot_storages()
+
+    assert isinstance(plugins.get_portfolio_snapshot_storage('influx_db'), PortfolioSnapshotStorage)
+    with pytest.raises(PortfolioSnapshotStorageNotProvidedByAnyPluginException):
+        plugins.get_portfolio_snapshot_storage('gandalf')

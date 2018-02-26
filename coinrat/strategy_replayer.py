@@ -6,6 +6,8 @@ from coinrat.domain import FrozenDateTimeFactory
 from coinrat.domain.market import Market
 from coinrat.domain.strategy import StrategyRun, StrategyRunner, SkipTickException, Strategy
 from coinrat.market_plugins import MarketPlugins
+from coinrat.order_facade import OrderFacade
+from coinrat.portfolio_snapshot_storage_plugins import PortfolioSnapshotStoragePlugins
 from coinrat.strategy_plugins import StrategyPlugins
 from coinrat.candle_storage_plugins import CandleStoragePlugins
 from coinrat.order_storage_plugins import OrderStoragePlugins
@@ -22,6 +24,7 @@ class StrategyReplayer(StrategyRunner):
         orders_storage_plugins: OrderStoragePlugins,
         strategy_plugins: StrategyPlugins,
         market_plugins: MarketPlugins,
+        portfolio_snapshot_storage_plugins: PortfolioSnapshotStoragePlugins,
         event_emitter: EventEmitter
     ) -> None:
         super().__init__()
@@ -29,6 +32,7 @@ class StrategyReplayer(StrategyRunner):
         self._candle_storage_plugins = candle_storage_plugins
         self._strategy_plugins = strategy_plugins
         self._market_plugins = market_plugins
+        self._portfolio_snapshot_storage_plugins = portfolio_snapshot_storage_plugins
         self._event_emitter = event_emitter
 
     def run(self, strategy_run: StrategyRun):
@@ -39,11 +43,14 @@ class StrategyReplayer(StrategyRunner):
 
         datetime_factory = FrozenDateTimeFactory(strategy_run.interval.since)
 
+        # Todo: Make this configurable, see https://github.com/Achse/coinrat/issues/47
+        portfolio_snapshot_storage = self._portfolio_snapshot_storage_plugins \
+            .get_portfolio_snapshot_storage('influx_db')
+
         strategy = self._strategy_plugins.get_strategy(
             strategy_run.strategy_name,
             candle_storage,
-            order_storage,
-            self._event_emitter,
+            OrderFacade(order_storage, portfolio_snapshot_storage, self._event_emitter),
             datetime_factory,
             strategy_run
         )

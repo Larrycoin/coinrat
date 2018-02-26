@@ -5,6 +5,7 @@ import MySQLdb
 import pika
 
 import coinrat_mock
+from coinrat.portfolio_snapshot_storage_plugins import PortfolioSnapshotStoragePlugins
 from .di_container import DiContainer
 from coinrat.strategy_standard_runner import StrategyStandardRunner
 from coinrat.candle_storage_plugins import CandleStoragePlugins
@@ -50,6 +51,10 @@ class DiContainerCoinrat(DiContainer):
                 'instance': None,
                 'factory': lambda: StrategyPlugins(),
             },
+            'portfolio_snapshot_storage_plugins': {
+                'instance': None,
+                'factory': lambda: PortfolioSnapshotStoragePlugins(),
+            },
             'rabbit_connection': {
                 'instance': None,
                 'factory': lambda: pika.BlockingConnection(
@@ -83,7 +88,8 @@ class DiContainerCoinrat(DiContainer):
                     self.order_storage_plugins,
                     self.market_plugins,
                     self.strategy_plugins,
-                    self.strategy_run_storage
+                    self.strategy_run_storage,
+                    self.portfolio_snapshot_storage_plugins
                 ),
             },
             'strategy_replayer': {
@@ -93,6 +99,7 @@ class DiContainerCoinrat(DiContainer):
                     self.order_storage_plugins,
                     self.strategy_plugins,
                     self.market_plugins,
+                    self.portfolio_snapshot_storage_plugins,
                     self.event_emitter
                 )
             },
@@ -130,6 +137,7 @@ class DiContainerCoinrat(DiContainer):
                     self.order_storage_plugins,
                     self.strategy_plugins,
                     self.market_plugins,
+                    self.portfolio_snapshot_storage_plugins,
                     self.event_emitter,
                     self.datetime_factory,
                 ),
@@ -172,6 +180,10 @@ class DiContainerCoinrat(DiContainer):
     @property
     def strategy_plugins(self) -> StrategyPlugins:
         return self._get('strategy_plugins')
+
+    @property
+    def portfolio_snapshot_storage_plugins(self) -> PortfolioSnapshotStoragePlugins:
+        return self._get('portfolio_snapshot_storage_plugins')
 
     @property
     def socket_server(self) -> SocketServer:

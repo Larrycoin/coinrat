@@ -34,6 +34,9 @@ setup(
         'coinrat_order_storage_plugins': [
             'coinrat_influx_db_storage = coinrat_influx_db_storage:order_storage_plugin',
         ],
+        'coinrat_portfolio_snapshot_storage_plugins': [
+            'coinrat_influx_db_storage = coinrat_influx_db_storage:portfolio_snapshot_storage_plugin',
+        ],
         'coinrat_synchronizer_plugins': [
             'coinrat_bittrex = coinrat_bittrex:synchronizer_plugin',
             'coinrat_cryptocompare = coinrat_cryptocompare:synchronizer_plugin',
@@ -44,5 +47,6 @@ setup(
         ],
     },
     setup_requires=['pytest-runner'],
-    tests_require=['pytest', 'coinrat'],
+    tests_require=['pytest', 'coinrat', 'flexmock'],
+    install_requires=['influxdb', 'flask']
 )

@@ -1,6 +1,8 @@
 import json
 import logging
 import threading
+from typing import Dict, Union
+
 import os
 
 import socketio
@@ -8,10 +10,12 @@ from flask import Flask
 
 from coinrat.domain import DateTimeFactory, serialize_balances, deserialize_datetime_interval
 from coinrat.domain.pair import deserialize_pair, serialize_pair
-from coinrat.domain.order import Order, serialize_order, serialize_orders
+from coinrat.domain.order import Order, serialize_order, serialize_orders, ORDER_FIELD_ORDER_ID
 from coinrat.domain.candle import serialize_candles, Candle, serialize_candle, deserialize_candle_size
+from coinrat.domain.portfolio import serialize_portfolio_snapshot
 from coinrat.order_storage_plugins import OrderStoragePlugins
 from coinrat.candle_storage_plugins import CandleStoragePlugins
+from coinrat.portfolio_snapshot_storage_plugins import PortfolioSnapshotStoragePlugins
 from coinrat.server.socket_event_types import EVENT_PING_REQUEST, EVENT_PING_RESPONSE, EVENT_GET_CANDLES, \
     EVENT_GET_ORDERS, EVENT_RUN_REPLY, EVENT_SUBSCRIBE, EVENT_UNSUBSCRIBE, EVENT_LAST_CANDLE_UPDATED, \
     EVENT_NEW_ORDERS, EVENT_CLEAR_ORDERS, EVENT_GET_MARKETS, EVENT_GET_PAIRS, EVENT_GET_CANDLE_STORAGES, \
@@ -34,12 +38,15 @@ class SocketServer(threading.Thread):
         order_storage_plugins: OrderStoragePlugins,
         market_plugins: MarketPlugins,
         strategy_plugins: StrategyPlugins,
-        strategy_run_storage: StrategyRunStorage
+        strategy_run_storage: StrategyRunStorage,
+        portfolio_snapshot_storage_plugins: PortfolioSnapshotStoragePlugins
     ):
         super().__init__()
 
-        self.market_plugins = market_plugins
-        self.task_planner = task_planner
+        self._market_plugins = market_plugins
+        self._task_planner = task_planner
+        self._portfolio_snapshot_storage_plugins = portfolio_snapshot_storage_plugins
+
         socket = socketio.Server(async_mode='threading')
 
         @socket.on('connect')
@@ -63,7 +70,7 @@ class SocketServer(threading.Thread):
             if 'market_plugin_name' not in data:
                 return 'ERROR', {'message': 'Missing "market_plugin_name" field in request.'}
 
-            market_plugin = self.market_plugins.get_plugin(data['market_plugin_name'])
+            market_plugin = self._market_plugins.get_plugin(data['market_plugin_name'])
             market = market_plugin.get_market(data['market_name'], datetime_factory, {})
 
             return 'OK', serialize_balances(market.get_balances())
@@ -90,7 +97,7 @@ class SocketServer(threading.Thread):
             logger.info('RECEIVED: {}, {}'.format(EVENT_GET_MARKET_PLUGINS, data))
 
             result = []
-            for plugin in self.market_plugins.get_available_market_plugins():
+            for plugin in self._market_plugins.get_available_market_plugins():
                 result.append({
                     'name': plugin.get_name(),
                 })
@@ -101,7 +108,7 @@ class SocketServer(threading.Thread):
         def markets(sid, data):
             logger.info('RECEIVED: {}, {}'.format(EVENT_GET_MARKETS, data))
 
-            plugin = self.market_plugins.get_plugin(data['market_plugin_name'])
+            plugin = self._market_plugins.get_plugin(data['market_plugin_name'])
 
             result = []
             for market_name in plugin.get_available_markets():
@@ -123,7 +130,7 @@ class SocketServer(threading.Thread):
             if 'market_plugin_name' not in data:
                 return 'ERROR', {'message': 'Missing "market_plugin_name" field in request.'}
 
-            market_plugin = self.market_plugins.get_plugin(data['market_plugin_name'])
+            market_plugin = self._market_plugins.get_plugin(data['market_plugin_name'])
             market = market_plugin.get_market(data['market_name'], datetime_factory, {})
 
             return 'OK', list(map(
@@ -184,7 +191,18 @@ class SocketServer(threading.Thread):
                 strategy_run_id=strategy_run_id
             )
 
-            return 'OK', serialize_orders(result_orders)
+            result_data = serialize_orders(result_orders)
+
+            if strategy_run_id is not None:
+                # Todo: Make this configurable, see https://github.com/Achse/coinrat/issues/47
+                portfolio_snapshot_storage = self._portfolio_snapshot_storage_plugins \
+                    .get_portfolio_snapshot_storage('influx_db')
+
+                snapshots = portfolio_snapshot_storage.get_for_strategy_run(strategy_run_id)
+                for row in result_data:
+                    row['portfolio_snapshot'] = serialize_portfolio_snapshot(snapshots[row[ORDER_FIELD_ORDER_ID]])
+
+            return 'OK', result_data
 
         @socket.on(EVENT_GET_STRATEGY_RUNS)
         def strategy_runs(sid, data):
@@ -210,7 +228,7 @@ class SocketServer(threading.Thread):
         @socket.on(EVENT_RUN_REPLY)
         def reply(sid, data):
             logger.info('Received Strategy REPLAY request: ' + json.dumps(data))
-            self.task_planner.plan_replay_strategy(data)
+            self._task_planner.plan_replay_strategy(data)
 
             return 'OK'
 
@@ -225,8 +243,9 @@ class SocketServer(threading.Thread):
         logger.info('EMITTING [session={}]: {}, {}'.format(session_id, EVENT_LAST_CANDLE_UPDATED, data))
         self._socket.emit(EVENT_LAST_CANDLE_UPDATED, data, room=session_id)
 
-    def emit_new_order(self, session_id: str, order: Order):
+    def emit_new_order(self, session_id: str, order: Order, portfolio_snapshot_raw: Union[Dict, None]) -> None:
         data = serialize_order(order)
+        data['portfolio_snapshot'] = portfolio_snapshot_raw
         logger.info('EMITTING [session={}]: {}, {}'.format(session_id, EVENT_NEW_ORDERS, data))
         self._socket.emit(EVENT_NEW_ORDERS, data, room=session_id)
 

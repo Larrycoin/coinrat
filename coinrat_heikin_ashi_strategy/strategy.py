@@ -8,10 +8,10 @@ from coinrat.domain import DateTimeFactory, DateTimeInterval
 from coinrat.domain.market import Market
 from coinrat.domain.strategy import Strategy, StrategyRun, SkipTickException
 from coinrat.domain.candle import CandleStorage, deserialize_candle_size, CandleSize
-from coinrat.domain.order import Order, OrderStorage, DIRECTION_SELL, DIRECTION_BUY, ORDER_TYPE_LIMIT, \
+from coinrat.domain.order import Order, DIRECTION_SELL, DIRECTION_BUY, ORDER_TYPE_LIMIT, \
     NotEnoughBalanceToPerformOrderException
-from coinrat.event.event_emitter import EventEmitter
 from coinrat.domain.configuration_structure import CONFIGURATION_STRUCTURE_TYPE_CANDLE_SIZE
+from coinrat.order_facade import OrderFacade
 from coinrat_heikin_ashi_strategy.heikin_ashi_candle import HeikinAshiCandle, candle_to_heikin_ashi, \
     create_initial_heikin_ashi_candle
 from coinrat.domain.configuration_structure import format_data_to_python_types
@@ -32,16 +32,14 @@ class HeikinAshiStrategy(Strategy):
     def __init__(
         self,
         candle_storage: CandleStorage,
-        order_storage: OrderStorage,
-        event_emitter: EventEmitter,
+        order_facade: OrderFacade,
         datetime_factory: DateTimeFactory,
         strategy_run: StrategyRun
     ) -> None:
         configuration = self.process_configuration(strategy_run.strategy_configuration)
 
         self._candle_storage = candle_storage
-        self._order_storage = order_storage
-        self._event_emitter = event_emitter
+        self._order_facade = order_facade
         self._datetime_factory = datetime_factory
         self._candle_size = cast(CandleSize, configuration['candle_size'])
         self._strategy_ticker = 0
@@ -162,9 +160,7 @@ class HeikinAshiStrategy(Strategy):
                 else market.calculate_maximal_amount_to_sell(self._strategy_run.pair),
             current_price
         )
-        market.place_order(order)
-        self._event_emitter.emit_new_order(self._order_storage.name, order)
-        self._order_storage.save_order(order)
+        self._order_facade.create(market, order)
 
     def log_tick(self) -> None:
         logger.info(

@@ -1,5 +1,7 @@
 import pluggy
 
+from coinrat.portfolio_snapshot_storage_plugins import PortfolioSnapshotStoragePluginSpecification
+from coinrat_influx_db_storage.portfolio_snapshot_storage import PORTFOLIO_SNAPSHOT_STORAGE_NAME
 from .di_container_influx_db_storage import DiContainerInfluxDbStorage
 from .candle_storage import CANDLE_STORAGE_NAME
 from .order_storage import ORDER_STORAGE_NAME, MEASUREMENT_ORDERS_NAMES
@@ -13,6 +15,9 @@ get_candle_storage_impl = pluggy.HookimplMarker('storage_plugins')
 
 get_available_order_storages_impl = pluggy.HookimplMarker('storage_plugins')
 get_order_storage_impl = pluggy.HookimplMarker('storage_plugins')
+
+get_available_portfolio_snapshot_storages_impl = pluggy.HookimplMarker('storage_plugins')
+get_portfolio_snapshot_storage_impl = pluggy.HookimplMarker('storage_plugins')
 
 PACKAGE_NAME = 'coinrat_influx_db_storage'
 
@@ -50,5 +55,20 @@ class OrderStoragePlugin(OrderStoragePluginSpecification):
         return di_container.get_order_storage(name)
 
 
+class PorfolioSnapshotStoragePlugin(PortfolioSnapshotStoragePluginSpecification):
+    @get_name_impl
+    def get_name(self):
+        return PACKAGE_NAME
+
+    @get_available_portfolio_snapshot_storages_impl
+    def get_available_portfolio_snapshot_storages(self):
+        return [PORTFOLIO_SNAPSHOT_STORAGE_NAME]
+
+    @get_portfolio_snapshot_storage_impl
+    def get_portfolio_snapshot_storage(self, name):
+        return di_container.get_portfolio_snapshot_storage(name)
+
+
 candle_storage_plugin = CandleStoragePlugin()
 order_storage_plugin = OrderStoragePlugin()
+portfolio_snapshot_storage_plugin = PorfolioSnapshotStoragePlugin()

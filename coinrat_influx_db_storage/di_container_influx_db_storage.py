@@ -5,6 +5,7 @@ from influxdb import InfluxDBClient
 
 from coinrat.di_container import DiContainer
 from coinrat.domain.order import OrderStorage
+from .portfolio_snapshot_storage import PortfolioSnapshotInnoDbStorage, PORTFOLIO_SNAPSHOT_STORAGE_NAME
 from .candle_storage import CandleInnoDbStorage, CANDLE_STORAGE_NAME
 from .order_storage import OrderInnoDbStorage, ORDER_STORAGE_NAME
 
@@ -29,6 +30,10 @@ class DiContainerInfluxDbStorage(DiContainer):
                 'instance': None,
                 'factory': lambda: CandleInnoDbStorage(self.influxdb_client)
             },
+            'portfolio_snapshot_storage': {
+                'instance': None,
+                'factory': lambda: PortfolioSnapshotInnoDbStorage(self.influxdb_client)
+            },
         }
 
         self._order_storages: Dict[str, OrderStorage] = {}
@@ -42,9 +47,15 @@ class DiContainerInfluxDbStorage(DiContainer):
 
         raise ValueError('Order storage "{}" not supported by this plugin.'.format(name))
 
-    def get_candle_storage(self, name):
+    def get_candle_storage(self, name: str) -> CandleInnoDbStorage:
         if name == CANDLE_STORAGE_NAME:
             return self._get('candle_storage')
+
+        raise ValueError('Candle storage "{}" not supported by this plugin.'.format(name))
+
+    def get_portfolio_snapshot_storage(self, name) -> PortfolioSnapshotInnoDbStorage:
+        if name == PORTFOLIO_SNAPSHOT_STORAGE_NAME:
+            return self._get('portfolio_snapshot_storage')
 
         raise ValueError('Candle storage "{}" not supported by this plugin.'.format(name))
 
