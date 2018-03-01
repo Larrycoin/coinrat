@@ -17,6 +17,8 @@ to help with running simulations and to visualize results.
     * Make sure that socket server is **NEVER** accessible from the internet.
 
 ## Installation
+> :bangbang: **Important**: This project is still in alpha! Use code directly from **`master`** branch.
+
 * Install InfluxDB: [here](https://portal.influxdata.com/downloads#influxdb)
     * Start: `sudo service influxdb start`
     * `curl -XPOST "http://localhost:8086/query" --data-urlencode "q=CREATE DATABASE coinrat"`
@@ -33,14 +35,10 @@ to help with running simulations and to visualize results.
 Platform has five plugin types that are registered in `setup.py`: 
 * **`coinrat_market_plugins`** - This plugin provides one or more **stock-market connections** (Bitfinex, Bittrex, ...) and platform uses those plugin to create order, check balances, ...
     * You can check available markets by: `pipenv run coinrat markets`
-* **`coinrat_candle_storage_plugins`** - This plugin provides **storage for candles** (stock-market price data).
-    * You can check available candle storages by: `pipenv run coinrat candle_storages`
-* **`coinrat_order_storage_plugins`** - This plugin provides **storage for orders** that are created by strategies in platform.
-    * You can check available order storages by: `pipenv run coinrat order_storages`
 * **`coinrat_synchronizer_plugins`** - This plugin is responsible for **pumping stock-market data (candles) into platform**. Usually one module contains both market and synchronizer plugin (for stock-market modules). But for read only sources (eg. cryptocompare.com) can be provided solely in the module.
-    * You can check available synchronizers by: `pipenv run coinrat synchronizers`
 * **`coinrat_strategy_plugins`** - Most interesting plugins. Contains **trading strategies**. Strategy runs with one instance of candle and order storage, but can use multiple markets (for [Market Arbitrage](https://www.investopedia.com/terms/m/marketarbitrage.asp), etc...)
     * You can check available strategies by: `pipenv run coinrat strategies`
+* `coinrat_candle_storage_plugins`, `coinrat_order_storage_plugins`, `coinrat_portfolio_snapshot_storage_plugins` - Storage plugins for the data. There is default implementation for InfluxDB.
 
 ## Configuration for markets and strategies
 Each strategy (or market) can have special configuration. You can see it by running 
