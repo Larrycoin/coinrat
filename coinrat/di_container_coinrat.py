@@ -6,6 +6,8 @@ import pika
 from typing import Callable, Set, cast
 
 import coinrat_mock
+from coinrat.event.null_event_emitter import NullEventEmitter
+from coinrat.event.rabbit_event_emitter import RabbitEventEmitter
 
 from coinrat.portfolio_snapshot_storage_plugins import PortfolioSnapshotStoragePlugins
 from .di_container import DiContainer
@@ -65,7 +67,7 @@ class DiContainerCoinrat(DiContainer):
             },
             'event_emitter': {
                 'instance': None,
-                'factory': lambda: EventEmitter(self.rabbit_connection),
+                'factory': self._create_event_emitter,
             },
             'task_planner': {
                 'instance': None,
@@ -139,6 +141,16 @@ class DiContainerCoinrat(DiContainer):
                 ),
             }
         }
+
+    def _create_event_emitter(self) -> EventEmitter:
+        event_emitter = os.environ.get('EVENT_EMITTER')
+
+        assert event_emitter in ['rabbit', 'null'], 'Event-emitter must be configured to "rabbit" or "null".'
+
+        if event_emitter == 'rabbit':
+            return RabbitEventEmitter(self.rabbit_connection)
+
+        return NullEventEmitter()
 
     @staticmethod
     def _create_rabbit_connection() -> pika.BlockingConnection:
