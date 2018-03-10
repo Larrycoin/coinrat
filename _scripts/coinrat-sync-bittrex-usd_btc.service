@@ -1,0 +1,6 @@
+[Unit]
+Description=Coinrat-Sync-bittrex-USD_BTC
+
+[Service]
+ExecStart=/home/coinrat/coinrat/coinrat-sync-bittrex-usd_btc.sh 
+User=coinrat
