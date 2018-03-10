@@ -1,6 +1,7 @@
+import logging
 import os
-from typing import Dict
 
+from typing import Dict
 from influxdb import InfluxDBClient
 
 from coinrat.di_container import DiContainer
@@ -8,6 +9,8 @@ from coinrat.domain.order import OrderStorage
 from .portfolio_snapshot_storage import PortfolioSnapshotInnoDbStorage, PORTFOLIO_SNAPSHOT_STORAGE_NAME
 from .candle_storage import CandleInnoDbStorage, CANDLE_STORAGE_NAME
 from .order_storage import OrderInnoDbStorage, ORDER_STORAGE_NAME
+
+logger = logging.getLogger(__name__)
 
 
 class DiContainerInfluxDbStorage(DiContainer):
@@ -18,13 +21,7 @@ class DiContainerInfluxDbStorage(DiContainer):
         self._storage = {
             'influxdb_client': {
                 'instance': None,
-                'factory': lambda: InfluxDBClient(
-                    os.environ.get('STORAGE_INFLUX_DB_HOST'),
-                    os.environ.get('STORAGE_INFLUX_DB_PORT'),
-                    os.environ.get('STORAGE_INFLUX_DB_USER'),
-                    os.environ.get('STORAGE_INFLUX_DB_PASSWORD'),
-                    os.environ.get('STORAGE_INFLUX_DB_DATABASE'),
-                ),
+                'factory': self._create_connection,
             },
             'candle_storage': {
                 'instance': None,
@@ -62,3 +59,15 @@ class DiContainerInfluxDbStorage(DiContainer):
     @property
     def influxdb_client(self):
         return self._get('influxdb_client')
+
+    @staticmethod
+    def _create_connection():
+        host = os.environ.get('STORAGE_INFLUX_DB_HOST')
+        port = os.environ.get('STORAGE_INFLUX_DB_PORT')
+        user = os.environ.get('STORAGE_INFLUX_DB_USER')
+        password = os.environ.get('STORAGE_INFLUX_DB_PASSWORD')
+        database = os.environ.get('STORAGE_INFLUX_DB_DATABASE')
+
+        logger.debug('Connecting to InfluxDB. User: {}, host: {}:{} database: {}.'.format(user, host, port, database))
+
+        return InfluxDBClient(host=host, port=port, username=user, password=password, database=database)
