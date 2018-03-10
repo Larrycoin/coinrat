@@ -73,8 +73,10 @@ Run one of default strategies with this command: `pipenv run coinrat run_strateg
 
 ## Troubleshooting
 1. **OSError: mysql_config not found** → Install: `sudo apt-get install libmysqlclient-dev`
-2. **ERROR: For market "bittrex" no candles in storage "influx_db".** → No data for given **market**, **storage** and selected **time period** / your time interval is too small.
-3. **Every second candle is missing.** → See [#29](https://github.com/Achse/coinrat/issues/29).
+2. **Error: the command coinrat could not be found within PATH or Pipfile's [scripts].** → Specify python (3.5+) version. For example: `pipenv --python 3.6 install`
+3. **Failed building wheel for mysqlclient** → `sudo apt-get install python3.6-dev libmysqlclient-dev` (See [#29](https://github.com/Achse/coinrat/issues/29).)
+4. **ERROR: For market "bittrex" no candles in storage "influx_db".** → No data for given **market**, **storage** and selected **time period** / your time interval is too small.
+5. **Every second candle is missing.** → See [#29](https://github.com/Achse/coinrat/issues/29).
 
 ## Additional tips & tricks
 * There is visualization tool for Influx DB called [Chronograf](https://github.com/influxdata/chronograf), it can be useful for visualizing data too.
