@@ -29,9 +29,9 @@ to help with running simulations and to visualize results.
 * Install RabbitMQ :rabbit: [official instructions](https://www.rabbitmq.com/install-debian.html).
 * Install MySQL database (MySQL, MariaDB, Percona, ...) and create `coinrat` database and user with write access for it. Add configuration into `.env`
 
-### Pyton
+### Python
 * Make sure you have [pipenv](https://github.com/pypa/pipenv)
-* Install dependencies: `pipenv install` (use `--dev` if you want to develop and also run tests)
+* Install dependencies: `pipenv install` (use `--dev` if you want to develop and also run tests). See [Troubleshooting](Troubleshooting) in case of errors.
 * Provide configuration `cp .env_example .env`
 * Run MySQL database migrations: `pipenv run coinrat database_migrate`.
     
