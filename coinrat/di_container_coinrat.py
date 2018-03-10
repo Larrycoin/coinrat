@@ -1,10 +1,12 @@
+import logging
 import os
-from typing import Callable, Set, cast
-
 import MySQLdb
 import pika
 
+from typing import Callable, Set, cast
+
 import coinrat_mock
+
 from coinrat.portfolio_snapshot_storage_plugins import PortfolioSnapshotStoragePlugins
 from .di_container import DiContainer
 from coinrat.strategy_standard_runner import StrategyStandardRunner
@@ -23,6 +25,8 @@ from coinrat.task.task_consumer import TaskConsumer
 from coinrat.strategy_replayer import StrategyReplayer
 from coinrat.server.subscription_storage import SubscriptionStorage
 from coinrat.thread_watcher import ThreadWatcher
+
+logger = logging.getLogger(__name__)
 
 
 class DiContainerCoinrat(DiContainer):
@@ -57,15 +61,7 @@ class DiContainerCoinrat(DiContainer):
             },
             'rabbit_connection': {
                 'instance': None,
-                'factory': lambda: pika.BlockingConnection(
-                    pika.ConnectionParameters(
-                        host=os.environ.get('RABBITMQ_SERVER_HOST'),
-                        credentials=pika.PlainCredentials(
-                            os.environ.get('RABBITMQ_USERNAME'),
-                            os.environ.get('RABBITMQ_PASSWORD')
-                        )
-                    ),
-                ),
+                'factory': self._create_rabbit_connection,
             },
             'event_emitter': {
                 'instance': None,
@@ -143,6 +139,17 @@ class DiContainerCoinrat(DiContainer):
                 ),
             }
         }
+
+    @staticmethod
+    def _create_rabbit_connection() -> pika.BlockingConnection:
+        host = os.environ.get('RABBITMQ_SERVER_HOST')
+        username = os.environ.get('RABBITMQ_USERNAME')
+
+        logger.debug('Rabbit connection, user: {} host: {}'.format(username, host))
+
+        credentials = pika.PlainCredentials(username, os.environ.get('RABBITMQ_PASSWORD'))
+
+        return pika.BlockingConnection(pika.ConnectionParameters(host=host, credentials=credentials))
 
     @staticmethod
     def _create_market_plugins() -> MarketPlugins:
