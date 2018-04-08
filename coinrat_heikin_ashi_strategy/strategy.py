@@ -138,7 +138,7 @@ class HeikinAshiStrategy(Strategy):
         ):
             self.create_order(market, DIRECTION_SELL)
         if (
-            self._trend <= 5
+            self._trend <= -5
             and self._first_previous_candle.is_bullish()
             and self._second_previous_candle.is_bullish()
         ):
