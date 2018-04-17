@@ -48,7 +48,8 @@ def create_migrations_table_if_not_exists(mysql_connection: MySQLdb.Connection):
 
 
 def create_yml_file_for_migration_lib():
-    with open(get_yml_filename(), 'w+') as migrations_config:
+    filename = get_yml_filename()
+    with open(filename, 'w+') as migrations_config:
         migrations_config.write(yml_file_template.format(
             os.environ.get('MYSQL_HOST'),
             os.environ.get('MYSQL_USER'),
@@ -59,6 +60,8 @@ def create_yml_file_for_migration_lib():
             os.environ.get('MYSQL_PASSWORD'),
             os.environ.get('MYSQL_DATABASE') + '_test'
         ))
+    if not os.path.isfile(filename):
+        raise ValueError('{} was NOT created'.format(filename))
 
 
 def get_yml_filename() -> str:
