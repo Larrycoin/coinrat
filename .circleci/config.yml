@@ -3,9 +3,9 @@ jobs:
   build:
     docker:
       - image: circleci/python:3.6.3
+      - image: percona:latest
         environment:
             MYSQL_ALLOW_EMPTY_PASSWORD: true
-      - image: percona:latest
 
     working_directory: ~/repo
 
