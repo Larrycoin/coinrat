@@ -1,4 +1,6 @@
 import logging
+import time
+
 import MySQLdb
 import os
 
@@ -29,15 +31,13 @@ yml_file_template = """databases:
 def run_db_migrations(mysql_connection: MySQLdb.Connection, tag='coinrat'):
     create_yml_file_for_migration_lib()
     create_migrations_table_if_not_exists(mysql_connection)
+    time.sleep(5)
     os.system("dbschema --config " + get_yml_filename() + " --tag " + tag)
 
 
 def create_migrations_table_if_not_exists(mysql_connection: MySQLdb.Connection):
     cursor = mysql_connection.cursor()
     cursor.execute("SHOW TABLES LIKE 'migrations_applied'")
-
-    print(cursor.fetchone())
-
     if cursor.fetchone() is None:
         logger.info('Migrations table: "migrations_applied" does not exists. Creating.')
         cursor.execute(
