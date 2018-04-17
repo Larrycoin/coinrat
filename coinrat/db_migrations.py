@@ -60,9 +60,7 @@ def create_yml_file_for_migration_lib():
             os.environ.get('MYSQL_PASSWORD'),
             os.environ.get('MYSQL_DATABASE') + '_test'
         ))
-    if not os.path.isfile(filename):
-        raise ValueError('{} was NOT created'.format(filename))
 
 
 def get_yml_filename() -> str:
-    return os.path.join(current_directory, '../db_schema/migrations.yml')
+    return '/tmp/coinrat/migrations.yml'
