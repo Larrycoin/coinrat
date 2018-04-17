@@ -35,6 +35,9 @@ def run_db_migrations(mysql_connection: MySQLdb.Connection, tag='coinrat'):
 def create_migrations_table_if_not_exists(mysql_connection: MySQLdb.Connection):
     cursor = mysql_connection.cursor()
     cursor.execute("SHOW TABLES LIKE 'migrations_applied'")
+
+    print(cursor.fetchone())
+
     if cursor.fetchone() is None:
         logger.info('Migrations table: "migrations_applied" does not exists. Creating.')
         cursor.execute(
