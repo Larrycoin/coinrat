@@ -6,22 +6,20 @@ import traceback
 import pika
 
 from coinrat.candle_storage_plugins import CandleStoragePlugins
-from coinrat.domain import deserialize_datetime_interval, DateTimeFactory, DateTimeInterval
-from coinrat.domain.pair import deserialize_pair
+from coinrat.domain import DateTimeFactory, DateTimeInterval
 from coinrat.domain.order import deserialize_order
-from coinrat.domain.candle import deserialize_candle_size, Candle, CandleStorage
+from coinrat.domain.candle import Candle, CandleStorage
 from coinrat.event.event_types import EVENT_LAST_CANDLE_UPDATED, EVENT_NEW_ORDER, EVENT_NEW_STRATEGY_RUN
-from coinrat.server.subscription_storage import SubscriptionStorage, LastCandleSubscription, NewOrderSubscription, \
-    NewStrategyRunSubscription
+from coinrat.event.subscription_factory import create_subscription
+from coinrat.server.subscription_storage import SubscriptionStorage, LastCandleSubscription
 from coinrat.server.socket_server import SocketServer
 from coinrat.thread_watcher import ThreadWatcher
+from coinrat.domain.strategy import deserialize_strategy_run
 
 # Some synchronizers are not good enough to provide real-time data, therefore candles are missing
 # This constant should be enough. If RabbitConsumer keeps crashing on:
 #       AssertionError: Its expected to found candles after getting candle-added event. But none found.
 # you probably need to fix synchronizer, because data from it are to much delayed.
-from coinrat.domain.strategy import deserialize_strategy_run
-
 SAFETY_MULTIPLIER = 10
 
 logger = logging.getLogger(__name__)
@@ -64,27 +62,7 @@ class RabbitEventConsumer(threading.Thread):
 
     def register_callbacks_for_socket_server(self):
         def on_subscribe(session_id, data):
-            if data['event'] == EVENT_LAST_CANDLE_UPDATED:
-                subscription = LastCandleSubscription(
-                    session_id,
-                    data['storage'],
-                    data['market'],
-                    deserialize_pair(data['pair']),
-                    deserialize_candle_size(data['candle_size'])
-                )
-            elif data['event'] == EVENT_NEW_ORDER:
-                subscription = NewOrderSubscription(
-                    session_id,
-                    data['storage'],
-                    data['market'],
-                    deserialize_pair(data['pair']),
-                    deserialize_datetime_interval(data['interval'])
-                )
-            elif data['event'] == EVENT_NEW_STRATEGY_RUN:
-                subscription = NewStrategyRunSubscription(session_id)
-            else:
-                raise ValueError('Event "{}" not supported'.format(data['event']))
-
+            subscription = create_subscription(session_id, data)
             self._subscription_storage.subscribe(subscription)
             return 'OK'
 
