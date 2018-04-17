@@ -1,5 +1,4 @@
 import logging
-import time
 
 import MySQLdb
 import os
@@ -31,7 +30,6 @@ yml_file_template = """databases:
 def run_db_migrations(mysql_connection: MySQLdb.Connection, tag='coinrat'):
     create_yml_file_for_migration_lib()
     create_migrations_table_if_not_exists(mysql_connection)
-    time.sleep(5)
     os.system("dbschema --config " + get_yml_filename() + " --tag " + tag)
 
 
