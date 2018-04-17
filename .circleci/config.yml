@@ -5,9 +5,6 @@ jobs:
       - image: circleci/python:3.6.3
       - image: circleci/mysql:latest
 
-    services:
-        - mysql
-
     working_directory: ~/repo
 
     steps:
