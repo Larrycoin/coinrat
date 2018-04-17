@@ -45,8 +45,7 @@
         },
         "coinrat": {
             "editable": true,
-            "git": "git@github.com:Achse/coinrat.git",
-            "ref": "3e2a5cd3f9f1ee7e7d2c99924cd810a34583e647"
+            "path": "."
         },
         "cryptocompare": {
             "hashes": [

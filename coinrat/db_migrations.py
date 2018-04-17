@@ -63,4 +63,4 @@ def create_yml_file_for_migration_lib():
 
 
 def get_yml_filename() -> str:
-    return '/tmp/coinrat/migrations.yml'
+    return '/tmp/coinrat_migrations.yml'
