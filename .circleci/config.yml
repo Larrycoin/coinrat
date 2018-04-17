@@ -16,7 +16,7 @@ jobs:
          name: install dependencies
          command: |
             sudo pip install pipenv
-            pipenv install --dev
+            pipenv install --python 3.6 --dev
 
       - run:
          name: prepare structure (dirs and files)
