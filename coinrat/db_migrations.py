@@ -29,7 +29,7 @@ yml_file_template = """databases:
 def run_db_migrations(mysql_connection: MySQLdb.Connection, tag='coinrat'):
     create_yml_file_for_migration_lib()
     create_migrations_table_if_not_exists(mysql_connection)
-    os.system("dbschema --config db_schema/migrations.yml --tag " + tag)
+    os.system("dbschema --config " + get_yml_filename() + " --tag " + tag)
 
 
 def create_migrations_table_if_not_exists(mysql_connection: MySQLdb.Connection):
@@ -47,7 +47,7 @@ def create_migrations_table_if_not_exists(mysql_connection: MySQLdb.Connection):
 
 
 def create_yml_file_for_migration_lib():
-    with open(os.path.join(current_directory, '../db_schema/migrations.yml'), 'w+') as migrations_config:
+    with open(get_yml_filename(), 'w+') as migrations_config:
         migrations_config.write(yml_file_template.format(
             os.environ.get('MYSQL_HOST'),
             os.environ.get('MYSQL_USER'),
@@ -58,3 +58,7 @@ def create_yml_file_for_migration_lib():
             os.environ.get('MYSQL_PASSWORD'),
             os.environ.get('MYSQL_DATABASE') + '_test'
         ))
+
+
+def get_yml_filename() -> str:
+    return os.path.join(current_directory, '../db_schema/migrations.yml')
