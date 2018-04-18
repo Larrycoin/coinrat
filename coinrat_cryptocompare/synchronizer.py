@@ -41,6 +41,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
         self._delay = delay
         self._number_of_runs = number_of_runs
         self._time_to_sleep_after_error = time_to_sleep_after_error
+        self._default_max_number_of_retries = max_number_of_retries
         self._max_number_of_retries = max_number_of_retries
 
     def synchronize(self, pair: Pair) -> None:
@@ -48,7 +49,6 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
             url = MINUTE_CANDLE_URL.format(pair.market_currency, pair.base_currency, MARKET_MAP[self._market_name])
 
             data = self.get_data_from_cryptocompare(url)
-            print(data)
 
             candles_data: List[Dict] = data['Data']
             candles = [self._create_candle_from_raw(pair, candle) for candle in candles_data]
@@ -70,6 +70,8 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
                 json_data = response.json()
                 if json_data['Response'] != 'Success':
                     raise CryptocompareRequestException(response.text)
+
+                self._reset_number_of_retries()
 
                 return json_data
             except TooManyRedirects as e:
@@ -99,3 +101,6 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
 
     def _should_suppress_connection_exception_and_retry(self) -> bool:
         return self._max_number_of_retries is None or self._max_number_of_retries > 0
+
+    def _reset_number_of_retries(self) -> None:
+        self._max_number_of_retries = self._default_max_number_of_retries
