@@ -44,6 +44,8 @@ Platform has five plugin types that are registered in `setup.py`:
     * You can check available strategies by: `pipenv run coinrat strategies`
 * `coinrat_candle_storage_plugins`, `coinrat_order_storage_plugins`, `coinrat_portfolio_snapshot_storage_plugins` - Storage plugins for the data. There is default implementation for InfluxDB.
 
+> **IMPORTANT**: If you want use Cryptocompare data pleas read their [conditions](https://min-api.cryptocompare.com/#faqs-pay) fist. They provide their data under *Creative Commons - Attribution Non-Commercial license*. So its free for non-commercial purposes. 
+
 ## Configuration for markets and strategies
 Each strategy (or market) can have special configuration. You can see it by running 
 `pipenv run coinrat market <market_name>` / `pipenv run coinrat strategy <strategy_name>`.
