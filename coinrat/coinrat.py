@@ -14,10 +14,12 @@ from dotenv import load_dotenv
 
 from coinrat.domain import ForEndUserException, DateTimeInterval
 from coinrat.domain.candle import CandleExporter
+from coinrat.domain.candle.null_candle_storage import NullCandleStorage
 from coinrat.domain.market import Market
 from coinrat.domain.order import OrderExporter
 from coinrat.domain.pair import Pair
 from coinrat.domain.strategy import StrategyRun, StrategyRunMarket
+from coinrat.event.null_event_emitter import NullEventEmitter
 from coinrat.market_plugins import MarketNotProvidedByPluginException, MarketPluginSpecification, \
     MarketPluginDoesNotExistsException
 from coinrat.strategy_plugins import StrategyNotProvidedByAnyPluginException
@@ -83,9 +85,14 @@ def market(market_name: str, market_plugin: str) -> None:
 
 @cli.command(help='Shows available synchronizers.')
 def synchronizers() -> None:
-    click.echo('Available synchronizers:')
-    for synchronizer_name in di_container.synchronizer_plugins.get_available_synchronizers():
+    synchronizer_plugins = di_container.synchronizer_plugins
+
+    click.echo('Available synchronizers and markets supported by them:')
+    for synchronizer_name in synchronizer_plugins.get_available_synchronizers():
         click.echo('  - {}'.format(synchronizer_name))
+        synchronizer = synchronizer_plugins.get_synchronizer(synchronizer_name, NullCandleStorage(), NullEventEmitter())
+        for market_name in synchronizer.get_supported_markets():
+            click.echo('    - {}'.format(market_name))
 
 
 @cli.command(help='Shows available candle storages.')
@@ -198,18 +205,25 @@ Example:
     python -m coinrat synchronize cryptocompare USD BTC
 """)
 @click.argument('synchronizer_name', nargs=1)
+@click.argument('market', nargs=1)
 @click.argument('pair', nargs=2)
 @click.option('--candle_storage', help='Specify candle storage to be synced into.', required=True)
 @click.pass_context
-def synchronize(ctx: Context, synchronizer_name: str, pair: Tuple[str, str], candle_storage: str) -> None:
+def synchronize(ctx: Context, synchronizer_name: str, market: str, pair: Tuple[str, str], candle_storage: str) -> None:
     pair_obj = Pair(pair[0], pair[1])
 
     synchronizer = di_container.synchronizer_plugins.get_synchronizer(
         synchronizer_name,
+        market,
         di_container.candle_storage_plugins.get_candle_storage(candle_storage),
         di_container.event_emitter
     )
-    synchronizer.synchronize(pair_obj)
+
+    available_markets = synchronizer.get_supported_markets()
+    if market not in available_markets:
+        print_error_and_terminate('Market "{}" is not supported by plugin "{}".'.format(market, synchronizer_name))
+
+    synchronizer.synchronize(market, pair_obj)
 
 
 @cli.command(help="""

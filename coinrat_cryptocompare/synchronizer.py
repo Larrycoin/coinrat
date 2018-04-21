@@ -9,7 +9,11 @@ from coinrat.domain.candle import Candle, CandleStorage
 from coinrat.domain.pair import Pair
 from coinrat.event.event_emitter import EventEmitter
 
+SYNCHRONIZER_NAME = 'cryptocompare'
+
 MINUTE_CANDLE_URL = 'https://min-api.cryptocompare.com/data/histominute?fsym={}&tsym={}&limit=1&aggregate=1&e={}'
+ALL_EXCHANGES_URL = 'https://min-api.cryptocompare.com/data/all/exchanges'
+
 MARKET_MAP = {
     'bittrex': 'BitTrex'
 }
@@ -19,13 +23,9 @@ class CryptocompareRequestException(Exception):
     pass
 
 
-SYNCHRONIZER_NAME = 'cryptocompare'
-
-
 class CryptocompareSynchronizer(MarketStateSynchronizer):
     def __init__(
         self,
-        market_name: str,
         storage: CandleStorage,
         event_emitter: EventEmitter,
         session: Session,
@@ -34,7 +34,6 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
         time_to_sleep_after_error: int = 10,
         max_number_of_retries: Union[int, None] = None
     ) -> None:
-        self._market_name = market_name
         self._storage = storage
         self._event_emitter = event_emitter
         self._session = session
@@ -44,14 +43,19 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
         self._default_max_number_of_retries = max_number_of_retries
         self._max_number_of_retries = max_number_of_retries
 
-    def synchronize(self, pair: Pair) -> None:
+    def synchronize(self, market_name: str, pair: Pair) -> None:
+        markets = self._get_all_exchanges()
+        if market_name not in markets:
+            raise ValueError('Market "{}" not supported by Cryptocompare.'.format(market_name))
+        cryptocompare_exchange_name = markets[market_name]
+
         while self._number_of_runs is None or self._number_of_runs > 0:
-            url = MINUTE_CANDLE_URL.format(pair.market_currency, pair.base_currency, MARKET_MAP[self._market_name])
+            url = MINUTE_CANDLE_URL.format(pair.market_currency, pair.base_currency, cryptocompare_exchange_name)
 
             data = self.get_data_from_cryptocompare(url)
 
             candles_data: List[Dict] = data['Data']
-            candles = [self._create_candle_from_raw(pair, candle) for candle in candles_data]
+            candles = [self._create_candle_from_raw(market_name, pair, candle) for candle in candles_data]
             self._storage.write_candles(candles)
             self._event_emitter.emit_new_candles(self._storage.name, candles)
 
@@ -59,6 +63,19 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
                 self._number_of_runs -= 1
 
             time.sleep(self._delay)
+
+    def get_supported_markets(self) -> List[str]:
+        return self._get_all_exchanges().keys()
+
+    def _get_all_exchanges(self) -> Dict[str, str]:
+        response = self._session.get(ALL_EXCHANGES_URL)
+        data: Dict = response.json()
+
+        result = {}
+        for key, items in data.items():
+            result[key.lower()] = key
+
+        return result
 
     def get_data_from_cryptocompare(self, url: str) -> Dict:
         while True:
@@ -84,9 +101,10 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
                 time.sleep(self._time_to_sleep_after_error)
                 self._count_connection_error_retry()
 
-    def _create_candle_from_raw(self, pair: Pair, candles_data: Dict) -> Candle:
+    @staticmethod
+    def _create_candle_from_raw(market_name: str, pair: Pair, candles_data: Dict) -> Candle:
         return Candle(
-            self._market_name,
+            market_name,
             pair,
             datetime.fromtimestamp(candles_data['time']).astimezone(timezone.utc),
             Decimal(candles_data['open']),

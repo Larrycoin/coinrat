@@ -22,7 +22,7 @@ class SynchronizerPluginSpecification(PluginSpecification):
         raise NotImplementedError()
 
     @get_synchronizer_spec
-    def get_synchronizer(self, name, storage, event_emitter):
+    def get_synchronizer(self, synchronizer_name, storage, event_emitter):
         raise NotImplementedError()
 
 
@@ -34,7 +34,7 @@ class SynchronizerPlugins:
     def __init__(self) -> None:
         self._plugins = cast(
             Set[SynchronizerPluginSpecification],
-            plugins_loader('coinrat_synchronizer_plugins',SynchronizerPluginSpecification)
+            plugins_loader('coinrat_synchronizer_plugins', SynchronizerPluginSpecification)
         )
 
     def get_available_synchronizers(self) -> List[str]:
@@ -42,9 +42,14 @@ class SynchronizerPlugins:
             synchronize_name for plugin in self._plugins for synchronize_name in plugin.get_available_synchronizers()
         ]
 
-    def get_synchronizer(self, name: str, storage: CandleStorage, event_emitter: EventEmitter) -> MarketStateSynchronizer:
+    def get_synchronizer(
+        self,
+        synchronizer_name: str,
+        storage: CandleStorage,
+        event_emitter: EventEmitter
+    ) -> MarketStateSynchronizer:
         for plugin in self._plugins:
-            if name in plugin.get_available_synchronizers():
-                return plugin.get_synchronizer(name, storage, event_emitter)
+            if synchronizer_name in plugin.get_available_synchronizers():
+                return plugin.get_synchronizer(synchronizer_name, storage, event_emitter)
 
-        raise SynchronizerNotProvidedByAnyPluginException('Synchronizer "{}" not found.'.format(name))
+        raise SynchronizerNotProvidedByAnyPluginException('Synchronizer "{}" not found.'.format(synchronizer_name))

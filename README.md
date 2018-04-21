@@ -56,8 +56,8 @@ You can create JSON file with specific properties and provide it via `-c` option
 
 ## Feed data from stock markets
 Fist, we need stock-market data. There are two synchronizers in default plugins:
-* `pipenv run coinrat synchronize bittrex USD BTC`
-* `pipenv run coinrat synchronize cryptocompare USD BTC`
+* `pipenv run coinrat synchronize bittrex bittrex USD BTC`
+* `pipenv run coinrat synchronize cryptocompare bittrex USD BTC`
 
 This process must always be running to keep you with current stock-market data.
 

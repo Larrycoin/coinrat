@@ -1,14 +1,14 @@
 import logging
 import time
 import traceback
-from typing import Union
+from typing import Union, List
 
 from coinrat.domain import MarketStateSynchronizer
 from coinrat.domain.candle import CandleStorage
 from coinrat.domain.market import MarketException
 from coinrat.domain.pair import Pair
 from coinrat.event.event_emitter import EventEmitter
-from .market import BittrexMarket
+from .market import BittrexMarket, MARKET_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,9 @@ class BittrexSynchronizer(MarketStateSynchronizer):
         self._number_of_runs = number_of_runs
         self._needs_resync_of_historical_data = True
 
-    def synchronize(self, pair: Pair):
+    def synchronize(self, market_name: str, pair: Pair):
+        if market_name != MARKET_NAME:
+            raise ValueError('BittrexSynchronizer does not support market "{}".'.format(market_name))
 
         while self._number_of_runs is None or self._number_of_runs > 0:
 
@@ -56,3 +58,6 @@ class BittrexSynchronizer(MarketStateSynchronizer):
                 self._number_of_runs -= 1
 
             time.sleep(self._delay)
+
+    def get_supported_markets(self) -> List[str]:
+        return [MARKET_NAME]

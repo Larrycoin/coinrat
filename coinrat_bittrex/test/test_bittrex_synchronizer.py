@@ -30,7 +30,7 @@ def test_synchronize_success():
     storage.should_receive('write_candles').times(2)
 
     synchronizer = BittrexSynchronizer(market, storage, create_emitter_mock(), delay=0, number_of_runs=2)
-    synchronizer.synchronize(BTC_USD_PAIR)
+    synchronizer.synchronize('bittrex', BTC_USD_PAIR)
 
 
 def test_synchronize_recover_from_error():
@@ -42,7 +42,7 @@ def test_synchronize_recover_from_error():
     storage.should_receive('write_candles')
 
     synchronizer = BittrexSynchronizer(market, storage, create_emitter_mock(), delay=0, number_of_runs=3)
-    synchronizer.synchronize(BTC_USD_PAIR)
+    synchronizer.synchronize('bittrex', BTC_USD_PAIR)
 
 
 def create_emitter_mock() -> EventEmitter:
