@@ -65,7 +65,7 @@ class CryptocompareSynchronizer(MarketStateSynchronizer):
             time.sleep(self._delay)
 
     def get_supported_markets(self) -> List[str]:
-        return self._get_all_exchanges().keys()
+        return list(self._get_all_exchanges().keys())
 
     def _get_all_exchanges(self) -> Dict[str, str]:
         response = self._session.get(ALL_EXCHANGES_URL)

@@ -214,7 +214,6 @@ def synchronize(ctx: Context, synchronizer_name: str, market: str, pair: Tuple[s
 
     synchronizer = di_container.synchronizer_plugins.get_synchronizer(
         synchronizer_name,
-        market,
         di_container.candle_storage_plugins.get_candle_storage(candle_storage),
         di_container.event_emitter
     )
