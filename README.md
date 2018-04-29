@@ -1,6 +1,6 @@
 Build: [![CircleCI](https://circleci.com/gh/Achse/coinrat.svg?style=svg&circle-token=33676128239f1d0da010339bfbfb34a0d42576b0)](https://circleci.com/gh/Achse/coinrat)
 
-> **Note**: This project started as a Thesis project at ČVUT FIT. [Assignment of diploma thesis here](https://github.com/Achse/coinrat_thesis#thesis-assignment) (early stage was developed during [CVUT Python Course](http://naucse.python.cz/2017/mipyt-zima/)).
+> **Note**: This project started as a Thesis project at ČVUT FIT. [Assignment of diploma thesis here](https://github.com/Achse/coinrat_thesis#assignment) (early stage was developed during [CVUT Python Course](http://naucse.python.cz/2017/mipyt-zima/)).
 
 # CoinRat
 Coinrat is modular auto-trading platform focused on crypto-currencies. This repository is contains platform itself
