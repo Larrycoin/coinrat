@@ -79,6 +79,13 @@ Run one of default strategies with this command: `pipenv run coinrat run_strateg
 3. **Failed building wheel for mysqlclient** → `sudo apt-get install python3.6-dev libmysqlclient-dev` (See [#29](https://github.com/Achse/coinrat/issues/29).)
 4. **ERROR: For market "bittrex" no candles in storage "influx_db".** → No data for given **market**, **storage** and selected **time period** / your time interval is too small.
 5. **Every second candle is missing.** → See [#29](https://github.com/Achse/coinrat/issues/29).
+6. **After adding dependency via `pipenv` changes in code wont propagate.**  → Make sure in your `Pipfile.lock` version of `coinrat` is NOT exactly specified and there is just:  
+ ```json
+"coinrat": {
+    "editable": true,
+    "path": "."
+},
+```
 
 ## Additional tips & tricks
 * There is visualization tool for Influx DB called [Chronograf](https://github.com/influxdata/chronograf), it can be useful for visualizing data too.

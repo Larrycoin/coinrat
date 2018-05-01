@@ -1,12 +1,9 @@
 [[source]]
-
 name = "pypi"
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 
-
 [packages]
-
 coinrat = {path = ".", editable = true}
 click = "==6.7"
 cryptocompare = "==0.3"
@@ -24,10 +21,9 @@ python-socketio = "==1.8.3"
 requests = "==2.18.4"
 python-bittrex = {git = "https://github.com/ericsomdahl/python-bittrex.git"}
 setuptools = "*"
-
+ccxt = "*"
 
 [dev-packages]
-
 flexmock = "*"
 pytest = "==3.2.5"
 pytest-cov = "*"

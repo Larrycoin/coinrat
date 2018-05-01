@@ -74,12 +74,20 @@ def market(market_name: str, market_plugin: str) -> None:
         print_error_and_terminate(str(e))
 
     try:
-        market_obj = market_plugin_obj.get_market_class(market_name)
+        market_obj: Market = market_plugin_obj.get_market(market_name, di_container.datetime_factory, {})
     except MarketNotProvidedByPluginException as e:
         print_error_and_terminate(str(e))
 
     click.echo('Markets configuration structure:')
     print_structure_configuration(market_obj.get_configuration_structure())
+
+    click.echo('Available pairs:')
+    for pair in market_obj.get_all_tradable_pairs():
+        click.echo('  - {}-{}'.format(pair.base_currency, pair.market_currency))
+
+    click.echo('Fees:')
+    click.echo('  - Maker: {}%'.format(market_obj.transaction_maker_fee))
+    click.echo('  - Taker: {}%'.format(market_obj.transaction_taker_fee))
     click.echo()
 
 
